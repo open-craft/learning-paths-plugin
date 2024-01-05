@@ -41,12 +41,15 @@ django==3.2.23
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
     #   django-crum
+    #   django-model-utils
     #   django-waffle
     #   edx-django-utils
 django-crum==0.7.9
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
+django-model-utils==4.3.1
+    # via -r requirements/test.txt
 django-waffle==4.1.0
     # via
     #   -r requirements/test.txt
@@ -55,6 +58,8 @@ edx-django-utils==5.10.1
     # via -r requirements/test.txt
 edx-lint==5.3.6
     # via -r requirements/quality.in
+edx-opaque-keys==2.5.1
+    # via -r requirements/test.txt
 exceptiongroup==1.2.0
     # via
     #   -r requirements/test.txt
@@ -123,6 +128,10 @@ pylint-plugin-utils==0.8.2
     # via
     #   pylint-celery
     #   pylint-django
+pymongo==3.13.0
+    # via
+    #   -r requirements/test.txt
+    #   edx-opaque-keys
 pynacl==1.5.0
     # via
     #   -r requirements/test.txt
@@ -161,6 +170,7 @@ stevedore==5.1.0
     #   -r requirements/test.txt
     #   code-annotations
     #   edx-django-utils
+    #   edx-opaque-keys
 text-unidecode==1.3
     # via
     #   -r requirements/test.txt
@@ -178,4 +188,5 @@ typing-extensions==4.9.0
     #   -r requirements/test.txt
     #   asgiref
     #   astroid
+    #   edx-opaque-keys
     #   pylint

@@ -3,5 +3,7 @@
 
 Django             # Web application framework
 
+django-model-utils
 edx-django-utils
+edx-opaque-keys
 openedx-atlas
