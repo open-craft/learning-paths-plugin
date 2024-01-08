@@ -4,14 +4,10 @@
 apiVersion: backstage.io/v1alpha1
 kind: ""
 metadata:
-  name: 'repo_name'
+  name: 'learning-paths-plugin'
   description: "Learning Paths plugin"
   annotations:
     # (Optional) Annotation keys and values can be whatever you want.
-    # We use it in Open edX repos to have a comma-separated list of GitHub user
-    # names that might be interested in changes to the architecture of this
-    # component.
-    openedx.org/arch-interest-groups: ""
 spec:
 
   # (Required) This can be a group(`group:<group_name>` or a user(`user:<github_username>`)
