@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Tests for the `repo_name` models module.
+Tests for the `learning-paths-plugin` models module.
 """
 
 import pytest

@@ -129,13 +129,13 @@ README = open(os.path.join(os.path.dirname(__file__), 'README.rst'), encoding="u
 CHANGELOG = open(os.path.join(os.path.dirname(__file__), 'CHANGELOG.rst'), encoding="utf8").read()
 
 setup(
-    name='learning-paths',
+    name='learning-paths-plugin',
     version=VERSION,
     description="""Learning Paths plugin""",
     long_description=README + '\n\n' + CHANGELOG,
     author='OpenCraft',
     author_email='help@opencraft.com',
-    url='https://github.com/open-craft/repo_name',
+    url='https://github.com/open-craft/learning-paths-plugin',
     packages=find_packages(
         include=['learning_paths', 'learning_paths.*'],
         exclude=["*tests"],

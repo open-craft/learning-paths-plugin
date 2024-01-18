@@ -1,6 +1,6 @@
 # pylint: disable=invalid-name
 """
-learning-paths documentation build configuration file.
+learning-paths-plugin documentation build configuration file.
 
 This file is execfile()d with the current directory set to its
 containing dir.
@@ -91,17 +91,17 @@ source_suffix = '.rst'
 top_level_doc = 'index'
 
 # General information about the project.
-project = 'learning-paths'
-copyright = f'{datetime.now().year}, Axim Collaborative, Inc.'  # pylint: disable=redefined-builtin
-author = 'Axim Collaborative, Inc.'
-project_title = 'learning-paths'
+project = 'learning-paths-plugin'
+copyright = f'{datetime.now().year}, OpenCraft'  # pylint: disable=redefined-builtin
+author = 'OpenCraft'
+project_title = 'learning-paths-plugin'
 documentation_title = f"{project_title}"
 
 # Set display_github to False if you don't want "edit on Github" button
 html_context = {
     "display_github": True,  # Integrate GitHub
-    "github_user": "edx",  # Username
-    "github_repo": 'repo_name',  # Repo name
+    "github_user": "open-craft",  # Username
+    "github_repo": 'learning-paths-plugin',  # Repo name
     "github_version": "main",  # Version
     "conf_py_path": "/docs/",  # Path in the checkout to the docs root
 }
@@ -186,7 +186,7 @@ html_theme = 'sphinx_book_theme'
 # documentation.
 #
 html_theme_options = {
-    "repository_url": "https://github.com/open-craft/repo_name",
+    "repository_url": "https://github.com/open-craft/learning-paths-plugin",
     "repository_branch": 'main',
     "path_to_docs": "docs/",
     "home_page_in_toc": True,
@@ -223,7 +223,7 @@ html_theme_options = {
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
 #
-# html_title = 'learning-paths v0.1.0'
+# html_title = 'learning-paths-plugin v0.1.0'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #
