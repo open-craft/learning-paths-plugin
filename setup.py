@@ -140,7 +140,13 @@ setup(
         include=['learning_paths', 'learning_paths.*'],
         exclude=["*tests"],
     ),
-
+    entry_points={
+        "lms.djangoapp": [
+            "learning_paths = learning_paths.apps:LearningPathsConfig",
+        ],
+        "cms.djangoapp": [
+        ],
+    },
     include_package_data=True,
     install_requires=load_requirements('requirements/base.in'),
     python_requires=">=3.8",
