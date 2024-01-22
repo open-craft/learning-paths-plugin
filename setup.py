@@ -144,8 +144,6 @@ setup(
         "lms.djangoapp": [
             "learning_paths = learning_paths.apps:LearningPathsConfig",
         ],
-        "cms.djangoapp": [
-        ],
     },
     include_package_data=True,
     install_requires=load_requirements('requirements/base.in'),
