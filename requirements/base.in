@@ -3,5 +3,5 @@
 
 Django             # Web application framework
 
-
+edx-django-utils
 openedx-atlas
