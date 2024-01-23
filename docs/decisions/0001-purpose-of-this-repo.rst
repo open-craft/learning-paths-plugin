@@ -4,9 +4,7 @@
 Status
 ******
 
-**Draft**
-
-.. TODO: When ready, update the status from Draft to Provisional or Accepted.
+**Provisional**
 
 .. Standard statuses
     - **Draft** if the decision is newly proposed and in active discussion
@@ -19,39 +17,44 @@ Status
 Context
 *******
 
-TODO: Add context of what led to the creation of this repo.
-
-.. This section describes the forces at play, including technological, political, social, and project local. These forces are probably in tension, and should be called out as such. The language in this section is value-neutral. It is simply describing facts.
+Organizations want to offer courses in bundles that learners can sign
+up for once and progress through. The aim of a Learning Path is for learners to
+master a particular subject or skill.
 
 Decision
 ********
 
-We will create a repository...
+We will create an Open edX Django plugin that implements the necessary
+functionality. This plugin will provide the necessary data models and
+interface for the admins to create and manage the Learning Paths and related
+actions like enrollments and credentials.
 
-TODO: Clearly state how the context above led to the creation of this repo.
-
-.. This section describes our response to these forces. It is stated in full sentences, with active voice. "We will …"
+In the initial implementation, we will use the Programs feature of the
+`course discovery`_ as the final data store and sync the data from the
+learning-paths-plugin to course-discovery. This provides a quick way to
+include the Learning Paths in other places like the `enterprise catalog`_.
 
 Consequences
 ************
 
-TODO: Add what other things will change as a result of creating this repo.
+* The plugin provides a starting point for organizations to pack courses in
+  new ways not supported natively by the edx-platform.
 
-.. This section describes the resulting context, after applying the decision. All consequences should be listed here, not just the "positive" ones. A particular decision may have positive, negative, and neutral consequences, but all of them affect the team and project in the future.
+* By implementing the features as a plugin, the deployments are made easier.
+
+* We will have to implement a way to sync the data from learning-paths-plugin
+  to the course-discovery, which might introduce changes to the
+  course-discovery service.
 
 Rejected Alternatives
 *********************
 
-TODO: If applicable, list viable alternatives to creating this new repo and give reasons for why they were rejected. If not applicable, remove section.
-
-.. This section lists alternate options considered, described briefly, with pros and cons.
+We considered using the edX Programs feature, however the edX enterprise
+stack is very complex and very specific to edx.org's business requirements,
+presenting numerous challenges in deployment and customisation.
 
 References
 **********
 
-TODO: If applicable, add any references. If not applicable, remove section.
-
-.. (Optional) List any additional references here that would be useful to the future reader. See `Documenting Architecture Decisions`_ and `OEP-19 on ADRs`_ for further input.
-
-.. _Documenting Architecture Decisions: https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions
-.. _OEP-19 on ADRs: https://open-edx-proposals.readthedocs.io/en/latest/best-practices/oep-0019-bp-developer-documentation.html#adrs
+.. _course discovery: https://github.com/openedx/course-discovery/
+.. _enterprise catalog: https://github.com/openedx/enterprise-catalog/
