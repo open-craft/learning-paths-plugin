@@ -23,13 +23,17 @@ build==1.0.3
 certifi==2023.11.17
     # via requests
 cffi==1.16.0
-    # via cryptography
+    # via
+    #   -r requirements/test.txt
+    #   cryptography
+    #   pynacl
 charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via
     #   -r requirements/test.txt
     #   code-annotations
+    #   edx-django-utils
 code-annotations==1.5.0
     # via -r requirements/test.txt
 coverage[toml]==7.4.0
@@ -43,6 +47,20 @@ django==3.2.23
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
+    #   django-crum
+    #   django-model-utils
+    #   django-waffle
+    #   edx-django-utils
+django-crum==0.7.9
+    # via
+    #   -r requirements/test.txt
+    #   edx-django-utils
+django-model-utils==4.3.1
+    # via -r requirements/test.txt
+django-waffle==4.1.0
+    # via
+    #   -r requirements/test.txt
+    #   edx-django-utils
 doc8==1.1.1
     # via -r requirements/doc.in
 docutils==0.19
@@ -52,6 +70,10 @@ docutils==0.19
     #   readme-renderer
     #   restructuredtext-lint
     #   sphinx
+edx-django-utils==5.10.1
+    # via -r requirements/test.txt
+edx-opaque-keys==2.5.1
+    # via -r requirements/test.txt
 exceptiongroup==1.2.0
     # via
     #   -r requirements/test.txt
@@ -87,7 +109,7 @@ keyring==24.3.0
     # via twine
 markdown-it-py==3.0.0
     # via rich
-markupsafe==2.1.3
+markupsafe==2.1.4
     # via
     #   -r requirements/test.txt
     #   jinja2
@@ -95,6 +117,10 @@ mdurl==0.1.2
     # via markdown-it-py
 more-itertools==10.2.0
     # via jaraco-classes
+newrelic==9.5.0
+    # via
+    #   -r requirements/test.txt
+    #   edx-django-utils
 nh3==0.2.15
     # via readme-renderer
 openedx-atlas==0.6.0
@@ -116,8 +142,14 @@ pluggy==1.3.0
     # via
     #   -r requirements/test.txt
     #   pytest
+psutil==5.9.8
+    # via
+    #   -r requirements/test.txt
+    #   edx-django-utils
 pycparser==2.21
-    # via cffi
+    # via
+    #   -r requirements/test.txt
+    #   cffi
 pydata-sphinx-theme==0.14.4
     # via sphinx-book-theme
 pygments==2.17.2
@@ -128,6 +160,14 @@ pygments==2.17.2
     #   readme-renderer
     #   rich
     #   sphinx
+pymongo==3.13.0
+    # via
+    #   -r requirements/test.txt
+    #   edx-opaque-keys
+pynacl==1.5.0
+    # via
+    #   -r requirements/test.txt
+    #   edx-django-utils
 pyproject-hooks==1.0.0
     # via build
 pytest==7.4.4
@@ -201,6 +241,8 @@ stevedore==5.1.0
     #   -r requirements/test.txt
     #   code-annotations
     #   doc8
+    #   edx-django-utils
+    #   edx-opaque-keys
 text-unidecode==1.3
     # via
     #   -r requirements/test.txt
@@ -219,6 +261,7 @@ typing-extensions==4.9.0
     # via
     #   -r requirements/test.txt
     #   asgiref
+    #   edx-opaque-keys
     #   pydata-sphinx-theme
     #   rich
 urllib3==2.1.0
