@@ -15,3 +15,12 @@ Unreleased
 **********
 
 *
+
+0.2.0
+*****
+
+Added
+=====
+
+* Database models
+* Django Admin interface
