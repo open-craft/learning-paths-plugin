@@ -1,6 +1,7 @@
 """
 Compatibility layer for testing without Open edX.
 """
+
 from unittest.mock import Mock
 
 try:
