@@ -1,6 +1,9 @@
 """
 Database models for learning_paths.
 """
+
+from uuid import uuid4
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
@@ -20,12 +23,16 @@ class LearningPath(TimeStampedModel):
     .. no_pii:
     """
 
+    # LearningPath is consumed as a course-discovery Program.
+    # Programs are identified by UUIDs and this why we must have this UUID field.
+    uuid = models.UUIDField(blank=True, default=uuid4, editable=False, unique=True)
     slug = models.SlugField(
         db_index=True,
         unique=True,
         help_text=_("Custom unique code identifying this Learning Path."),
     )
     display_name = models.CharField(max_length=255)
+    subtitle = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     # We don't use URLField here in order to allow e.g. relative URLs.
     # max_length=200 as from URLField.
