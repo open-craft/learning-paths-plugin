@@ -2,12 +2,16 @@
 Database models for learning_paths.
 """
 
+from datetime import timedelta
 from uuid import uuid4
 
+from django.contrib import auth
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
 from opaque_keys.edx.django.models import CourseKeyField
+
+User = auth.get_user_model()
 
 LEVEL_CHOICES = [
     ("beginner", _("Beginner")),
@@ -57,6 +61,7 @@ class LearningPath(TimeStampedModel):
             "Whether the courses in this Learning Path are meant to be taken sequentially."
         ),
     )
+    enrolled_users = models.ManyToManyField(User, through="LearningPathEnrollment")
 
     def __str__(self):
         """User-friendly string representation of this model."""
@@ -153,3 +158,30 @@ class AcquiredSkill(LearningPathSkill):
 
     .. no_pii:
     """
+
+
+class LearningPathEnrollment(TimeStampedModel):
+    """
+    A user enrolled in a Learning Path.
+
+    .. no_pii:
+    """
+
+    class Meta:
+        """Model options."""
+
+        unique_together = ("user", "learning_path")
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    learning_path = models.ForeignKey(LearningPath, on_delete=models.CASCADE)
+
+    def __str__(self):
+        """User-friendly string representation of this model."""
+        return "{}: {}".format(self.user, self.learning_path)
+
+    @property
+    def estimated_end_date(self):
+        """Estimated end date of the learning path."""
+        if self.learning_path.duration_in_days is None:
+            return None
+        return self.created + timedelta(days=self.learning_path.duration_in_days)
