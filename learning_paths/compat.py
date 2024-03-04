@@ -13,6 +13,6 @@ except ImportError:
 try:
     from common.djangoapps.student.models import CourseEnrollment
 except ImportError:
-    CourseEnrollment = None
+    CourseEnrollment = Mock()
 
 __all__ = ["get_course_keys_with_outlines", "CourseEnrollment"]
