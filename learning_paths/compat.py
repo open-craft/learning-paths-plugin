@@ -15,7 +15,4 @@ try:
 except ImportError:
     CourseEnrollment = None
 
-__all__ = [
-    "get_course_keys_with_outlines",
-    "CourseEnrollment"
-]
+__all__ = ["get_course_keys_with_outlines", "CourseEnrollment"]

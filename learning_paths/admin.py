@@ -122,20 +122,26 @@ class LearningPathAdmin(admin.ModelAdmin):
     def save_related(self, request, form, formsets, change):
         """Save related objects and enroll users in the learning path."""
         super().save_related(request, form, formsets, change)
-        enroll_all_in_courses = form.cleaned_data.get('enroll_all_in_courses', False)
+        enroll_all_in_courses = form.cleaned_data.get("enroll_all_in_courses", False)
         with transaction.atomic():
             for user in form.cleaned_data["usernames"]:
-                learning_path_enrollment, created = LearningPathEnrollment.objects.get_or_create(
-                    user=user, learning_path=form.instance
+                learning_path_enrollment, created = (
+                    LearningPathEnrollment.objects.get_or_create(
+                        user=user, learning_path=form.instance
+                    )
                 )
                 if enroll_all_in_courses:
-                    courses = LearningPathStep.objects.filter(learning_path=form.instance).values_list('course_key', flat=True)
+                    courses = LearningPathStep.objects.filter(
+                        learning_path=form.instance
+                    ).values_list("course_key", flat=True)
                     for course_key in courses:
                         LearningPathCourseEnrollment.objects.create(
                             course_key=course_key,
                             learning_path_enrollment=learning_path_enrollment,
-                            course_enrollment=CourseEnrollment.objects.get_or_create(user=user, course_id=course_key)[0],
-                            status=LearningPathCourseEnrollment.ACTIVE
+                            course_enrollment=CourseEnrollment.objects.get_or_create(
+                                user=user, course_id=course_key
+                            )[0],
+                            status=LearningPathCourseEnrollment.ACTIVE,
                         )
 
 
@@ -158,11 +164,14 @@ class EnrolledUsersAdmin(admin.ModelAdmin):
         "learning_path__display_name",
     ]
 
+
 class LearningPathCourseEnrollmentAdmin(admin.ModelAdmin):
-    """ Admin for Learning Path Course enrollments."""
+    """Admin for Learning Path Course enrollments."""
+
     model = LearningPathCourseEnrollment
-    list_display = ['learning_path_enrollment', 'course_key', 'status']
-    list_filter = ['status']
+    list_display = ["learning_path_enrollment", "course_key", "status"]
+    list_filter = ["status"]
+
 
 admin.site.register(LearningPath, LearningPathAdmin)
 admin.site.register(Skill, SkillAdmin)
