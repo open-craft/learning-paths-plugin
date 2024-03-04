@@ -10,6 +10,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
 from opaque_keys.edx.django.models import CourseKeyField
+from .compat import CourseEnrollment
+# from common.djangoapps.student.models import CourseEnrollment
 
 User = auth.get_user_model()
 
@@ -185,3 +187,24 @@ class LearningPathEnrollment(TimeStampedModel):
         if self.learning_path.duration_in_days is None:
             return None
         return self.created + timedelta(days=self.learning_path.duration_in_days)
+
+
+class LearningPathCourseEnrollment(TimeStampedModel):
+    """
+    Model to track course enrollments that are part of a learning path
+    """
+    ACTIVE = 'active'
+    INACTIVE = 'inactive'
+    STATUS_CHOICES = (
+        (ACTIVE, 'Active'),
+        (INACTIVE, 'Inactive')
+    )
+    class Meta:
+        """Model options."""
+
+        unique_together = ('learning_path_enrollment', 'course_key')
+
+    learning_path_enrollment = models.ForeignKey(LearningPathEnrollment, on_delete=models.CASCADE)
+    course_key = CourseKeyField(max_length=255)
+    status = models.CharField(max_length=9, choices=STATUS_CHOICES)
+    course_enrollment = models.ForeignKey(CourseEnrollment, on_delete=models.CASCADE)
