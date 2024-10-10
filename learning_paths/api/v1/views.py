@@ -1,14 +1,14 @@
 """
 Views for LearningPath.
 """
-
+from django.http import JsonResponse
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
 from learning_paths.api.v1.serializers import LearningPathAsProgramSerializer
 from learning_paths.models import LearningPath
-
+from .utils import get_aggregate_progress
 
 class LearningPathAsProgramViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -23,3 +23,17 @@ class LearningPathAsProgramViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = LearningPathAsProgramSerializer
     pagination_class = PageNumberPagination
+
+
+def learning_path_progress_view(request, learning_path_id):
+    """
+    API view to return the aggregate progress of a user in a learning path.
+    """
+    try:
+        learning_path = LearningPath.objects.get(id=learning_path_id)
+    except LearningPath.DoesNotExist:
+        return JsonResponse({'error': 'Learning Path not found'}, status=404)
+
+    aggregate_progress = get_aggregate_progress(request, learning_path)
+
+    return JsonResponse({'learning_path_id': learning_path_id, 'aggregate_progress': aggregate_progress})
