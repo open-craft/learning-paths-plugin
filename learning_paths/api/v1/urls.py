@@ -15,7 +15,7 @@ router.register(
 
 urlpatterns = router.urls + [
     path(
-        "learning-paths/<int:learning_path_id>/progress/",
+        "learning-paths/<uuid:learning_path_uuid>/progress/",
         learning_path_progress_view,
         name="learning-path-progress",
     ),

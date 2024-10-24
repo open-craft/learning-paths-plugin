@@ -3,11 +3,14 @@ Views for LearningPath.
 """
 
 from django.http import JsonResponse
-from rest_framework import viewsets
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets, status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from learning_paths.api.v1.serializers import LearningPathAsProgramSerializer
+from learning_paths.api.v1.serializers import LearningPathAsProgramSerializer, LearningPathProgressSerializer
 from learning_paths.models import LearningPath
 from .utils import get_aggregate_progress
 
@@ -27,17 +30,23 @@ class LearningPathAsProgramViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = PageNumberPagination
 
 
-def learning_path_progress_view(request, learning_path_id):
+class LearningPathUserProgressView(APIView):
     """
     API view to return the aggregate progress of a user in a learning path.
     """
-    try:
-        learning_path = LearningPath.objects.get(id=learning_path_id)
-    except LearningPath.DoesNotExist:
-        return JsonResponse({"error": "Learning Path not found"}, status=404)
+    permission_classes = (IsAuthenticated,)
 
-    aggregate_progress = get_aggregate_progress(request, learning_path)
+    def get(self, request, learning_path_uuid):
+        learning_path = get_object_or_404(LearningPath, uuid=learning_path_uuid)
 
-    return JsonResponse(
-        {"learning_path_id": learning_path_id, "aggregate_progress": aggregate_progress}
-    )
+        aggregate_progress = get_aggregate_progress(request, learning_path)
+
+        data = {
+            'learning_path_id': learning_path.uuid,
+            'aggregate_progress': aggregate_progress
+        }
+
+        serializer = LearningPathProgressSerializer(data=data)
+        if serializer.is_valid():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
