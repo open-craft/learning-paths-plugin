@@ -3,7 +3,10 @@ from unittest import TestCase
 
 import pytest
 
-from learning_paths.api.v1.serializers import LearningPathAsProgramSerializer
+from learning_paths.api.v1.serializers import (
+    LearningPathAsProgramSerializer,
+    LearningPathProgressSerializer,
+)
 from learning_paths.models import LearningPath
 
 
@@ -34,3 +37,9 @@ class TestLearningPathAsProgramSerializer(TestCase):
             "course_codes": [],
         }
         self.assertDictEqual(serializer.data, expected)
+        progress_data = {
+            "learning_path_id": learning_path.uuid,
+            "aggregate_progress": 0.25,
+        }
+        progress_serializer = LearningPathProgressSerializer(progress_data)
+        self.assertDictEqual(progress_serializer.data, progress_data)
