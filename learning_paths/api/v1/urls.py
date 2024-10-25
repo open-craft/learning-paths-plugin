@@ -5,7 +5,7 @@ from rest_framework import routers
 
 from learning_paths.api.v1.views import (
     LearningPathAsProgramViewSet,
-    learning_path_progress_view,
+    LearningPathUserProgressView,
 )
 
 router = routers.SimpleRouter()
@@ -16,7 +16,7 @@ router.register(
 urlpatterns = router.urls + [
     path(
         "learning-paths/<uuid:learning_path_uuid>/progress/",
-        learning_path_progress_view,
+        LearningPathUserProgressView.as_view(),
         name="learning-path-progress",
     ),
 ]

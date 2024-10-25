@@ -2,16 +2,19 @@
 Views for LearningPath.
 """
 
-from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, status
+from rest_framework import status, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from learning_paths.api.v1.serializers import LearningPathAsProgramSerializer, LearningPathProgressSerializer
+from learning_paths.api.v1.serializers import (
+    LearningPathAsProgramSerializer,
+    LearningPathProgressSerializer,
+)
 from learning_paths.models import LearningPath
+
 from .utils import get_aggregate_progress
 
 
@@ -34,16 +37,20 @@ class LearningPathUserProgressView(APIView):
     """
     API view to return the aggregate progress of a user in a learning path.
     """
+
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, learning_path_uuid):
+        """
+        Fetch the learning path progress
+        """
         learning_path = get_object_or_404(LearningPath, uuid=learning_path_uuid)
 
         aggregate_progress = get_aggregate_progress(request, learning_path)
 
         data = {
-            'learning_path_id': learning_path.uuid,
-            'aggregate_progress': aggregate_progress
+            "learning_path_id": learning_path.uuid,
+            "aggregate_progress": aggregate_progress,
         }
 
         serializer = LearningPathProgressSerializer(data=data)
