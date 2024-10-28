@@ -68,3 +68,9 @@ class LearningPathAsProgramSerializer(serializers.ModelSerializer):
             "organizations",
             "course_codes",
         )
+
+
+# pylint: disable=abstract-method
+class LearningPathProgressSerializer(serializers.Serializer):
+    learning_path_id = serializers.UUIDField()
+    aggregate_progress = serializers.FloatField()

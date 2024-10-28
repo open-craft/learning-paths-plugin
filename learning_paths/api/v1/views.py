@@ -2,12 +2,20 @@
 Views for LearningPath.
 """
 
-from rest_framework import viewsets
+from django.shortcuts import get_object_or_404
+from rest_framework import status, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from learning_paths.api.v1.serializers import LearningPathAsProgramSerializer
+from learning_paths.api.v1.serializers import (
+    LearningPathAsProgramSerializer,
+    LearningPathProgressSerializer,
+)
 from learning_paths.models import LearningPath
+
+from .utils import get_aggregate_progress
 
 
 class LearningPathAsProgramViewSet(viewsets.ReadOnlyModelViewSet):
@@ -23,3 +31,29 @@ class LearningPathAsProgramViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = LearningPathAsProgramSerializer
     pagination_class = PageNumberPagination
+
+
+class LearningPathUserProgressView(APIView):
+    """
+    API view to return the aggregate progress of a user in a learning path.
+    """
+
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, learning_path_uuid):
+        """
+        Fetch the learning path progress
+        """
+        learning_path = get_object_or_404(LearningPath, uuid=learning_path_uuid)
+
+        aggregate_progress = get_aggregate_progress(request, learning_path)
+
+        data = {
+            "learning_path_id": learning_path.uuid,
+            "aggregate_progress": aggregate_progress,
+        }
+
+        serializer = LearningPathProgressSerializer(data=data)
+        if serializer.is_valid():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

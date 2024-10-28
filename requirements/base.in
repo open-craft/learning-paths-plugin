@@ -8,3 +8,4 @@ djangorestframework
 edx-django-utils
 edx-opaque-keys
 openedx-atlas
+openedx-completion-aggregator  # Required for fetching course completion
