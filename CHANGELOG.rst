@@ -24,3 +24,11 @@ Added
 
 * Database models
 * Django Admin interface
+
+0.2.1
+*****
+
+Added
+=====
+
+* Pathway progress API

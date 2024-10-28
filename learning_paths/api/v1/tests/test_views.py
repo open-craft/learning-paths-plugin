@@ -46,13 +46,13 @@ class LearningPathUserProgressTests(APITestCase):
         self.client.force_authenticate(user=self.user)
         self.learning_path = LearnerPathwayFactory.create()
 
-    @patch("learning_paths.api.v1.views.get_aggregate_progress")
-    def test_learning_path_progress_success(self, mock_get_aggregate_progress):
+    @patch("learning_paths.api.v1.views.get_aggregate_progress", return_value=0.75)
+    def test_learning_path_progress_success(
+        self, mock_get_aggregate_progress
+    ):  # pylint: disable=unused-argument
         """
         Test retrieving progress for a learning path.
         """
-        mock_get_aggregate_progress.return_value = 0.75
-
         url = reverse("learning-path-progress", args=[self.learning_path.uuid])
         request = APIRequestFactory().get(url, format="json")
         view = LearningPathUserProgressView.as_view()
