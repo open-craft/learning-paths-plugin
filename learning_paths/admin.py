@@ -16,6 +16,7 @@ from .models import (
     LearningPathStep,
     RequiredSkill,
     Skill,
+    LearningPathGradingCriteria,
 )
 
 User = auth.get_user_model()
@@ -54,6 +55,12 @@ class RequiredSkillInline(admin.TabularInline):
     """Inline Admin for Learning Path required skill."""
 
     model = RequiredSkill
+
+
+class LearningPathGradingCriteriaInline(admin.TabularInline):
+    """Inline Admin for Learning path grading criteria."""
+
+    model = LearningPathGradingCriteria
 
 
 class BulkEnrollUsersForm(forms.ModelForm):
@@ -110,6 +117,7 @@ class LearningPathAdmin(admin.ModelAdmin):
         LearningPathStepInline,
         RequiredSkillInline,
         AcquiredSkillInline,
+        LearningPathGradingCriteriaInline,
     ]
 
     def save_related(self, request, form, formsets, change):

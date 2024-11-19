@@ -100,6 +100,10 @@ class LearningPathStep(TimeStampedModel):
             "Ordinal position of this step in the sequence of the Learning Path, if applicable."
         ),
     )
+    weight = models.FloatField(
+        default=1.0,
+        help_text="Weight of this course in the learning path's aggregate grade.",
+    )
 
     def __str__(self):
         """User-friendly string representation of this model."""
@@ -185,3 +189,24 @@ class LearningPathEnrollment(TimeStampedModel):
         if self.learning_path.duration_in_days is None:
             return None
         return self.created + timedelta(days=self.learning_path.duration_in_days)
+
+
+class LearningPathGradingCriteria(models.Model):
+    """
+    Grading criteria for a learning path.
+    """
+
+    learning_path = models.OneToOneField(
+        LearningPath, related_name="grading_criteria", on_delete=models.CASCADE
+    )
+    completion_threshold = models.FloatField(
+        default=100.0,
+        help_text="Completion percentage threshold for this learning path.",
+    )
+    expected_grade = models.FloatField(
+        default=75.0,
+        help_text="Minimum average grade required to pass this learning path.",
+    )
+
+    def __str__(self):
+        return f"{self.learning_path.display_name} Grading Criteria"
