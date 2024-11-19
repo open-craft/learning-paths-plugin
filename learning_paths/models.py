@@ -194,6 +194,8 @@ class LearningPathEnrollment(TimeStampedModel):
 class LearningPathGradingCriteria(models.Model):
     """
     Grading criteria for a learning path.
+
+    .. no_pii:
     """
 
     learning_path = models.OneToOneField(
@@ -209,4 +211,5 @@ class LearningPathGradingCriteria(models.Model):
     )
 
     def __str__(self):
+        """User-friendly string representation of this model."""
         return f"{self.learning_path.display_name} Grading Criteria"

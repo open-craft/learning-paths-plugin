@@ -8,14 +8,14 @@ from django.conf import settings
 from opaque_keys.edx.keys import CourseKey
 
 try:
-    from openedx.core.djangoapps.catalog.utils import get_catalog_api_client
     from lms.djangoapps.grades.course_grade_factory import CourseGradeFactory
+    from openedx.core.djangoapps.catalog.utils import get_catalog_api_client
 except ImportError:
     pass
 from requests.exceptions import HTTPError
 from rest_framework.exceptions import APIException
 
-from ...models import LearningPathStep, LearningPathGradingCriteria
+from ...models import LearningPathGradingCriteria, LearningPathStep
 
 
 def get_course_completion(username: str, course_key: CourseKey, client: Any) -> float:

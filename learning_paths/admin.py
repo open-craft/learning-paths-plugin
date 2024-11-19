@@ -13,10 +13,10 @@ from .models import (
     AcquiredSkill,
     LearningPath,
     LearningPathEnrollment,
+    LearningPathGradingCriteria,
     LearningPathStep,
     RequiredSkill,
     Skill,
-    LearningPathGradingCriteria,
 )
 
 User = auth.get_user_model()

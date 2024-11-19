@@ -22,7 +22,6 @@ from .utils import (
     is_learning_path_completed,
 )
 
-
 User = get_user_model()
 
 

@@ -5,8 +5,8 @@ from rest_framework import routers
 
 from learning_paths.api.v1.views import (
     LearningPathAsProgramViewSet,
-    LearningPathUserProgressView,
     LearningPathUserGradeView,
+    LearningPathUserProgressView,
 )
 
 router = routers.SimpleRouter()
