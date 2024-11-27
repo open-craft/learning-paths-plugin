@@ -74,3 +74,14 @@ class LearningPathAsProgramSerializer(serializers.ModelSerializer):
 class LearningPathProgressSerializer(serializers.Serializer):
     learning_path_id = serializers.UUIDField()
     aggregate_progress = serializers.FloatField()
+
+
+class LearningPathGradeSerializer(serializers.Serializer):
+    """
+    Serializer for learning path grade.
+    """
+
+    learning_path_id = serializers.UUIDField()
+    is_completion_threshold_met = serializers.BooleanField()
+    aggregate_grade = serializers.FloatField()
+    meets_expected_grade = serializers.BooleanField()

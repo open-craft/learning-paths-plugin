@@ -3,6 +3,7 @@ Views for LearningPath.
 """
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.pagination import PageNumberPagination
@@ -12,15 +13,12 @@ from rest_framework.views import APIView
 
 from learning_paths.api.v1.serializers import (
     LearningPathAsProgramSerializer,
+    LearningPathGradeSerializer,
     LearningPathProgressSerializer,
 )
-from learning_paths.models import LearningPath, LearningPathGradingCriteria
+from learning_paths.models import LearningPath
 
-from .utils import (
-    calculate_learning_path_grade,
-    get_aggregate_progress,
-    is_learning_path_completed,
-)
+from .utils import get_aggregate_progress
 
 User = get_user_model()
 
@@ -69,7 +67,6 @@ class LearningPathUserProgressView(APIView):
 class LearningPathUserGradeView(APIView):
     """
     API view to return the aggregate grade of a user in a learning path.
-    Only accessible by staff users.
     """
 
     permission_classes = (IsAuthenticated,)
@@ -78,42 +75,32 @@ class LearningPathUserGradeView(APIView):
         """
         Fetch learning path grade
         """
-        if not request.user.is_staff:
-            return Response(
-                {"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN
-            )
-
-        username = request.query_params.get("username")
-        if not username:
-            return Response(
-                {"detail": "Username parameter is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        user = get_object_or_404(User, username=username)
 
         learning_path = get_object_or_404(LearningPath, uuid=learning_path_uuid)
 
         try:
-            grading_criteria = LearningPathGradingCriteria.objects.get(
-                learning_path=learning_path
-            )
-        except LearningPathGradingCriteria.DoesNotExist:
+            grading_criteria = learning_path.grading_criteria
+        except ObjectDoesNotExist:
             return Response(
                 {"detail": "Grading criteria not found for this learning path."},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        is_completed = is_learning_path_completed(user, learning_path)
-        aggregate_grade = calculate_learning_path_grade(user, learning_path)
+        aggregate_progress = get_aggregate_progress(request.user, learning_path)
+        is_completion_threshold_met = (
+            aggregate_progress >= grading_criteria.completion_threshold
+        )
+        aggregate_grade = grading_criteria.calculate_grade(request.user)
         meets_expected_grade = aggregate_grade >= grading_criteria.expected_grade
 
         data = {
-            "username": username,
             "learning_path_id": learning_path_uuid,
-            "is_completed": is_completed,
+            "is_completion_threshold_met": is_completion_threshold_met,
             "aggregate_grade": aggregate_grade,
             "meets_expected_grade": meets_expected_grade,
         }
 
-        return Response(data, status=status.HTTP_200_OK)
+        serializer = LearningPathGradeSerializer(data=data)
+        if serializer.is_valid():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
