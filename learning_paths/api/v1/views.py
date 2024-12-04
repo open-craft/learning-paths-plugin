@@ -88,16 +88,15 @@ class LearningPathUserGradeView(APIView):
 
         aggregate_progress = get_aggregate_progress(request.user, learning_path)
         is_completion_threshold_met = (
-            aggregate_progress >= grading_criteria.completion_threshold
+            aggregate_progress >= grading_criteria.required_completion
         )
         aggregate_grade = grading_criteria.calculate_grade(request.user)
-        meets_expected_grade = aggregate_grade >= grading_criteria.expected_grade
 
         data = {
             "learning_path_id": learning_path_uuid,
             "is_completion_threshold_met": is_completion_threshold_met,
             "aggregate_grade": aggregate_grade,
-            "meets_expected_grade": meets_expected_grade,
+            "required_grade": grading_criteria.required_grade,
         }
 
         serializer = LearningPathGradeSerializer(data=data)

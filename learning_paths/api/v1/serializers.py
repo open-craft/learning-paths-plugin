@@ -84,4 +84,4 @@ class LearningPathGradeSerializer(serializers.Serializer):
     learning_path_id = serializers.UUIDField()
     is_completion_threshold_met = serializers.BooleanField()
     aggregate_grade = serializers.FloatField()
-    meets_expected_grade = serializers.BooleanField()
+    required_grade = serializers.FloatField()

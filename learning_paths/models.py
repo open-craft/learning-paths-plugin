@@ -208,13 +208,19 @@ class LearningPathGradingCriteria(models.Model):
     learning_path = models.OneToOneField(
         LearningPath, related_name="grading_criteria", on_delete=models.CASCADE
     )
-    completion_threshold = models.FloatField(
+    required_completion = models.FloatField(
         default=100.0,
-        help_text="Completion percentage threshold for this learning path.",
+        help_text=(
+            "The minimum average completion percentage across all steps in the learning path "
+            "required to mark it as completed."
+        ),
     )
-    expected_grade = models.FloatField(
-        default=75.0,
-        help_text="Minimum average grade required to pass this learning path.",
+    required_grade = models.FloatField(
+        default=0.75,
+        help_text=(
+            "Minimum weighted arithmetic mean grade (0.0-1.0) required across all steps "
+            "to pass this learning path. The weight of each step is determined by its `weight` field."
+        ),
     )
 
     def __str__(self):
@@ -234,5 +240,4 @@ class LearningPathGradingCriteria(models.Model):
             weighted_sum += course_grade.percent * course_weight
             total_weight += course_weight
 
-        # Calculate the weighted average grade
-        return (weighted_sum / total_weight) * 100 if total_weight > 0 else 0.0
+        return weighted_sum / total_weight if total_weight > 0 else 0.0

@@ -82,8 +82,8 @@ class LearningPathUserGradeTests(APITestCase):
         self.learning_path = LearnerPathwayFactory.create()
         self.grading_criteria = LearnerPathGradingCriteriaFactory.create(
             learning_path=self.learning_path,
-            completion_threshold=80.0,
-            expected_grade=75.0,
+            required_completion=80.0,
+            required_grade=0.75,
         )
 
     def test_learning_path_grade_grading_criteria_not_found(self):
@@ -103,7 +103,7 @@ class LearningPathUserGradeTests(APITestCase):
     @patch("learning_paths.api.v1.views.get_aggregate_progress", return_value=80.0)
     @patch(
         "learning_paths.models.LearningPathGradingCriteria.calculate_grade",
-        return_value=85.0,
+        return_value=0.85,
     )
     def test_learning_path_grade_success(
         self, mock_calculate_grade, mock_get_progress
@@ -115,6 +115,6 @@ class LearningPathUserGradeTests(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["aggregate_grade"], 85.0)
+        self.assertEqual(response.data["aggregate_grade"], 0.85)
         self.assertTrue(response.data["is_completion_threshold_met"])
-        self.assertTrue(response.data["meets_expected_grade"])
+        self.assertTrue(response.data["required_grade"], 0.75)
