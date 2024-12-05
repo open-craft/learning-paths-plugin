@@ -3,7 +3,7 @@ import factory
 from django.contrib import auth
 from factory.fuzzy import FuzzyText
 
-from learning_paths.models import LearningPath
+from learning_paths.models import LearningPath, LearningPathGradingCriteria
 
 User = auth.get_user_model()
 
@@ -34,3 +34,12 @@ class LearnerPathwayFactory(factory.django.DjangoModelFactory):
     display_name = FuzzyText()
     description = FuzzyText()
     sequential = False
+
+
+class LearnerPathGradingCriteriaFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = LearningPathGradingCriteria
+
+    learning_path = factory.SubFactory(LearnerPathwayFactory)
+    required_completion = 0.80
+    required_grade = 0.75

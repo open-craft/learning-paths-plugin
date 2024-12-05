@@ -2,6 +2,8 @@
 Views for LearningPath.
 """
 
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.pagination import PageNumberPagination
@@ -11,11 +13,14 @@ from rest_framework.views import APIView
 
 from learning_paths.api.v1.serializers import (
     LearningPathAsProgramSerializer,
+    LearningPathGradeSerializer,
     LearningPathProgressSerializer,
 )
 from learning_paths.models import LearningPath
 
 from .utils import get_aggregate_progress
+
+User = get_user_model()
 
 
 class LearningPathAsProgramViewSet(viewsets.ReadOnlyModelViewSet):
@@ -46,14 +51,57 @@ class LearningPathUserProgressView(APIView):
         """
         learning_path = get_object_or_404(LearningPath, uuid=learning_path_uuid)
 
-        aggregate_progress = get_aggregate_progress(request, learning_path)
+        progress = get_aggregate_progress(request.user, learning_path)
+        required_completion = None
+        try:
+            grading_criteria = learning_path.grading_criteria
+            required_completion = grading_criteria.required_completion
+        except ObjectDoesNotExist:
+            pass
 
         data = {
             "learning_path_id": learning_path.uuid,
-            "aggregate_progress": aggregate_progress,
+            "progress": progress,
+            "required_completion": required_completion,
         }
 
         serializer = LearningPathProgressSerializer(data=data)
+        if serializer.is_valid():
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LearningPathUserGradeView(APIView):
+    """
+    API view to return the aggregate grade of a user in a learning path.
+    """
+
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, learning_path_uuid):
+        """
+        Fetch learning path grade
+        """
+
+        learning_path = get_object_or_404(LearningPath, uuid=learning_path_uuid)
+
+        try:
+            grading_criteria = learning_path.grading_criteria
+        except ObjectDoesNotExist:
+            return Response(
+                {"detail": "Grading criteria not found for this learning path."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        grade = grading_criteria.calculate_grade(request.user)
+
+        data = {
+            "learning_path_id": learning_path_uuid,
+            "grade": grade,
+            "required_grade": grading_criteria.required_grade,
+        }
+
+        serializer = LearningPathGradeSerializer(data=data)
         if serializer.is_valid():
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

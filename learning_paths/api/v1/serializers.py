@@ -73,4 +73,15 @@ class LearningPathAsProgramSerializer(serializers.ModelSerializer):
 # pylint: disable=abstract-method
 class LearningPathProgressSerializer(serializers.Serializer):
     learning_path_id = serializers.UUIDField()
-    aggregate_progress = serializers.FloatField()
+    progress = serializers.FloatField()
+    required_completion = serializers.FloatField()
+
+
+class LearningPathGradeSerializer(serializers.Serializer):
+    """
+    Serializer for learning path grade.
+    """
+
+    learning_path_id = serializers.UUIDField()
+    grade = serializers.FloatField()
+    required_grade = serializers.FloatField()

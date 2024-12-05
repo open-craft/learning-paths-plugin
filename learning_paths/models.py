@@ -6,10 +6,13 @@ from datetime import timedelta
 from uuid import uuid4
 
 from django.contrib import auth
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
 from opaque_keys.edx.django.models import CourseKeyField
+
+from .compat import get_user_course_grade
 
 User = auth.get_user_model()
 
@@ -100,6 +103,14 @@ class LearningPathStep(TimeStampedModel):
             "Ordinal position of this step in the sequence of the Learning Path, if applicable."
         ),
     )
+    weight = models.FloatField(
+        default=1.0,
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
+        help_text=_(
+            "Weight of this course in the learning path's aggregate grade."
+            "Specify as a floating point number between 0 and 1, where 1 represents 100%."
+        ),
+    )
 
     def __str__(self):
         """User-friendly string representation of this model."""
@@ -185,3 +196,48 @@ class LearningPathEnrollment(TimeStampedModel):
         if self.learning_path.duration_in_days is None:
             return None
         return self.created + timedelta(days=self.learning_path.duration_in_days)
+
+
+class LearningPathGradingCriteria(models.Model):
+    """
+    Grading criteria for a learning path.
+
+    .. no_pii:
+    """
+
+    learning_path = models.OneToOneField(
+        LearningPath, related_name="grading_criteria", on_delete=models.CASCADE
+    )
+    required_completion = models.FloatField(
+        default=0.80,
+        help_text=(
+            "The minimum average completion (0.0-1.0) across all steps in the learning path "
+            "required to mark it as completed."
+        ),
+    )
+    required_grade = models.FloatField(
+        default=0.75,
+        help_text=(
+            "Minimum weighted arithmetic mean grade (0.0-1.0) required across all steps "
+            "to pass this learning path. The weight of each step is determined by its `weight` field."
+        ),
+    )
+
+    def __str__(self):
+        """User-friendly string representation of this model."""
+        return f"{self.learning_path.display_name} Grading Criteria"
+
+    def calculate_grade(self, user):
+        """
+        Calculate the aggregate grade for a user across the learning path.
+        """
+        total_weight = 0.0
+        weighted_sum = 0.0
+
+        for step in self.learning_path.steps.all():
+            course_grade = get_user_course_grade(user, step.course_key)
+            course_weight = step.weight
+            weighted_sum += course_grade.percent * course_weight
+            total_weight += course_weight
+
+        return weighted_sum / total_weight if total_weight > 0 else 0.0

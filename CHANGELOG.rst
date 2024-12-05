@@ -32,3 +32,11 @@ Added
 =====
 
 * Pathway progress API
+
+0.2.2
+*****
+
+Added
+=====
+
+* User grade API

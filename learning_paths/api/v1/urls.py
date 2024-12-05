@@ -5,6 +5,7 @@ from rest_framework import routers
 
 from learning_paths.api.v1.views import (
     LearningPathAsProgramViewSet,
+    LearningPathUserGradeView,
     LearningPathUserProgressView,
 )
 
@@ -18,5 +19,10 @@ urlpatterns = router.urls + [
         "learning-paths/<uuid:learning_path_uuid>/progress/",
         LearningPathUserProgressView.as_view(),
         name="learning-path-progress",
+    ),
+    path(
+        "learning-paths/<uuid:learning_path_uuid>/grade/",
+        LearningPathUserGradeView.as_view(),
+        name="learning-path-grade",
     ),
 ]
