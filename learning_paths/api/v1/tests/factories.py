@@ -41,5 +41,5 @@ class LearnerPathGradingCriteriaFactory(factory.django.DjangoModelFactory):
         model = LearningPathGradingCriteria
 
     learning_path = factory.SubFactory(LearnerPathwayFactory)
-    required_completion = 100.0
+    required_completion = 0.80
     required_grade = 0.75

@@ -209,9 +209,9 @@ class LearningPathGradingCriteria(models.Model):
         LearningPath, related_name="grading_criteria", on_delete=models.CASCADE
     )
     required_completion = models.FloatField(
-        default=100.0,
+        default=0.80,
         help_text=(
-            "The minimum average completion percentage across all steps in the learning path "
+            "The minimum average completion (0.0-1.0) across all steps in the learning path "
             "required to mark it as completed."
         ),
     )

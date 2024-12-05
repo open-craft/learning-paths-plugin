@@ -51,11 +51,18 @@ class LearningPathUserProgressView(APIView):
         """
         learning_path = get_object_or_404(LearningPath, uuid=learning_path_uuid)
 
-        aggregate_progress = get_aggregate_progress(request.user, learning_path)
+        progress = get_aggregate_progress(request.user, learning_path)
+        required_completion = None
+        try:
+            grading_criteria = learning_path.grading_criteria
+            required_completion = grading_criteria.required_completion
+        except ObjectDoesNotExist:
+            pass
 
         data = {
             "learning_path_id": learning_path.uuid,
-            "aggregate_progress": aggregate_progress,
+            "progress": progress,
+            "required_completion": required_completion,
         }
 
         serializer = LearningPathProgressSerializer(data=data)
@@ -86,16 +93,11 @@ class LearningPathUserGradeView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        aggregate_progress = get_aggregate_progress(request.user, learning_path)
-        is_completion_threshold_met = (
-            aggregate_progress >= grading_criteria.required_completion
-        )
-        aggregate_grade = grading_criteria.calculate_grade(request.user)
+        grade = grading_criteria.calculate_grade(request.user)
 
         data = {
             "learning_path_id": learning_path_uuid,
-            "is_completion_threshold_met": is_completion_threshold_met,
-            "aggregate_grade": aggregate_grade,
+            "grade": grade,
             "required_grade": grading_criteria.required_grade,
         }
 

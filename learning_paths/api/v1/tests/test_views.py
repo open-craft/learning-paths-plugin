@@ -49,6 +49,11 @@ class LearningPathUserProgressTests(APITestCase):
         self.user = UserFactory()
         self.client.force_authenticate(user=self.user)
         self.learning_path = LearnerPathwayFactory.create()
+        self.grading_criteria = LearnerPathGradingCriteriaFactory.create(
+            learning_path=self.learning_path,
+            required_completion=0.80,
+            required_grade=0.75,
+        )
 
     @patch("learning_paths.api.v1.views.get_aggregate_progress", return_value=0.75)
     def test_learning_path_progress_success(
@@ -67,7 +72,8 @@ class LearningPathUserProgressTests(APITestCase):
 
         expected_data = {
             "learning_path_id": str(self.learning_path.uuid),
-            "aggregate_progress": 0.75,
+            "progress": 0.75,
+            "required_completion": 0.80,
         }
         serializer = LearningPathProgressSerializer(data=expected_data)
         serializer.is_valid()
@@ -82,7 +88,7 @@ class LearningPathUserGradeTests(APITestCase):
         self.learning_path = LearnerPathwayFactory.create()
         self.grading_criteria = LearnerPathGradingCriteriaFactory.create(
             learning_path=self.learning_path,
-            required_completion=80.0,
+            required_completion=0.80,
             required_grade=0.75,
         )
 
@@ -115,6 +121,5 @@ class LearningPathUserGradeTests(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["aggregate_grade"], 0.85)
-        self.assertTrue(response.data["is_completion_threshold_met"])
+        self.assertEqual(response.data["grade"], 0.85)
         self.assertTrue(response.data["required_grade"], 0.75)
