@@ -118,6 +118,7 @@ creating an enrollment.
 While this will solve the issues where an user is enrolled in a Learning Path,
 but lacks access to the underlying courses at the time of enrollment, it is
 flawed in other scenarios like:
+
 * courses in a learning path are gated by pre-requisites like skills or
   completion of other courses
 * courses are marked as "invite only" but are available via their enterprise's
