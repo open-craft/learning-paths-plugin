@@ -44,7 +44,8 @@ This API will allow learners to be enrolled in the
 | Permissions Required| LoggedIn                                              |
 +---------------------+-------------------------------------------------------+
 
-.. note:: The UUID of the learning_path_id will be replaced with a more
+.. note::
+   The UUID of the learning_path_id will be replaced with a more
    user-friendly value later.
 
 GET
@@ -69,9 +70,7 @@ POST
   Path reference by the ``learning_path_id``.
 * When ``username`` is passed and is different from the ``currentUser``, the user
   linked to ``username`` will be enrolled, if the ``currentUser`` is a **staff**
-  or **admin**.
-* For non-admin or non-staff users, when the ``currentUser`` and the user linked
-  to ``username`` are different, return a HTTP 403.
+  or **admin**. Otherwise, this will return an HTTP 403 error.
 
 DELETE
 """"""
@@ -102,7 +101,7 @@ Consequences
 * While access to courses can be restricted by marking them "Invitation
   Required", there is no such flag for a Learning Path. So, any learner who
   knows the ID of a Learning Path can enroll using the :ref:`Enroll API <enroll-api>`,
-  without actaully having access to any of the courses in the Learning Path. This
+  without having access to any of the courses in the Learning Path. This
   shortcoming will have be addressed in future development.
 
 Rejected Alternatives
