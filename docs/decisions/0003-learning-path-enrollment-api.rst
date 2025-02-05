@@ -164,7 +164,7 @@ If a Learning Path is composed of courses that are restricted using this flag,
 either partially (some of the courses) or fully (all the courses), it creates
 a scenario where a learner might be enrolled in a Learning Path using the
 :ref:`Enroll API <enroll-api>`, but cannot enroll into a course that is a part
-of the LearningPath.
+of the Learning Path.
 
 This limitation will be addressed in a future ADR, that could possibly introduce
 a flag on the ``LearningPath`` model allowing bypass of the "invitation-only"
@@ -184,9 +184,9 @@ While this will solve the issues where an user is enrolled in a Learning Path,
 but lacks access to the underlying courses at the time of enrollment, it is
 flawed in other scenarios like:
 
-* courses in a learning path are gated by pre-requisites like skills or
+* courses in a learning path are gated by prerequisites like skills or
   completion of other courses
 * courses are marked as "invite only" but are available via their enterprise's
   catalog ...etc.,
 * course is open during the time of Learning Path enrollment, but closes
-  before the learner completes preceeding courses.
+  before the learner completes preceding courses.
