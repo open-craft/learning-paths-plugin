@@ -1,6 +1,8 @@
+#################################
 0003 Learning Path Enrollment API
-###########################################
+#################################
 
+******
 Status
 ******
 
@@ -14,25 +16,86 @@ Status
 
     If an ADR has Draft status and the PR is under review, you can either use the intended final status (e.g. Provisional, Accepted, etc.), or you can clarify both the current and intended status using something like the following: "Draft (=> Provisional)". Either of these options is especially useful if the merged status is not intended to be Accepted.
 
+*******
 Context
 *******
 
-Learner enrollments in Learning Paths are captured in the
-LearningPathEnrollment model. However, there is no API exposing an interface to
-perform operations on the model.
+Learner enrollments in Learning Paths are captured in the LearningPathEnrollment
+model. In this ADR, it is enhanced with necessary fields and API to perform
+enrollments and store relevant data.
 
+********
 Decision
 ********
 
-We will create the following views in the ``api`` package to expose an API that can be called
-by other services and MFEs.
+1. LearningPathEnrollment Model
+===============================
 
-.. _enroll-api:
+Introduce new fields to the ``LearningPathEnrollment`` model:
 
-1. Enroll API
+#. ``is_active`` as a ``BooleanField`` that will indicate the enrolled/unenrolled
+   state of the learner.
+#. ``history`` as a `django-simple-history`_ ``HistoricalRecords`` field to
+   preserve the record of changes made on an enrollment.
+#. ``enrolled_at`` as a ``DateTimeField`` to record the timestamp of the
+   enrollment. This will be explicitly set/reset when a user is enrolled in the
+   Learning Path. It will hold the latest valid enrollment timestamp in case of
+   un-enrollment and re-enrollment.
+
+.. _django-simple-history: https://django-simple-history.readthedocs.io/en/latest/quick_start.html
+
+2. ManualEnrollmentAudit Model
+==============================
+
+Create a new Django model called ``ManualEnrollmentAudit`` to store metadata
+about the Learning Path enrollments created manually.
+
+**Reference:** LMS student course enrollment's `ManualEnrollmentAudit`_
+
+Model attributes
+
+* ``enrollment`` - ``ForeignKey`` field referencing ``LearningPathEnrollment``
+* ``enrolled_by`` - ``ForeignKey`` field referencing the ``User`` performing the
+  enrollment.
+* ``role`` - ``CharField`` to store the role of the user creating the enrollment.
+* ``enrolled_email`` - ``CharField`` to store the email of the learner.
+* ``state_transition`` - ``CharField`` to store the enrollment state transition.
+  This field will use the existing `TRANSITION_STATES`_ from the LMS.
+* ``reason`` - ``TextField`` to store reason for manual enrollment.
+* ``history`` - `django-simple-history`_ ``HistoricalRecords`` field
+
+.. _ManualEnrollmentAudit: https://github.com/openedx/edx-platform/blob/925716415c7794d3447acf575be241d767f5e07c/common/djangoapps/student/models/course_enrollment.py#L1514
+.. _TRANSITION_STATES: https://github.com/openedx/edx-platform/blob/925716415c7794d3447acf575be241d767f5e07c/common/djangoapps/student/models/course_enrollment.py#L88
+
+3. LearningPathEnrollmentAllowed Model
+======================================
+
+Create a new Django model called ``LearningPathEnrollmentAllowed`` to store
+records of future enrollments to specific Learning Paths. The users may or may
+not exist in the system yet.
+
+**Reference:** LMS student course enrollment's `CourseEnrollmentAllowed`_.
+Model
+
+Model Attributes
+
+* ``email`` - ``CharField`` to store the email of the user.
+* ``learning_path`` - ``ForeignKey`` field to store the reference to the Learning
+  Path.
+* ``user`` - ``ForeignKey`` to the user who will be enrolled. Nullable to allow
+  non-existing users to be referenced just with their email.
+
+This model will be subclassed from the ``TimeStampedModel`` to include the
+necessary timestamps.
+
+.. _CourseEnrollmentAllowed: https://github.com/openedx/edx-platform/blob/925716415c7794d3447acf575be241d767f5e07c/common/djangoapps/student/models/course_enrollment.py#L1588
+
+
+4. Enroll API
 =============
 
-This API will allow learners to be enrolled in the Learning Path.
+Implement an API exposing the LearningPathEnrollment model. This API will allow
+learners to be enrolled in the Learning Path.
 
 +---------------------+-------------------------------------------------------+
 | API Path            | /api/v1/learning-path-enrollment/<learning_path_id>   |
@@ -45,8 +108,9 @@ This API will allow learners to be enrolled in the Learning Path.
 +---------------------+-------------------------------------------------------+
 
 .. note::
-   The UUID of the learning_path_id will be replaced with a more
-   user-friendly value later.
+
+   The ``learning_path_id`` will be changed to a human readable content key.
+
 
 GET
 """
@@ -111,7 +175,7 @@ will have to be explicitly enabled.
   from non-staff members will be returned HTTP 403.
 
 
-2. Fetch Enrollments API
+5. Fetch Enrollments API
 ========================
 
 This API would list all the Learning Path enrollments
@@ -127,31 +191,73 @@ This API would list all the Learning Path enrollments
 | Permissions Required| LoggedIn                                              |
 +---------------------+-------------------------------------------------------+
 
+6. Bulk enrollment API
+======================
 
-3. LearningPathEnrollment Model
-===============================
+In order for staff to bulk enroll users into learning paths, implement the
+following API.
 
-Introduce new fields to the ``LearningPathEnrollment`` model:
++---------------------+-------------------------------------------------------+
+| API Path            | /api/v1/learning-path-enrollment/bulk_enroll/         |
++---------------------+-------------------------------------------------------+
+| Methods             | POST                                                  |
++---------------------+-------------------------------------------------------+
+| Permissions Required| Staff or Admin                                        |
++---------------------+-------------------------------------------------------+
 
-#. ``is_active`` as a ``BooleanField`` that will indicate the enrolled/unenrolled
-   state of the learner.
-#. ``history`` as a `django-simple-history`_ ``HistoricalRecords`` field to preserve
-   the record of changes made on an enrollment.
+The API will accept the following JSON data.
 
-.. note::
+.. code::
 
-   Since it is already a subclass of the ``TimeStatmpedModel``, we don't need to
-   introduce a ``enrolled_at`` field and can instead depend on the inherited ``created``
-   field.
+   {
+     "learning_paths": "path-v1:ABC+XYZ+2025_Term1,path-v1:CC+DDD+2025_Term1",
+     "emails": "userA@example.com,new_user@example.com",
+     "reason": "reason for bulk enrollment"
+   }
 
 
-.. _django-simple-history: https://django-simple-history.readthedocs.io/en/latest/quick_start.html
+* `learning_paths` - a comma separated list of the Learning Path keys to enroll
+  learner into
+* `emails` - a comma separated list of emails of the learners to enroll
+* `reason` - text explaining the reason for the bulk enrollment
+
+The API view filter out the invalid emails and Learning Path IDs before
+processing the enrollments. For all combination of valid Learning Paths and the
+user emails, the following will be created:
+
+#. A ``LearningPathEnrollmentAllowed`` object - with users linked for existing
+   users, and just the emails for non-existing users.
+#. A ``LearningPathEnrollment`` object for existing users.
+#. A ``ManualEnrollmentAudit`` object which captures all the necessary metadata
+   from the API call like ``enrolled_by`` user, ``reason`` and the relevant
+   ``state_transition``.
+
+7. User model post_save signal receiver for auto enrollment
+===========================================================
+
+Since the bulk enrollment API supports enrolling non-existant users by creating
+``LearningPathEnrollmentAllowed`` objects with just the email, there needs to be
+a mechanism to automatically enroll the users when they register.
+
+For course bulk enrollment, this is currently implemented in the
+`user_post_save_callback`_ signal receiver.
+
+By implementing a similar receiver in the learning-paths-plugin, learners who
+have been enrolled into Learning Paths with their emails by the staff (i.e.,
+with valid ``LearningPathEnrollmentAllowed`` objects), can be automatically
+enrolled and their corresponding ``LearningPathEnrollment`` created.
+
+.. _user_post_save_callback: https://github.com/openedx/edx-platform/blob/db0b5adc691f3e05d0b1bec2dba939d79a335270/common/djangoapps/student/models/user.py#L732
+
 
 Consequences
 ************
 
-* The new API will allow external services with valid user credentials (eg.,
-  MFEs) to enroll learners in Learning Paths.
+* The Learning Path Enrollment APIs will allow existing users to self-enroll or
+  staff to force enroll in Learning Paths.
+* The Bulk Enrollment API will allow for staff to enroll a list of learners with
+  or without an existing account to be enrolled into multiple Learning Paths in
+  a single go.
 
 Dealing with "invitation-only" courses
 ======================================
