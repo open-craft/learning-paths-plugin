@@ -1,8 +1,6 @@
-#################################
 0003 Learning Path Enrollment API
 #################################
 
-******
 Status
 ******
 
@@ -16,7 +14,6 @@ Status
 
     If an ADR has Draft status and the PR is under review, you can either use the intended final status (e.g. Provisional, Accepted, etc.), or you can clarify both the current and intended status using something like the following: "Draft (=> Provisional)". Either of these options is especially useful if the merged status is not intended to be Accepted.
 
-*******
 Context
 *******
 
@@ -24,7 +21,6 @@ Learner enrollments in Learning Paths are captured in the LearningPathEnrollment
 model. In this ADR, it is enhanced with necessary fields and API to perform
 enrollments and store relevant data.
 
-********
 Decision
 ********
 
@@ -235,7 +231,7 @@ user emails, the following will be created:
 7. User model post_save signal receiver for auto enrollment
 ===========================================================
 
-Since the bulk enrollment API supports enrolling non-existant users by creating
+Since the bulk enrollment API supports enrolling non-existent users by creating
 ``LearningPathEnrollmentAllowed`` objects with just the email, there needs to be
 a mechanism to automatically enroll the users when they register.
 
