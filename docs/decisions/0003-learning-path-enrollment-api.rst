@@ -4,7 +4,7 @@
 Status
 ******
 
-**Draft**
+**Provisional**
 
 .. Standard statuses
     - **Draft** if the decision is newly proposed and in active discussion
@@ -65,6 +65,10 @@ Model attributes
 
 3. LearningPathEnrollmentAllowed Model
 ======================================
+
+.. warning::
+
+   The scope of this model is not finalized, so do not implement it yet.
 
 Create a new Django model called ``LearningPathEnrollmentAllowed`` to store
 records of future enrollments to specific Learning Paths. The users may or may
@@ -180,7 +184,7 @@ This API would list all the Learning Path enrollments
 * of all users, for a staff user
 
 +---------------------+-------------------------------------------------------+
-| API Path            | /api/v1/learning-path-enrollment/                     |
+| API Path            | /api/v1/enrollment/                                   |
 +---------------------+-------------------------------------------------------+
 | Methods             | GET                                                   |
 +---------------------+-------------------------------------------------------+
@@ -194,7 +198,7 @@ In order for staff to bulk enroll users into learning paths, implement the
 following API.
 
 +---------------------+-------------------------------------------------------+
-| API Path            | /api/v1/learning-path-enrollment/bulk_enroll/         |
+| API Path            | /api/v1/enrollment/bulk_enroll/                       |
 +---------------------+-------------------------------------------------------+
 | Methods             | POST                                                  |
 +---------------------+-------------------------------------------------------+
