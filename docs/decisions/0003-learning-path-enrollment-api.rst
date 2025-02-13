@@ -265,7 +265,7 @@ inviting them.
 If a Learning Path is composed of courses that are restricted using this flag,
 either partially (some of the courses) or fully (all the courses), it creates
 a scenario where a learner might be enrolled in a Learning Path using the
-:ref:`Enroll API <enroll-api>`, but cannot enroll into a course that is a part
+:ref:`Enroll API <4-enroll-api>`, but cannot enroll into a course that is a part
 of the Learning Path.
 
 This limitation will be addressed in a future ADR, that could possibly introduce
