@@ -224,6 +224,12 @@ user emails, the following will be created:
    users, and just the emails for non-existing users.
 #. A ``LearningPathEnrollment`` object for existing users.
 
+.. note::
+
+   The API currently is designed with minimal set of parameters to support
+   enrollment of learners. It should be updated to include more fields in the
+   future to accommodate extra metadata.
+
 
 7. User model post_save signal receiver for auto enrollment
 ===========================================================
