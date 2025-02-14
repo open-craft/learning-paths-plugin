@@ -56,7 +56,7 @@ Model attributes
 * ``role`` - ``CharField`` to store the role of the user creating the enrollment.
 * ``enrolled_email`` - ``CharField`` to store the email of the learner.
 * ``state_transition`` - ``CharField`` to store the enrollment state transition.
-  This field will use the existing `TRANSITION_STATES`_ from the LMS.
+  This field will use the same values as `TRANSITION_STATES`_ from the LMS.
 * ``reason`` - ``TextField`` to store reason for manual enrollment.
 * ``history`` - `django-simple-history`_ ``HistoricalRecords`` field
 
@@ -166,11 +166,8 @@ both self-unenrollment and staff-unenrollment.
 * Return a 404 when there are no active enrollments for the learner.
 
 This method will be gated with a Django settings ``LEARNING_PATHS_ALLOW_SELF_UNENROLLMENT``
-and ``LEARNING_PATHS_ALLOW_STAFF_UNENROLLMENT`` that will default to ``False`` and
-will have to be explicitly enabled.
+and will default to ``False`` and will have to be explicitly enabled.
 
-* When the ``LEARNING_PATHS_ALLOW_STAFF_UNENROLLMENT`` is ``False``, the ``is_active``
-  field will be marked as **read-only**, preventing staff from unenrolling learners.
 * When the ``LEARNING_PATHS_ALLOW_SELF_UNENROLLMENT`` is ``False``, DELETE requests
   from non-staff members will be returned HTTP 403.
 
@@ -211,15 +208,13 @@ The API will accept the following JSON data.
 
    {
      "learning_paths": "path-v1:ABC+XYZ+2025_Term1,path-v1:CC+DDD+2025_Term1",
-     "emails": "userA@example.com,new_user@example.com",
-     "reason": "reason for bulk enrollment"
+     "emails": "userA@example.com,new_user@example.com"
    }
 
 
 * `learning_paths` - a comma separated list of the Learning Path keys to enroll
   learner into
 * `emails` - a comma separated list of emails of the learners to enroll
-* `reason` - text explaining the reason for the bulk enrollment
 
 The API view filter out the invalid emails and Learning Path IDs before
 processing the enrollments. For all combination of valid Learning Paths and the
@@ -228,9 +223,7 @@ user emails, the following will be created:
 #. A ``LearningPathEnrollmentAllowed`` object - with users linked for existing
    users, and just the emails for non-existing users.
 #. A ``LearningPathEnrollment`` object for existing users.
-#. A ``ManualEnrollmentAudit`` object which captures all the necessary metadata
-   from the API call like ``enrolled_by`` user, ``reason`` and the relevant
-   ``state_transition``.
+
 
 7. User model post_save signal receiver for auto enrollment
 ===========================================================
