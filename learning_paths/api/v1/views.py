@@ -13,7 +13,9 @@ from rest_framework.views import APIView
 
 from learning_paths.api.v1.serializers import (
     LearningPathAsProgramSerializer,
+    LearningPathDetailSerializer,
     LearningPathGradeSerializer,
+    LearningPathListSerializer,
     LearningPathProgressSerializer,
 )
 from learning_paths.models import LearningPath
@@ -105,3 +107,20 @@ class LearningPathUserGradeView(APIView):
         if serializer.is_valid():
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LearningPathViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for listing all learning paths and retrieving a specific learning path's details,
+    including steps and associated skills.
+    """
+
+    queryset = LearningPath.objects.all()
+    permission_classes = (IsAuthenticated,)
+    pagination_class = PageNumberPagination
+    lookup_field = "uuid"
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return LearningPathListSerializer
+        return LearningPathDetailSerializer
