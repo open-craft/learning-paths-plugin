@@ -11,9 +11,12 @@ from learning_paths.api.v1.serializers import (
     LearningPathProgressSerializer,
 )
 from learning_paths.api.v1.tests.factories import (
+    AcquiredSkillFactory,
     LearningPathEnrollmentFactory,
     LearningPathFactory,
     LearningPathGradingCriteriaFactory,
+    LearningPathStepFactory,
+    RequiredSkillFactory,
     UserFactory,
 )
 from learning_paths.api.v1.views import (
@@ -126,6 +129,66 @@ class LearningPathUserGradeTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["grade"], 0.85)
         self.assertTrue(response.data["required_grade"], 0.75)
+
+
+class LearningPathViewSetTests(APITestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.user = UserFactory()
+        self.client.force_authenticate(user=self.user)
+        self.learning_paths = LearningPathFactory.create_batch(3)
+        for lp in self.learning_paths:
+            LearningPathStepFactory.create(
+                learning_path=lp, order=1, course_key="course-v1:edX+DemoX+Demo_Course"
+            )
+            LearningPathStepFactory.create(
+                learning_path=lp,
+                order=2,
+                course_key="course-v1:edX+DemoX+Another_Course",
+            )
+            RequiredSkillFactory.create(learning_path=lp)
+            AcquiredSkillFactory.create(learning_path=lp)
+
+    def test_learning_path_list(self):
+        """
+        Test that the list endpoint returns all learning paths with basic fields.
+        """
+        url = reverse("learning-path-list")
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), len(self.learning_paths))
+        first_item = response.data[0]
+        self.assertIn("key", first_item)
+        self.assertIn("slug", first_item)
+        self.assertIn("display_name", first_item)
+
+    def test_learning_path_retrieve(self):
+        """
+        Test that the retrieve endpoint returns the details of a learning path,
+        including steps and associated skills.
+        """
+        lp = self.learning_paths[0]
+        url = reverse("learning-path-detail", args=[lp.key])
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("steps", response.data)
+        self.assertIn("required_skills", response.data)
+        self.assertIn("acquired_skills", response.data)
+        if response.data["steps"]:
+            first_step = response.data["steps"][0]
+            self.assertIn("order", first_step)
+            self.assertIn("course_key", first_step)
+            self.assertIn("relative_due_date_in_days", first_step)
+            self.assertIn("weight", first_step)
+
+    def test_invalid_learning_path_key_returns_404(self):
+        """
+        Test that an invalid learning path key format returns a 404 response.
+        """
+        url = reverse("learning-path-detail", args=["invalid-key-format"])
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data["detail"], "Invalid learning path key format.")
 
 
 class LearningPathEnrollmentTests(APITestCase):
