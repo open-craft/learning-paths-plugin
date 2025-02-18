@@ -7,12 +7,14 @@ from learning_paths.api.v1.views import (
     LearningPathAsProgramViewSet,
     LearningPathUserGradeView,
     LearningPathUserProgressView,
+    LearningPathViewSet,
 )
 
 router = routers.SimpleRouter()
 router.register(
     r"programs", LearningPathAsProgramViewSet, basename="learning-path-as-program"
 )
+router.register(r"learning-paths", LearningPathViewSet, basename="learning-path")
 
 urlpatterns = router.urls + [
     path(
