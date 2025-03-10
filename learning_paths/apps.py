@@ -12,6 +12,7 @@ class LearningPathsConfig(AppConfig):
     """
 
     name = "learning_paths"
+    verbose_name = "Learning Paths"
 
     plugin_app = {
         # Configuration setting for Plugin URLs for this app.

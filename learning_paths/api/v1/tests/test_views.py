@@ -65,16 +65,16 @@ class LearningPathUserProgressTests(APITestCase):
         """
         Test retrieving progress for a learning path.
         """
-        url = reverse("learning-path-progress", args=[self.learning_path.uuid])
+        url = reverse("learning-path-progress", args=[self.learning_path.key])
         request = APIRequestFactory().get(url, format="json")
         view = LearningPathUserProgressView.as_view()
         force_authenticate(request, user=self.user)
-        response = view(request, learning_path_uuid=self.learning_path.uuid)
+        response = view(request, learning_path_key_str=str(self.learning_path.key))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         expected_data = {
-            "learning_path_id": str(self.learning_path.uuid),
+            "learning_path_key": str(self.learning_path.key),
             "progress": 0.75,
             "required_completion": 0.80,
         }
@@ -100,7 +100,7 @@ class LearningPathUserGradeTests(APITestCase):
         Test that the grade view returns 404 if grading criteria are not found.
         """
         self.grading_criteria.delete()
-        url = reverse("learning-path-grade", args=[self.learning_path.uuid])
+        url = reverse("learning-path-grade", args=[self.learning_path.key])
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -120,7 +120,7 @@ class LearningPathUserGradeTests(APITestCase):
         """
         Test retrieving grade for a learning path.
         """
-        url = reverse("learning-path-grade", args=[self.learning_path.uuid])
+        url = reverse("learning-path-grade", args=[self.learning_path.key])
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -135,7 +135,7 @@ class LearningPathEnrollmentTests(APITestCase):
         self.learner = UserFactory()
         self.another_learner = UserFactory()
         self.learning_path = LearningPathFactory.create()
-        self.url = f"/api/learning_paths/v1/{self.learning_path.uuid}/enrollments/"
+        self.url = f"/api/learning_paths/v1/{self.learning_path.key}/enrollments/"
 
     def test_get_with_username_for_staff(self):
         """
@@ -289,9 +289,7 @@ class LearningPathEnrollmentTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         # Test invalid learning_path_id
-        url = reverse(
-            "learning-path-enrollments", args=["2ac8a3cc-e492-4ce9-88a3-cce4922ce9df"]
-        )
+        url = reverse("learning-path-enrollments", args=["path-v1:this+does+not+exist"])
         response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -503,11 +501,11 @@ class BulkEnrollAPITestCase(APITestCase):
     def test_bulk_enrollment_success(self):
         """
         GIVEN valid payload from staff user
-        WHEN then uuids and emails are valid
+        WHEN then keys and emails are valid
         THEN create necessary enrollments and enrollment allowed objects.
         """
         payload = {
-            "learning_paths": f"{self.learning_path1.uuid},{self.learning_path2.uuid}",
+            "learning_paths": f"{self.learning_path1.key},{self.learning_path2.key}",
             "emails": "user1@example.com,user2@example.com,new_user@example.com",
         }
         response = self._call_api(payload)
@@ -549,11 +547,11 @@ class BulkEnrollAPITestCase(APITestCase):
     def test_bulk_enrollment_with_invalid_learning_path(self):
         """
         GIVEN valid payload from staff user
-        WHEN the learning path uuid is invalid
+        WHEN the learning path key is invalid
         THEN no enrollments are created.
         """
         payload = {
-            "learning_paths": "invalid-path-uuid",
+            "learning_paths": "invalid-path-key",
             "emails": "user1@example.com,user2@example.com",
         }
         response = self._call_api(payload)
@@ -569,7 +567,7 @@ class BulkEnrollAPITestCase(APITestCase):
         THEN no enrollments are created for the invalid email.
         """
         payload = {
-            "learning_paths": f"{self.learning_path1.uuid}",
+            "learning_paths": f"{self.learning_path1.key}",
             "emails": "user1@example.com,invalid_email",
         }
         response = self._call_api(payload)
@@ -600,7 +598,7 @@ class BulkEnrollAPITestCase(APITestCase):
         """
         self.client.logout()
         payload = {
-            "learning_paths": f"{self.learning_path1.uuid}",
+            "learning_paths": f"{self.learning_path1.key}",
             "emails": "user1@example.com",
         }
         # Un-authenticates
@@ -623,7 +621,7 @@ class BulkEnrollAPITestCase(APITestCase):
         )
 
         payload = {
-            "learning_paths": f"{self.learning_path1.uuid}",
+            "learning_paths": f"{self.learning_path1.key}",
             "emails": self.user1.email,
         }
 
@@ -644,7 +642,7 @@ class BulkEnrollAPITestCase(APITestCase):
         )
 
         payload = {
-            "learning_paths": f"{self.learning_path1.uuid}",
+            "learning_paths": f"{self.learning_path1.key}",
             "emails": self.user1.email,
         }
 

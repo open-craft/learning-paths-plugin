@@ -1,6 +1,6 @@
 """API v1 URLs."""
 
-from django.urls import path
+from django.urls import path, re_path
 from rest_framework import routers
 
 from learning_paths.api.v1.views import (
@@ -11,6 +11,7 @@ from learning_paths.api.v1.views import (
     LearningPathUserProgressView,
     ListEnrollmentsView,
 )
+from learning_paths.keys import LEARNING_PATH_URL_PATTERN
 
 router = routers.SimpleRouter()
 router.register(
@@ -18,18 +19,18 @@ router.register(
 )
 
 urlpatterns = router.urls + [
-    path(
-        "<uuid:learning_path_uuid>/progress/",
+    re_path(
+        rf"{LEARNING_PATH_URL_PATTERN}/progress/",
         LearningPathUserProgressView.as_view(),
         name="learning-path-progress",
     ),
-    path(
-        "<uuid:learning_path_uuid>/grade/",
+    re_path(
+        rf"{LEARNING_PATH_URL_PATTERN}/grade/",
         LearningPathUserGradeView.as_view(),
         name="learning-path-grade",
     ),
-    path(
-        "<uuid:learning_path_id>/enrollments/",
+    re_path(
+        rf"{LEARNING_PATH_URL_PATTERN}/enrollments/",
         LearningPathEnrollmentView.as_view(),
         name="learning-path-enrollments",
     ),

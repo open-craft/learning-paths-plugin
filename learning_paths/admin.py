@@ -104,14 +104,16 @@ class LearningPathAdmin(admin.ModelAdmin):
     search_fields = [
         "slug",
         "display_name",
+        "key",
     ]
     list_display = (
-        "uuid",
+        "key",
         "slug",
         "display_name",
         "level",
         "duration_in_days",
     )
+    readonly_fields = ("key",)
 
     inlines = [
         LearningPathStepInline,
@@ -119,6 +121,12 @@ class LearningPathAdmin(admin.ModelAdmin):
         AcquiredSkillInline,
         LearningPathGradingCriteriaInline,
     ]
+
+    def get_readonly_fields(self, request, obj=None):
+        """Make key read-only only for existing objects."""
+        if obj:  # Editing an existing object.
+            return self.readonly_fields
+        return ()  # Allow all fields during creation.
 
     def save_related(self, request, form, formsets, change):
         """Save related objects and enroll users in the learning path."""
@@ -144,7 +152,7 @@ class EnrolledUsersAdmin(admin.ModelAdmin):
     search_fields = [
         "id",
         "user__username",
-        "learning_path__uuid",
+        "learning_path__key",
         "learning_path__slug",
         "learning_path__display_name",
     ]

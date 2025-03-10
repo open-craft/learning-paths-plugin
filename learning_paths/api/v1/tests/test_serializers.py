@@ -47,6 +47,7 @@ class TestLearningPathProgressSerializer(TestCase):
         Tests LearningPathProgress serializer data.
         """
         learning_path = LearningPath.objects.create(
+            key="path-v1:test+test+test+test",
             uuid="817190bc-7bf1-4d95-aa43-bec5f58c2276",
             slug="learn-slug",
             display_name="My Test Learning Path",
@@ -55,7 +56,7 @@ class TestLearningPathProgressSerializer(TestCase):
             sequential=False,
         )
         progress_data = {
-            "learning_path_id": learning_path.uuid,
+            "learning_path_key": str(learning_path.key),
             "progress": 0.25,
             "required_completion": 0.80,
         }
@@ -70,6 +71,7 @@ class TestLearningPathGradeSerializer(TestCase):
         Tests LearningPathGrade serializer data.
         """
         learning_path = LearningPath.objects.create(
+            key="path-v1:OpenedX+DemoX+DemoRun+DemoGroup",
             uuid="817190bc-7bf1-4d95-aa43-bec5f58c2276",
             slug="learn-slug",
             display_name="My Test Learning Path",
@@ -78,7 +80,7 @@ class TestLearningPathGradeSerializer(TestCase):
             sequential=False,
         )
         grade_data = {
-            "learning_path_id": learning_path.uuid,
+            "learning_path_key": str(learning_path.key),
             "grade": 0.25,
             "required_grade": 0.80,
         }
