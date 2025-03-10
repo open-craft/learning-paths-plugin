@@ -30,7 +30,7 @@ class UserFactory(factory.django.DjangoModelFactory):
         model = User
 
 
-class LearnerPathwayFactory(factory.django.DjangoModelFactory):
+class LearningPathFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = LearningPath
 
@@ -41,11 +41,11 @@ class LearnerPathwayFactory(factory.django.DjangoModelFactory):
     sequential = False
 
 
-class LearnerPathGradingCriteriaFactory(factory.django.DjangoModelFactory):
+class LearningPathGradingCriteriaFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = LearningPathGradingCriteria
 
-    learning_path = factory.SubFactory(LearnerPathwayFactory)
+    learning_path = factory.SubFactory(LearningPathFactory)
     required_completion = 0.80
     required_grade = 0.75
 

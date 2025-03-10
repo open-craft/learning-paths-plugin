@@ -11,9 +11,9 @@ from learning_paths.api.v1.serializers import (
     LearningPathProgressSerializer,
 )
 from learning_paths.api.v1.tests.factories import (
-    LearnerPathGradingCriteriaFactory,
-    LearnerPathwayFactory,
     LearningPathEnrollmentFactory,
+    LearningPathFactory,
+    LearningPathGradingCriteriaFactory,
     UserFactory,
 )
 from learning_paths.api.v1.views import (
@@ -26,7 +26,7 @@ from learning_paths.models import LearningPathEnrollment, LearningPathEnrollment
 class LearningPathAsProgramTests(APITestCase):
     def setUp(self):
         super().setUp()
-        self.learning_paths = LearnerPathwayFactory.create_batch(5)
+        self.learning_paths = LearningPathFactory.create_batch(5)
         self.user = UserFactory()
         self.client.force_authenticate(user=self.user)
 
@@ -51,8 +51,8 @@ class LearningPathUserProgressTests(APITestCase):
         super().setUp()
         self.user = UserFactory()
         self.client.force_authenticate(user=self.user)
-        self.learning_path = LearnerPathwayFactory.create()
-        self.grading_criteria = LearnerPathGradingCriteriaFactory.create(
+        self.learning_path = LearningPathFactory.create()
+        self.grading_criteria = LearningPathGradingCriteriaFactory.create(
             learning_path=self.learning_path,
             required_completion=0.80,
             required_grade=0.75,
@@ -88,8 +88,8 @@ class LearningPathUserGradeTests(APITestCase):
         super().setUp()
         self.staff_user = UserFactory(is_staff=True)
         self.client.force_authenticate(user=self.staff_user)
-        self.learning_path = LearnerPathwayFactory.create()
-        self.grading_criteria = LearnerPathGradingCriteriaFactory.create(
+        self.learning_path = LearningPathFactory.create()
+        self.grading_criteria = LearningPathGradingCriteriaFactory.create(
             learning_path=self.learning_path,
             required_completion=0.80,
             required_grade=0.75,
@@ -134,7 +134,7 @@ class LearningPathEnrollmentTests(APITestCase):
         self.staff = UserFactory(is_staff=True)
         self.learner = UserFactory()
         self.another_learner = UserFactory()
-        self.learning_path = LearnerPathwayFactory.create()
+        self.learning_path = LearningPathFactory.create()
         self.url = f"/api/learning_paths/v1/{self.learning_path.uuid}/enrollments/"
 
     def test_get_with_username_for_staff(self):
@@ -490,8 +490,8 @@ class BulkEnrollAPITestCase(APITestCase):
         self.admin_user = UserFactory(is_staff=True, is_superuser=True)
         self.client.force_authenticate(user=self.admin_user)
 
-        self.learning_path1 = LearnerPathwayFactory()
-        self.learning_path2 = LearnerPathwayFactory()
+        self.learning_path1 = LearningPathFactory()
+        self.learning_path2 = LearningPathFactory()
 
         self.user1 = UserFactory(email="user1@example.com")
         self.user2 = UserFactory(email="user2@example.com")
