@@ -64,7 +64,6 @@ class LearningPathStepFactory(factory.django.DjangoModelFactory):
 
     learning_path = factory.SubFactory(LearningPathFactory)
     course_key = "course-v1:edX+DemoX+Demo_Course"
-    relative_due_date_in_days = factory.Faker("random_int", min=1, max=30)
     order = factory.Sequence(lambda n: n + 1)
     weight = 1
 

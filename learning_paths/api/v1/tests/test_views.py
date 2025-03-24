@@ -1,5 +1,6 @@
 # pylint: disable=missing-module-docstring,missing-class-docstring
-from unittest.mock import patch
+from datetime import datetime, timezone
+from unittest.mock import PropertyMock, patch
 
 from django.test import override_settings
 from django.urls import reverse
@@ -23,7 +24,11 @@ from learning_paths.api.v1.views import (
     LearningPathAsProgramViewSet,
     LearningPathUserProgressView,
 )
-from learning_paths.models import LearningPathEnrollment, LearningPathEnrollmentAllowed
+from learning_paths.models import (
+    LearningPathEnrollment,
+    LearningPathEnrollmentAllowed,
+    LearningPathStep,
+)
 
 
 class LearningPathAsProgramTests(APITestCase):
@@ -137,15 +142,22 @@ class LearningPathViewSetTests(APITestCase):
         self.user = UserFactory()
         self.client.force_authenticate(user=self.user)
         self.learning_paths = LearningPathFactory.create_batch(3)
+        fake_due_date = datetime(2025, 1, 1, tzinfo=timezone.utc)
         for lp in self.learning_paths:
-            LearningPathStepFactory.create(
-                learning_path=lp, order=1, course_key="course-v1:edX+DemoX+Demo_Course"
-            )
-            LearningPathStepFactory.create(
-                learning_path=lp,
-                order=2,
-                course_key="course-v1:edX+DemoX+Another_Course",
-            )
+            with patch.object(
+                LearningPathStep, "due_date", new_callable=PropertyMock
+            ) as mock_due_date:
+                mock_due_date.return_value = fake_due_date
+                LearningPathStepFactory.create(
+                    learning_path=lp,
+                    order=1,
+                    course_key="course-v1:edX+DemoX+Demo_Course",
+                )
+                LearningPathStepFactory.create(
+                    learning_path=lp,
+                    order=2,
+                    course_key="course-v1:edX+DemoX+Another_Course",
+                )
             RequiredSkillFactory.create(learning_path=lp)
             AcquiredSkillFactory.create(learning_path=lp)
 
@@ -169,17 +181,22 @@ class LearningPathViewSetTests(APITestCase):
         """
         lp = self.learning_paths[0]
         url = reverse("learning-path-detail", args=[lp.key])
-        response = self.client.get(url, format="json")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("steps", response.data)
-        self.assertIn("required_skills", response.data)
-        self.assertIn("acquired_skills", response.data)
-        if response.data["steps"]:
-            first_step = response.data["steps"][0]
-            self.assertIn("order", first_step)
-            self.assertIn("course_key", first_step)
-            self.assertIn("relative_due_date_in_days", first_step)
-            self.assertIn("weight", first_step)
+        fake_due_date = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        with patch.object(
+            LearningPathStep, "due_date", new_callable=PropertyMock
+        ) as mock_due_date:
+            mock_due_date.return_value = fake_due_date
+            response = self.client.get(url, format="json")
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertIn("steps", response.data)
+            self.assertIn("required_skills", response.data)
+            self.assertIn("acquired_skills", response.data)
+            if response.data["steps"]:
+                first_step = response.data["steps"][0]
+                self.assertIn("order", first_step)
+                self.assertIn("course_key", first_step)
+                self.assertIn("due_date", first_step)
+                self.assertIn("weight", first_step)
 
     def test_invalid_learning_path_key_returns_404(self):
         """

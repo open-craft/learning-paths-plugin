@@ -2,7 +2,7 @@
 Database models for learning_paths.
 """
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from uuid import uuid4
 
 from django.contrib import auth
@@ -13,7 +13,7 @@ from model_utils.models import TimeStampedModel
 from opaque_keys.edx.django.models import CourseKeyField
 from simple_history.models import HistoricalRecords
 
-from .compat import get_user_course_grade
+from .compat import get_course_due_date, get_user_course_grade
 from .keys import LearningPathKeyField
 
 User = auth.get_user_model()
@@ -105,14 +105,6 @@ class LearningPathStep(TimeStampedModel):
     learning_path = models.ForeignKey(
         LearningPath, related_name="steps", on_delete=models.CASCADE
     )
-    relative_due_date_in_days = models.PositiveIntegerField(
-        blank=True,
-        null=True,
-        verbose_name=_("Due date (days)"),
-        help_text=_(
-            "Used to calculate the due date from the starting date of the course."
-        ),
-    )
     order = models.PositiveIntegerField(
         blank=True,
         null=True,
@@ -129,6 +121,11 @@ class LearningPathStep(TimeStampedModel):
             "Specify as a floating point number between 0 and 1, where 1 represents 100%."
         ),
     )
+
+    @property
+    def due_date(self) -> datetime | None:
+        """Retrieve the due date for this course."""
+        return get_course_due_date(self.course_key)
 
     def __str__(self):
         """User-friendly string representation of this model."""
