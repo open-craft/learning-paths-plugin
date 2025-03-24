@@ -41,6 +41,20 @@ def get_course_keys_with_outlines():
     return course_keys_with_outlines()
 
 
+def get_course_due_date(course_key):
+    """
+    Retrieve course end date.
+    """
+    # pylint: disable=import-outside-toplevel, import-error
+    from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
+
+    try:
+        overview = CourseOverview.objects.get(id=course_key)
+        return overview.end
+    except CourseOverview.DoesNotExist:
+        return None
+
+
 __all__ = [
     "get_course_keys_with_outlines",
     "get_catalog_api_client",
