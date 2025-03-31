@@ -19,27 +19,27 @@ router.register(
 
 urlpatterns = router.urls + [
     path(
-        "learning-paths/<uuid:learning_path_uuid>/progress/",
+        "<uuid:learning_path_uuid>/progress/",
         LearningPathUserProgressView.as_view(),
         name="learning-path-progress",
     ),
     path(
-        "learning-paths/<uuid:learning_path_uuid>/grade/",
+        "<uuid:learning_path_uuid>/grade/",
         LearningPathUserGradeView.as_view(),
         name="learning-path-grade",
     ),
     path(
-        "learning-paths/<uuid:learning_path_id>/enrollments/",
+        "<uuid:learning_path_id>/enrollments/",
         LearningPathEnrollmentView.as_view(),
         name="learning-path-enrollments",
     ),
     path(
-        "learning-paths/enrollments/",
+        "enrollments/",
         ListEnrollmentsView.as_view(),
         name="list-enrollments",
     ),
     path(
-        "learning-paths/enrollments/bulk-enroll/",
+        "enrollments/bulk-enroll/",
         BulkEnrollView.as_view(),
         name="bulk-enroll",
     ),

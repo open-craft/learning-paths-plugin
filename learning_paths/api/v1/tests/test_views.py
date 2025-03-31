@@ -135,7 +135,7 @@ class LearningPathEnrollmentTests(APITestCase):
         self.learner = UserFactory()
         self.another_learner = UserFactory()
         self.learning_path = LearnerPathwayFactory.create()
-        self.url = f"/api/learning_paths/v1/learning-paths/{self.learning_path.uuid}/enrollments/"
+        self.url = f"/api/learning_paths/v1/{self.learning_path.uuid}/enrollments/"
 
     def test_get_with_username_for_staff(self):
         """
@@ -285,13 +285,14 @@ class LearningPathEnrollmentTests(APITestCase):
         self.client.force_authenticate(user=self.staff)
 
         # Test invalid username
-        response = self.client.post(self.url, {"username": "non-existant-user"})
+        response = self.client.post(self.url, {"username": "non-existent-user"})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         # Test invalid learning_path_id
-        response = self.client.post(
-            "/api/learning-paths/2ac8a3cc-e492-4ce9-88a3-cce4922ce9df/enrollments/"
-        )  # Invalid Learning Path ID
+        url = reverse(
+            "learning-path-enrollments", args=["2ac8a3cc-e492-4ce9-88a3-cce4922ce9df"]
+        )
+        response = self.client.post(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_enrollment_returns_409_if_already_enrolled(self):
@@ -431,7 +432,7 @@ class TestListEnrollmentsView(APITestCase):
         self.enrollment1 = LearningPathEnrollmentFactory(user=self.user)
         self.enrollment2 = LearningPathEnrollmentFactory(user=self.user)
         self.other_enrollment = LearningPathEnrollmentFactory()
-        self.url = "/api/learning_paths/v1/learning-paths/enrollments/"
+        self.url = "/api/learning_paths/v1/enrollments/"
 
     def test_fetch_enrollments_as_non_staff_user(self):
         """
@@ -494,7 +495,7 @@ class BulkEnrollAPITestCase(APITestCase):
 
         self.user1 = UserFactory(email="user1@example.com")
         self.user2 = UserFactory(email="user2@example.com")
-        self.url = "/api/learning_paths/v1/learning-paths/enrollments/bulk-enroll/"
+        self.url = "/api/learning_paths/v1/enrollments/bulk-enroll/"
 
     def _call_api(self, payload):
         return self.client.post(self.url, payload, format="json")

@@ -98,15 +98,15 @@ necessary timestamps.
 Implement an API exposing the LearningPathEnrollment model. This API will allow
 learners to be enrolled in the Learning Path.
 
-+---------------------+-------------------------------------------------------+
-| API Path            | /api/v1/learning-paths/<learning_path_id>/enrollment/ |
-+---------------------+-------------------------------------------------------+
-| Methods             | GET, POST, DELETE                                     |
-+---------------------+-------------------------------------------------------+
-| Query Params        | username (OPTIONAL)                                   |
-+---------------------+-------------------------------------------------------+
-| Permissions Required| LoggedIn                                              |
-+---------------------+-------------------------------------------------------+
++---------------------+----------------------------------------+
+| API Path            | /api/v1/<learning_path_id>/enrollment/ |
++---------------------+----------------------------------------+
+| Methods             | GET, POST, DELETE                      |
++---------------------+----------------------------------------+
+| Query Params        | username (OPTIONAL)                    |
++---------------------+----------------------------------------+
+| Permissions Required| LoggedIn                               |
++---------------------+----------------------------------------+
 
 .. note::
 
@@ -181,13 +181,13 @@ This API would list all the Learning Path enrollments
 * of the user making the request, for a non-staff user
 * of all users, for a staff user
 
-+---------------------+----------------------------------------------+
-| API Path            | /api/v1/learning-paths/enrollments/          |
-+---------------------+----------------------------------------------+
-| Methods             | GET                                          |
-+---------------------+----------------------------------------------+
-| Permissions Required| LoggedIn                                     |
-+---------------------+----------------------------------------------+
++---------------------+----------------------+
+| API Path            | /api/v1/enrollments/ |
++---------------------+----------------------+
+| Methods             | GET                  |
++---------------------+----------------------+
+| Permissions Required| LoggedIn             |
++---------------------+----------------------+
 
 6. Bulk enrollment API
 ======================
@@ -195,13 +195,13 @@ This API would list all the Learning Path enrollments
 In order for staff to bulk enroll users into learning paths, implement the
 following API.
 
-+---------------------+-------------------------------------------------+
-| API Path            | /api/v1/learning-paths/enrollments/bulk-enroll/ |
-+---------------------+-------------------------------------------------+
-| Methods             | POST                                            |
-+---------------------+-------------------------------------------------+
-| Permissions Required| Staff or Admin                                  |
-+---------------------+-------------------------------------------------+
++---------------------+----------------------------------+
+| API Path            | /api/v1/enrollments/bulk-enroll/ |
++---------------------+----------------------------------+
+| Methods             | POST                             |
++---------------------+----------------------------------+
+| Permissions Required| Staff or Admin                   |
++---------------------+----------------------------------+
 
 The API will accept the following JSON data.
 
