@@ -63,3 +63,5 @@ docs/learning_paths.*.rst
 # Private requirements
 requirements/private.in
 requirements/private.txt
+.idea
+default.db

@@ -2,23 +2,38 @@
 Views for LearningPath.
 """
 
+import logging
+from datetime import datetime, timezone
+from uuid import UUID
+
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
+from django.core.validators import validate_email
 from django.shortcuts import get_object_or_404
-from rest_framework import status, viewsets
+from rest_framework import generics, status, viewsets
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from learning_paths.api.v1.serializers import (
     LearningPathAsProgramSerializer,
+    LearningPathEnrollmentSerializer,
     LearningPathGradeSerializer,
     LearningPathProgressSerializer,
 )
-from learning_paths.models import LearningPath
+from learning_paths.models import (
+    LearningPath,
+    LearningPathEnrollment,
+    LearningPathEnrollmentAllowed,
+)
 
+from .filters import AdminOrSelfFilterBackend
+from .permissions import IsAdminOrSelf
 from .utils import get_aggregate_progress
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -105,3 +120,222 @@ class LearningPathUserGradeView(APIView):
         if serializer.is_valid():
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LearningPathEnrollmentView(APIView):
+    """
+    API View to handle changes to LearningPathEnrollment model
+    """
+
+    permission_classes = [IsAuthenticated, IsAdminOrSelf]
+
+    def get(self, request, learning_path_id):
+        """Get the learning path of users.
+
+        Staff/Admin can get all the active enrollments of the learning path.
+        Learners can get their enrollments only.
+
+        Query params:
+            username (optional): When provided it returns the enrollment for
+                the specified user.
+        """
+        learning_path = get_object_or_404(LearningPath, uuid=learning_path_id)
+
+        enrollments = LearningPathEnrollment.objects.filter(
+            learning_path=learning_path, is_active=True
+        )
+
+        if request.user.is_staff:
+            if username := request.query_params.get("username"):
+                enrollments = enrollments.filter(user__username=username)
+        else:
+            enrollments = enrollments.filter(user=request.user)
+
+        serializer = LearningPathEnrollmentSerializer(enrollments.all(), many=True)
+        return Response(serializer.data)
+
+    def post(self, request, learning_path_id):
+        """Enroll learners in Learning Paths.
+
+        Staff/Admin can enroll anyone with the username query param.
+        Learners can enroll only themselves.
+
+        Example payload::
+
+            {
+                "username": "user_1"
+            }
+
+        """
+        learning_path = get_object_or_404(LearningPath, uuid=learning_path_id)
+        username = request.data.get("username")
+        user = get_object_or_404(User, username=username) if username else request.user
+
+        enrollment, created = LearningPathEnrollment.objects.get_or_create(
+            learning_path=learning_path, user=user
+        )
+        if created:
+            return Response(
+                LearningPathEnrollmentSerializer(enrollment).data,
+                status=status.HTTP_201_CREATED,
+            )
+        if enrollment.is_active:
+            return Response(
+                {"detail": "Enrollment exists."}, status=status.HTTP_409_CONFLICT
+            )
+
+        enrollment.is_active = True
+        enrollment.enrolled_at = datetime.now(timezone.utc)
+        enrollment.save()
+        return Response(LearningPathEnrollmentSerializer(enrollment).data)
+
+    def delete(self, request, learning_path_id):
+        """
+        Unenroll a learner from a learning path.
+
+        Staff/admin can unenroll anyone with the username query param.
+        Learners can self-unenroll if settings.LEARNING_PATHS_ALLOW_SELF_UNENROLLMENT is True.
+
+        Example payload::
+
+            {
+                "username": "user_1"
+            }
+
+        """
+        learning_path = get_object_or_404(LearningPath, uuid=learning_path_id)
+        username = request.data.get("username")
+        user = get_object_or_404(User, username=username) if username else request.user
+
+        enrollment = get_object_or_404(
+            LearningPathEnrollment,
+            learning_path=learning_path,
+            is_active=True,
+            user=user,
+        )
+
+        if (
+            not request.user.is_staff
+            and not settings.LEARNING_PATHS_ALLOW_SELF_UNENROLLMENT
+        ):
+            raise PermissionDenied
+
+        enrollment.is_active = False
+        enrollment.save()
+        return Response(
+            LearningPathEnrollmentSerializer(enrollment).data,
+            status=status.HTTP_204_NO_CONTENT,
+        )
+
+
+class ListEnrollmentsView(generics.ListAPIView):
+    """
+    List Learning Path Enrollments.
+
+    For staff, this returns enrollments from all learning paths for all users.
+    For non-staff, this returns all enrollments for the current user.
+    """
+
+    permission_classes = [IsAuthenticated]
+    queryset = LearningPathEnrollment.objects.all()
+    serializer_class = LearningPathEnrollmentSerializer
+    filter_backends = [AdminOrSelfFilterBackend]
+
+
+class BulkEnrollView(APIView):
+    """
+    Bulk enrollment API for LearningPathEnrollment.
+
+    """
+
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, *args, **kwargs):
+        """
+        Bulk Enroll learners in Learning Paths.
+
+        The "bulk enroll" API provides a way for the staff to enroll multiple learners
+        in multiple learning paths at once.
+
+        Example payload::
+
+            {
+                "learning_paths": "learning_path_1,learning_path_2",
+                "emails": "user_1@example.com,user_2@example.com"
+            }
+
+        `learning_paths` (str): A comma separated list of learning path IDs.
+        `emails` (str): A comma separated list of email addresses.
+
+        * For existing users, it creates a new LearningPathEnrollment record, automatically
+          enrolling them in the learning path. It also creates a LearningPathAllowed record
+          to store the meta-data for audit later.
+        * For non-existing users, it creates a new LearningPathEnrollmentAllowed record
+          with just the email address, allowing them to get enrolled when they register.
+
+        """
+        data = request.data
+        learning_paths_keys = data.get("learning_paths", "").split(",")
+        emails = data.get("emails", "").split(",")
+
+        valid_learning_paths_keys = []
+        for key in learning_paths_keys:
+            try:
+                UUID(key)
+            except ValueError:
+                logger.warning("BulkEnrollView: Invalid learning path key: %s", key)
+                continue
+            valid_learning_paths_keys.append(key)
+
+        learning_paths = LearningPath.objects.filter(
+            uuid__in=valid_learning_paths_keys
+        ).all()
+
+        existing_users = User.objects.filter(email__in=emails).all()
+        non_existing_emails = set(emails) - set(u.email for u in existing_users)
+
+        enrollments_created = []
+        enrollment_allowed_created = []
+
+        for learning_path in learning_paths:
+
+            # Create LearningPathEnrollment for existing users
+            for user in existing_users:
+                enrollment = LearningPathEnrollment.objects.filter(
+                    user=user, learning_path=learning_path
+                ).first()
+                enrolled_now = False
+                if not enrollment:
+                    enrollment = LearningPathEnrollment(
+                        user=user,
+                        learning_path=learning_path,
+                    )
+                    enrolled_now = True
+                if not enrollment.is_active:
+                    enrollment.is_active = True
+                    enrollment.enrolled_at = datetime.now(timezone.utc)
+                    enrolled_now = True
+                enrollment.save()
+                if enrolled_now:
+                    enrollments_created.append(enrollment)
+
+            # Create LearningPathEnrollmentAllowed for non-existing users
+            for email in non_existing_emails:
+                try:
+                    validate_email(email)
+                except ValidationError:
+                    logger.warning("BulkEnrollView: Invalid email: %s", email)
+                    continue
+                allowed, created = LearningPathEnrollmentAllowed.objects.get_or_create(
+                    email=email, learning_path=learning_path
+                )
+                if created:
+                    enrollment_allowed_created.append(allowed)
+
+        return Response(
+            {
+                "enrollments_created": len(enrollments_created),
+                "enrollment_allowed_created": len(enrollment_allowed_created),
+            },
+            status=status.HTTP_201_CREATED,
+        )
