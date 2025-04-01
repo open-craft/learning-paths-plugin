@@ -62,5 +62,8 @@ TEMPLATES = [
     }
 ]
 
+# Suppress test warnings.
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
 USE_TZ = True
 LEARNING_PATHS_ALLOW_SELF_UNENROLLMENT = False
