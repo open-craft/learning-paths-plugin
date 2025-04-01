@@ -1,9 +1,15 @@
 # pylint: disable=missing-module-docstring,missing-class-docstring
+from datetime import datetime, timezone
+
 import factory
 from django.contrib import auth
 from factory.fuzzy import FuzzyText
 
-from learning_paths.models import LearningPath, LearningPathGradingCriteria
+from learning_paths.models import (
+    LearningPath,
+    LearningPathEnrollment,
+    LearningPathGradingCriteria,
+)
 
 User = auth.get_user_model()
 
@@ -31,7 +37,6 @@ class LearnerPathwayFactory(factory.django.DjangoModelFactory):
     uuid = factory.Faker("uuid4")
     display_name = FuzzyText()
     slug = FuzzyText()
-    display_name = FuzzyText()
     description = FuzzyText()
     sequential = False
 
@@ -43,3 +48,17 @@ class LearnerPathGradingCriteriaFactory(factory.django.DjangoModelFactory):
     learning_path = factory.SubFactory(LearnerPathwayFactory)
     required_completion = 0.80
     required_grade = 0.75
+
+
+class LearningPathEnrollmentFactory(factory.django.DjangoModelFactory):
+    """
+    Factory for LearningPathEnrollment model.
+    """
+
+    user = factory.SubFactory(UserFactory)
+    learning_path = factory.SubFactory(LearnerPathwayFactory)
+    is_active = True
+    enrolled_at = factory.LazyFunction(lambda: datetime.now(timezone.utc))
+
+    class Meta:
+        model = LearningPathEnrollment

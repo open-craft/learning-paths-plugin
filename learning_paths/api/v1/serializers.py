@@ -4,7 +4,7 @@ Serializer for LearningPath.
 
 from rest_framework import serializers
 
-from learning_paths.models import LearningPath
+from learning_paths.models import LearningPath, LearningPathEnrollment
 
 DEFAULT_STATUS = "active"
 IMAGE_WIDTH = 1440
@@ -85,3 +85,9 @@ class LearningPathGradeSerializer(serializers.Serializer):
     learning_path_id = serializers.UUIDField()
     grade = serializers.FloatField()
     required_grade = serializers.FloatField()
+
+
+class LearningPathEnrollmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LearningPathEnrollment
+        fields = ("user", "learning_path", "is_active", "enrolled_at")

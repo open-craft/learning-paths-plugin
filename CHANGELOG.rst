@@ -16,27 +16,35 @@ Unreleased
 
 *
 
-0.2.0
-*****
+0.2.3 - 2025-03-31
+******************
 
 Added
 =====
 
-* Database models
-* Django Admin interface
+* Enrollment API.
 
-0.2.1
-*****
+0.2.2 - 2024-12-05
+******************
+
+Added
+=====
+
+* User grade API
+
+0.2.1 - 2024-10-28
+******************
 
 Added
 =====
 
 * Pathway progress API
 
-0.2.2
-*****
+0.2.0 - 2024-01-23
+******************
 
 Added
 =====
 
-* User grade API
+* Database models
+* Django Admin interface

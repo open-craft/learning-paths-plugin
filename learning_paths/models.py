@@ -11,6 +11,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
 from opaque_keys.edx.django.models import CourseKeyField
+from simple_history.models import HistoricalRecords
 
 from .compat import get_user_course_grade
 
@@ -185,6 +186,19 @@ class LearningPathEnrollment(TimeStampedModel):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     learning_path = models.ForeignKey(LearningPath, on_delete=models.CASCADE)
+    is_active = models.BooleanField(
+        default=True,
+        help_text=_("Indicates if the learner is enrolled or not in the Learning Path"),
+    )
+    enrolled_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text=_(
+            "Timestamp of enrollment or un-enrollment. To be explicitly set when performing"
+            " a learner enrollment."
+        ),
+    )
+
+    history = HistoricalRecords()
 
     def __str__(self):
         """User-friendly string representation of this model."""
@@ -241,3 +255,29 @@ class LearningPathGradingCriteria(models.Model):
             total_weight += course_weight
 
         return weighted_sum / total_weight if total_weight > 0 else 0.0
+
+
+class LearningPathEnrollmentAllowed(models.Model):
+    """
+    Represents an allowed enrollment in a learning path for a user email.
+
+    These objects can be created when learners are invited/enrolled by staff before
+    they have registered and created an account, allowing future learners to enroll.
+
+    .. pii: The email field is not retired to allow future learners to enroll.
+    .. pii_types: email_address
+    .. pii_retirement: retained
+    """
+
+    class Meta:
+        """Model options."""
+
+        unique_together = ("email", "learning_path")
+
+    email = models.EmailField()
+    learning_path = models.ForeignKey(LearningPath, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        """User-friendly string representation of this model."""
+        return f"LearningPathEnrollmentAllowed for {self.user.username} in {self.learning_path.display_name}"

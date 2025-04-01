@@ -8,11 +8,11 @@ accessible-pygments==0.0.5
     # via pydata-sphinx-theme
 alabaster==1.0.0
     # via sphinx
-amqp==5.2.0
+amqp==5.3.1
     # via
     #   -r requirements/test.txt
     #   kombu
-aniso8601==9.0.1
+aniso8601==10.0.0
     # via
     #   -r requirements/test.txt
     #   tincan
@@ -28,17 +28,17 @@ asgiref==3.8.1
     # via
     #   -r requirements/test.txt
     #   django
-attrs==24.2.0
+attrs==25.3.0
     # via
     #   -r requirements/test.txt
     #   openedx-events
-babel==2.16.0
+babel==2.17.0
     # via
     #   pydata-sphinx-theme
     #   sphinx
 backports-tarfile==1.2.0
     # via jaraco-context
-beautifulsoup4==4.12.3
+beautifulsoup4==4.13.3
     # via pydata-sphinx-theme
 billiard==4.2.1
     # via
@@ -52,7 +52,7 @@ celery==5.4.0
     #   edx-celeryutils
     #   event-tracking
     #   openedx-completion-aggregator
-certifi==2024.8.30
+certifi==2025.1.31
     # via
     #   -r requirements/test.txt
     #   requests
@@ -61,11 +61,11 @@ cffi==1.17.1
     #   -r requirements/test.txt
     #   cryptography
     #   pynacl
-charset-normalizer==3.4.0
+charset-normalizer==3.4.1
     # via
     #   -r requirements/test.txt
     #   requests
-click==8.1.7
+click==8.1.8
     # via
     #   -r requirements/test.txt
     #   celery
@@ -86,23 +86,23 @@ click-repl==0.3.0
     # via
     #   -r requirements/test.txt
     #   celery
-code-annotations==1.8.0
+code-annotations==2.2.0
     # via
     #   -r requirements/test.txt
     #   edx-toggles
-coverage[toml]==7.6.4
+coverage[toml]==7.8.0
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==43.0.3
+cryptography==44.0.2
     # via
     #   -r requirements/test.txt
     #   django-fernet-fields-v2
     #   pyjwt
     #   secretstorage
-django==4.2.16
+django==4.2.20
     # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
+    #   -c requirements/common_constraints.txt
     #   -r requirements/test.txt
     #   django-config-models
     #   django-crum
@@ -123,7 +123,7 @@ django==4.2.16
     #   openedx-completion-aggregator
     #   openedx-events
     #   openedx-filters
-django-config-models==2.7.0
+django-config-models==2.8.0
     # via
     #   -r requirements/test.txt
     #   edx-event-routing-backends
@@ -146,13 +146,17 @@ django-redis==5.4.0
     # via
     #   -r requirements/test.txt
     #   edx-event-routing-backends
-django-waffle==4.1.0
+django-simple-history==3.4.0
+    # via
+    #   -c requirements/constraints.txt
+    #   -r requirements/test.txt
+django-waffle==4.2.0
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
     #   edx-drf-extensions
     #   edx-toggles
-djangorestframework==3.15.2
+djangorestframework==3.16.0
     # via
     #   -r requirements/test.txt
     #   django-config-models
@@ -160,6 +164,10 @@ djangorestframework==3.15.2
     #   edx-completion
     #   edx-drf-extensions
     #   openedx-completion-aggregator
+dnspython==2.7.0
+    # via
+    #   -r requirements/test.txt
+    #   pymongo
 doc8==1.1.2
     # via -r requirements/doc.in
 docutils==0.21.2
@@ -173,7 +181,7 @@ drf-jwt==1.19.2
     # via
     #   -r requirements/test.txt
     #   edx-drf-extensions
-edx-ccx-keys==1.3.0
+edx-ccx-keys==2.0.2
     # via
     #   -r requirements/test.txt
     #   openedx-events
@@ -182,11 +190,11 @@ edx-celeryutils==1.3.0
     #   -r requirements/test.txt
     #   edx-event-routing-backends
     #   openedx-completion-aggregator
-edx-completion==4.7.3
+edx-completion==4.7.11
     # via
     #   -r requirements/test.txt
     #   openedx-completion-aggregator
-edx-django-utils==7.0.0
+edx-django-utils==7.2.0
     # via
     #   -r requirements/test.txt
     #   django-config-models
@@ -198,11 +206,11 @@ edx-drf-extensions==10.5.0
     # via
     #   -r requirements/test.txt
     #   edx-completion
-edx-event-routing-backends==9.3.2
+edx-event-routing-backends==9.3.3
     # via
     #   -r requirements/test.txt
     #   openedx-completion-aggregator
-edx-opaque-keys[django]==2.11.0
+edx-opaque-keys[django]==2.12.0
     # via
     #   -r requirements/test.txt
     #   edx-ccx-keys
@@ -210,27 +218,27 @@ edx-opaque-keys[django]==2.11.0
     #   edx-drf-extensions
     #   openedx-completion-aggregator
     #   openedx-events
-edx-toggles==5.2.0
+    #   openedx-filters
+edx-toggles==5.3.0
     # via
     #   -r requirements/test.txt
     #   edx-completion
     #   edx-event-routing-backends
     #   event-tracking
     #   openedx-completion-aggregator
-event-tracking==2.4.0
+event-tracking==3.0.0
     # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
     #   edx-completion
     #   edx-event-routing-backends
     #   openedx-completion-aggregator
-factory-boy==3.3.1
+factory-boy==3.3.3
     # via -r requirements/test.txt
-faker==30.8.1
+faker==37.1.0
     # via
     #   -r requirements/test.txt
     #   factory-boy
-fastavro==1.9.7
+fastavro==1.10.0
     # via
     #   -r requirements/test.txt
     #   openedx-events
@@ -242,17 +250,17 @@ fs==2.4.16
     # via
     #   -r requirements/test.txt
     #   xblock
+id==1.5.0
+    # via twine
 idna==3.10
     # via
     #   -r requirements/test.txt
     #   requests
 imagesize==1.4.1
     # via sphinx
-importlib-metadata==8.5.0
-    # via
-    #   keyring
-    #   twine
-iniconfig==2.0.0
+importlib-metadata==8.6.1
+    # via keyring
+iniconfig==2.1.0
     # via
     #   -r requirements/test.txt
     #   pytest
@@ -266,11 +274,11 @@ jaraco-context==6.0.1
     # via keyring
 jaraco-functools==4.1.0
     # via keyring
-jeepney==0.8.0
+jeepney==0.9.0
     # via
     #   keyring
     #   secretstorage
-jinja2==3.1.4
+jinja2==3.1.6
     # via
     #   -r requirements/test.txt
     #   code-annotations
@@ -280,17 +288,17 @@ jsonfield==3.1.0
     #   -r requirements/test.txt
     #   edx-celeryutils
     #   edx-event-routing-backends
-keyring==25.4.1
+keyring==25.6.0
     # via twine
-kombu==5.4.2
+kombu==5.5.2
     # via
     #   -r requirements/test.txt
     #   celery
-lxml==5.3.0
+lxml==5.3.1
     # via
     #   -r requirements/test.txt
     #   xblock
-mako==1.3.6
+mako==1.3.9
     # via
     #   -r requirements/test.txt
     #   xblock
@@ -304,49 +312,49 @@ markupsafe==3.0.2
     #   xblock
 mdurl==0.1.2
     # via markdown-it-py
-more-itertools==10.5.0
+more-itertools==10.6.0
     # via
     #   jaraco-classes
     #   jaraco-functools
-newrelic==10.2.0
+newrelic==10.8.0
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
-nh3==0.2.18
+nh3==0.2.21
     # via readme-renderer
 openedx-atlas==0.6.2
     # via -r requirements/test.txt
 openedx-completion-aggregator==4.2.0
     # via -r requirements/test.txt
-openedx-events==9.15.0
+openedx-events==9.20.0
     # via
     #   -r requirements/test.txt
     #   event-tracking
-openedx-filters==1.11.0
+openedx-filters==2.0.1
     # via
     #   -r requirements/test.txt
     #   edx-event-routing-backends
-packaging==24.1
+packaging==24.2
     # via
     #   -r requirements/test.txt
     #   build
+    #   pydata-sphinx-theme
     #   pytest
     #   sphinx
-pbr==6.1.0
+    #   twine
+pbr==6.1.1
     # via
     #   -r requirements/test.txt
     #   stevedore
-pkginfo==1.10.0
-    # via twine
 pluggy==1.5.0
     # via
     #   -r requirements/test.txt
     #   pytest
-prompt-toolkit==3.0.48
+prompt-toolkit==3.0.50
     # via
     #   -r requirements/test.txt
     #   click-repl
-psutil==6.1.0
+psutil==7.0.0
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
@@ -354,9 +362,9 @@ pycparser==2.22
     # via
     #   -r requirements/test.txt
     #   cffi
-pydata-sphinx-theme==0.16.0
+pydata-sphinx-theme==0.15.4
     # via sphinx-book-theme
-pygments==2.18.0
+pygments==2.19.1
     # via
     #   accessible-pygments
     #   doc8
@@ -364,12 +372,12 @@ pygments==2.18.0
     #   readme-renderer
     #   rich
     #   sphinx
-pyjwt[crypto]==2.9.0
+pyjwt[crypto]==2.10.1
     # via
     #   -r requirements/test.txt
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==3.13.0
+pymongo==4.4.0
     # via
     #   -r requirements/test.txt
     #   edx-opaque-keys
@@ -380,27 +388,26 @@ pynacl==1.5.0
     #   edx-django-utils
 pyproject-hooks==1.2.0
     # via build
-pytest==8.3.3
+pytest==8.3.5
     # via
     #   -r requirements/test.txt
     #   pytest-cov
     #   pytest-django
-pytest-cov==5.0.0
+pytest-cov==6.0.0
     # via -r requirements/test.txt
-pytest-django==4.9.0
+pytest-django==4.10.0
     # via -r requirements/test.txt
 python-dateutil==2.9.0.post0
     # via
     #   -r requirements/test.txt
     #   celery
     #   edx-event-routing-backends
-    #   faker
     #   xblock
 python-slugify==8.0.4
     # via
     #   -r requirements/test.txt
     #   code-annotations
-pytz==2024.2
+pytz==2025.2
     # via
     #   -r requirements/test.txt
     #   edx-completion
@@ -415,7 +422,7 @@ pyyaml==6.0.2
     #   xblock
 readme-renderer==44.0
     # via twine
-redis==5.2.0
+redis==5.2.1
     # via
     #   -r requirements/test.txt
     #   django-redis
@@ -425,6 +432,7 @@ requests==2.32.3
     #   apache-libcloud
     #   edx-drf-extensions
     #   edx-event-routing-backends
+    #   id
     #   requests-toolbelt
     #   sphinx
     #   twine
@@ -434,19 +442,21 @@ restructuredtext-lint==1.4.0
     # via doc8
 rfc3986==2.0.0
     # via twine
-rich==13.9.3
+rich==14.0.0
     # via twine
+roman-numerals-py==3.1.0
+    # via sphinx
 secretstorage==3.3.3
     # via keyring
 semantic-version==2.10.0
     # via
     #   -r requirements/test.txt
     #   edx-drf-extensions
-simplejson==3.19.3
+simplejson==3.20.1
     # via
     #   -r requirements/test.txt
     #   xblock
-six==1.16.0
+six==1.17.0
     # via
     #   -r requirements/test.txt
     #   edx-ccx-keys
@@ -458,12 +468,12 @@ snowballstemmer==2.2.0
     # via sphinx
 soupsieve==2.6
     # via beautifulsoup4
-sphinx==8.1.3
+sphinx==8.2.3
     # via
     #   -r requirements/doc.in
     #   pydata-sphinx-theme
     #   sphinx-book-theme
-sphinx-book-theme==1.1.3
+sphinx-book-theme==1.1.4
     # via -r requirements/doc.in
 sphinxcontrib-applehelp==2.0.0
     # via sphinx
@@ -477,11 +487,11 @@ sphinxcontrib-qthelp==2.0.0
     # via sphinx
 sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
-sqlparse==0.5.1
+sqlparse==0.5.3
     # via
     #   -r requirements/test.txt
     #   django
-stevedore==5.3.0
+stevedore==5.4.1
     # via
     #   -r requirements/test.txt
     #   code-annotations
@@ -496,21 +506,23 @@ tincan==1.0.0
     # via
     #   -r requirements/test.txt
     #   edx-event-routing-backends
-twine==5.1.1
+twine==6.1.0
     # via -r requirements/doc.in
-typing-extensions==4.12.2
+typing-extensions==4.13.0
     # via
     #   -r requirements/test.txt
+    #   beautifulsoup4
     #   edx-opaque-keys
-    #   faker
     #   pydata-sphinx-theme
-tzdata==2024.2
+tzdata==2025.2
     # via
     #   -r requirements/test.txt
     #   celery
+    #   faker
     #   kombu
 urllib3==2.2.3
     # via
+    #   -c requirements/common_constraints.txt
     #   -r requirements/test.txt
     #   requests
     #   twine
@@ -532,12 +544,12 @@ webob==1.8.9
     # via
     #   -r requirements/test.txt
     #   xblock
-xblock==5.1.0
+xblock==5.1.2
     # via
     #   -r requirements/test.txt
     #   edx-completion
     #   openedx-completion-aggregator
-zipp==3.20.2
+zipp==3.21.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:

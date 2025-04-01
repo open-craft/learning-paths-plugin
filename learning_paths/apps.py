@@ -3,7 +3,7 @@ learning_paths Django application initialization.
 """
 
 from django.apps import AppConfig
-from edx_django_utils.plugins.constants import PluginURLs
+from edx_django_utils.plugins.constants import PluginSettings, PluginSignals, PluginURLs
 
 
 class LearningPathsConfig(AppConfig):
@@ -28,6 +28,25 @@ class LearningPathsConfig(AppConfig):
                 # The python path (relative to this app) to the URLs module to be plugged into the project.
                 # Optional; Defaults to 'urls'.
                 # PluginURLs.RELATIVE_PATH: 'api.urls',
+            }
+        },
+        PluginSettings.CONFIG: {
+            "lms.djangoapp": {
+                "common": {
+                    PluginSettings.RELATIVE_PATH: "settings",
+                }
+            }
+        },
+        PluginSignals.CONFIG: {
+            "lms.djangoapp": {
+                PluginSignals.RELATIVE_PATH: "receivers",
+                PluginSignals.RECEIVERS: [
+                    {
+                        PluginSignals.RECEIVER_FUNC_NAME: "process_pending_enrollments",
+                        PluginSignals.SIGNAL_PATH: "django.db.models.signals.post_save",
+                        PluginSignals.SENDER_PATH: "django.contrib.auth.models.User",
+                    }
+                ],
             }
         },
     }
