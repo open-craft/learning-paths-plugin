@@ -12,6 +12,7 @@ from django.core.validators import validate_email
 from django.shortcuts import get_object_or_404
 from opaque_keys import InvalidKeyError
 from rest_framework import generics, status, viewsets
+from rest_framework.exceptions import NotFound
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -142,6 +143,13 @@ class LearningPathViewSet(viewsets.ReadOnlyModelViewSet):
         if self.action == "list":
             return LearningPathListSerializer
         return LearningPathDetailSerializer
+
+    def get_object(self):
+        """Gracefully handle an invalid learning path key format."""
+        try:
+            return super().get_object()
+        except InvalidKeyError:
+            raise NotFound("Invalid learning path key format.")
 
 
 class LearningPathEnrollmentView(APIView):

@@ -198,6 +198,14 @@ class LearningPathViewSetTests(APITestCase):
                 self.assertIn("due_date", first_step)
                 self.assertIn("weight", first_step)
 
+    def test_invalid_learning_path_key_returns_404(self):
+        """
+        Test that an invalid learning path key format returns a 404 response.
+        """
+        url = reverse("learning-path-detail", args=["invalid-key-format"])
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data["detail"], "Invalid learning path key format.")
 
 class LearningPathEnrollmentTests(APITestCase):
     def setUp(self) -> None:
