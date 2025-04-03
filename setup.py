@@ -162,6 +162,9 @@ setup(
         "lms.djangoapp": [
             "learning_paths = learning_paths.apps:LearningPathsConfig",
         ],
+        "context_key": [
+            "path-v1 = learning_paths.keys:LearningPathKey",
+        ],
     },
     include_package_data=True,
     install_requires=load_requirements("requirements/base.in"),

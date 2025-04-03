@@ -29,8 +29,11 @@ pip-log.txt
 .coverage
 .coverage.*
 .tox
+.ruff_cache
 coverage.xml
 htmlcov/
+pii_report/
+default.db
 
 # Virtual environments
 /venv/
@@ -63,5 +66,7 @@ docs/learning_paths.*.rst
 # Private requirements
 requirements/private.in
 requirements/private.txt
-.idea
-default.db
+
+# IDEs
+.vscode/
+.idea/

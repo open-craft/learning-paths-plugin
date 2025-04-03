@@ -4,13 +4,13 @@ Views for LearningPath.
 
 import logging
 from datetime import datetime, timezone
-from uuid import UUID
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.validators import validate_email
 from django.shortcuts import get_object_or_404
+from opaque_keys import InvalidKeyError
 from rest_framework import generics, status, viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
@@ -23,6 +23,7 @@ from learning_paths.api.v1.serializers import (
     LearningPathGradeSerializer,
     LearningPathProgressSerializer,
 )
+from learning_paths.keys import LearningPathKey
 from learning_paths.models import (
     LearningPath,
     LearningPathEnrollment,
@@ -60,11 +61,12 @@ class LearningPathUserProgressView(APIView):
 
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request, learning_path_uuid):
+    def get(self, request, learning_path_key_str: str):
         """
         Fetch the learning path progress
         """
-        learning_path = get_object_or_404(LearningPath, uuid=learning_path_uuid)
+        learning_path_key = LearningPathKey.from_string(learning_path_key_str)
+        learning_path = get_object_or_404(LearningPath, key=learning_path_key)
 
         progress = get_aggregate_progress(request.user, learning_path)
         required_completion = None
@@ -75,7 +77,7 @@ class LearningPathUserProgressView(APIView):
             pass
 
         data = {
-            "learning_path_id": learning_path.uuid,
+            "learning_path_key": str(learning_path_key),
             "progress": progress,
             "required_completion": required_completion,
         }
@@ -93,12 +95,13 @@ class LearningPathUserGradeView(APIView):
 
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request, learning_path_uuid):
+    def get(self, request, learning_path_key_str: str):
         """
         Fetch learning path grade
         """
 
-        learning_path = get_object_or_404(LearningPath, uuid=learning_path_uuid)
+        learning_path_key = LearningPathKey.from_string(learning_path_key_str)
+        learning_path = get_object_or_404(LearningPath, key=learning_path_key)
 
         try:
             grading_criteria = learning_path.grading_criteria
@@ -111,7 +114,7 @@ class LearningPathUserGradeView(APIView):
         grade = grading_criteria.calculate_grade(request.user)
 
         data = {
-            "learning_path_id": learning_path_uuid,
+            "learning_path_key": str(learning_path_key),
             "grade": grade,
             "required_grade": grading_criteria.required_grade,
         }
@@ -129,7 +132,7 @@ class LearningPathEnrollmentView(APIView):
 
     permission_classes = [IsAuthenticated, IsAdminOrSelf]
 
-    def get(self, request, learning_path_id):
+    def get(self, request, learning_path_key_str: str):
         """Get the learning path of users.
 
         Staff/Admin can get all the active enrollments of the learning path.
@@ -139,7 +142,8 @@ class LearningPathEnrollmentView(APIView):
             username (optional): When provided it returns the enrollment for
                 the specified user.
         """
-        learning_path = get_object_or_404(LearningPath, uuid=learning_path_id)
+        learning_path_key = LearningPathKey.from_string(learning_path_key_str)
+        learning_path = get_object_or_404(LearningPath, key=learning_path_key)
 
         enrollments = LearningPathEnrollment.objects.filter(
             learning_path=learning_path, is_active=True
@@ -154,7 +158,7 @@ class LearningPathEnrollmentView(APIView):
         serializer = LearningPathEnrollmentSerializer(enrollments.all(), many=True)
         return Response(serializer.data)
 
-    def post(self, request, learning_path_id):
+    def post(self, request, learning_path_key_str: str):
         """Enroll learners in Learning Paths.
 
         Staff/Admin can enroll anyone with the username query param.
@@ -167,7 +171,8 @@ class LearningPathEnrollmentView(APIView):
             }
 
         """
-        learning_path = get_object_or_404(LearningPath, uuid=learning_path_id)
+        learning_path_key = LearningPathKey.from_string(learning_path_key_str)
+        learning_path = get_object_or_404(LearningPath, key=learning_path_key)
         username = request.data.get("username")
         user = get_object_or_404(User, username=username) if username else request.user
 
@@ -189,7 +194,7 @@ class LearningPathEnrollmentView(APIView):
         enrollment.save()
         return Response(LearningPathEnrollmentSerializer(enrollment).data)
 
-    def delete(self, request, learning_path_id):
+    def delete(self, request, learning_path_key_str: str):
         """
         Unenroll a learner from a learning path.
 
@@ -203,7 +208,8 @@ class LearningPathEnrollmentView(APIView):
             }
 
         """
-        learning_path = get_object_or_404(LearningPath, uuid=learning_path_id)
+        learning_path_key = LearningPathKey.from_string(learning_path_key_str)
+        learning_path = get_object_or_404(LearningPath, key=learning_path_key)
         username = request.data.get("username")
         user = get_object_or_404(User, username=username) if username else request.user
 
@@ -281,17 +287,14 @@ class BulkEnrollView(APIView):
         valid_learning_paths_keys = []
         for key in learning_paths_keys:
             try:
-                UUID(key)
-            except ValueError:
+                LearningPathKey.from_string(key)
+                valid_learning_paths_keys.append(key)
+            except InvalidKeyError:
                 logger.warning("BulkEnrollView: Invalid learning path key: %s", key)
-                continue
-            valid_learning_paths_keys.append(key)
 
-        learning_paths = LearningPath.objects.filter(
-            uuid__in=valid_learning_paths_keys
-        ).all()
+        learning_paths = LearningPath.objects.filter(key__in=valid_learning_paths_keys)
 
-        existing_users = User.objects.filter(email__in=emails).all()
+        existing_users = User.objects.filter(email__in=emails)
         non_existing_emails = set(emails) - set(u.email for u in existing_users)
 
         enrollments_created = []

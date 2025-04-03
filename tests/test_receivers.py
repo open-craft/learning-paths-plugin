@@ -3,7 +3,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from learning_paths.api.v1.tests.factories import LearnerPathwayFactory
+from learning_paths.api.v1.tests.factories import LearningPathFactory
 from learning_paths.models import LearningPathEnrollment, LearningPathEnrollmentAllowed
 from learning_paths.receivers import process_pending_enrollments
 
@@ -17,8 +17,8 @@ class TestProcessPendingEnrollments(TestCase):
 
     def setUp(self):
         self.user_email = "test@example.com"
-        self.learning_path_1 = LearnerPathwayFactory()
-        self.learning_path_2 = LearnerPathwayFactory()
+        self.learning_path_1 = LearningPathFactory()
+        self.learning_path_2 = LearningPathFactory()
 
     def test_process_pending_enrollments_with_pending_enrollments(self):
         """

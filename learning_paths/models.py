@@ -14,6 +14,7 @@ from opaque_keys.edx.django.models import CourseKeyField
 from simple_history.models import HistoricalRecords
 
 from .compat import get_user_course_grade
+from .keys import LearningPathKeyField
 
 User = auth.get_user_model()
 
@@ -31,9 +32,24 @@ class LearningPath(TimeStampedModel):
     .. no_pii:
     """
 
+    key = LearningPathKeyField(
+        max_length=255,
+        unique=True,
+        db_index=True,
+        help_text=_(
+            "Unique identifier for this Learning Path.<br/>"
+            "It must follow the format: <i>path-v1:{org}+{number}+{run}+{group}</i>."
+        ),
+    )
     # LearningPath is consumed as a course-discovery Program.
-    # Programs are identified by UUIDs and this why we must have this UUID field.
-    uuid = models.UUIDField(blank=True, default=uuid4, editable=False, unique=True)
+    # Programs are identified by UUIDs, which is why we must have this UUID field.
+    uuid = models.UUIDField(
+        blank=True,
+        default=uuid4,
+        editable=False,
+        unique=True,
+        help_text=_("Legacy identifier for compatibility with Course Discovery."),
+    )
     slug = models.SlugField(
         db_index=True,
         unique=True,
@@ -60,6 +76,7 @@ class LearningPath(TimeStampedModel):
         ),
     )
     sequential = models.BooleanField(
+        default=False,
         verbose_name=_("Is sequential"),
         help_text=_(
             "Whether the courses in this Learning Path are meant to be taken sequentially."

@@ -5,6 +5,7 @@ import factory
 from django.contrib import auth
 from factory.fuzzy import FuzzyText
 
+from learning_paths.keys import LearningPathKey
 from learning_paths.models import (
     LearningPath,
     LearningPathEnrollment,
@@ -30,10 +31,13 @@ class UserFactory(factory.django.DjangoModelFactory):
         model = User
 
 
-class LearnerPathwayFactory(factory.django.DjangoModelFactory):
+class LearningPathFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = LearningPath
 
+    key = factory.Sequence(
+        lambda n: LearningPathKey.from_string(f"path-v1:test+number{n}+run+group")
+    )
     uuid = factory.Faker("uuid4")
     display_name = FuzzyText()
     slug = FuzzyText()
@@ -41,11 +45,11 @@ class LearnerPathwayFactory(factory.django.DjangoModelFactory):
     sequential = False
 
 
-class LearnerPathGradingCriteriaFactory(factory.django.DjangoModelFactory):
+class LearningPathGradingCriteriaFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = LearningPathGradingCriteria
 
-    learning_path = factory.SubFactory(LearnerPathwayFactory)
+    learning_path = factory.SubFactory(LearningPathFactory)
     required_completion = 0.80
     required_grade = 0.75
 
@@ -56,7 +60,7 @@ class LearningPathEnrollmentFactory(factory.django.DjangoModelFactory):
     """
 
     user = factory.SubFactory(UserFactory)
-    learning_path = factory.SubFactory(LearnerPathwayFactory)
+    learning_path = factory.SubFactory(LearningPathFactory)
     is_active = True
     enrolled_at = factory.LazyFunction(lambda: datetime.now(timezone.utc))
 

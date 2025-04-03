@@ -16,6 +16,14 @@ Unreleased
 
 *
 
+0.3.0 - 2025-04-03
+******************
+
+Changed
+=======
+
+* Replaced Learning Path UUID with LearningPathKey.
+
 0.2.3 - 2025-03-31
 ******************
 
@@ -38,7 +46,7 @@ Added
 Added
 =====
 
-* Pathway progress API
+* Progress API
 
 0.2.0 - 2024-01-23
 ******************
