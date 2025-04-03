@@ -13,7 +13,7 @@ from model_utils.models import TimeStampedModel
 from opaque_keys.edx.django.models import CourseKeyField
 from simple_history.models import HistoricalRecords
 
-from .compat import get_user_course_grade, get_course_due_date
+from .compat import get_course_due_date, get_user_course_grade
 from .keys import LearningPathKeyField
 
 User = auth.get_user_model()

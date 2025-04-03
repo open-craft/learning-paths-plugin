@@ -60,4 +60,5 @@ __all__ = [
     "get_course_keys_with_outlines",
     "get_catalog_api_client",
     "get_user_course_grade",
+    "get_course_due_date",
 ]
