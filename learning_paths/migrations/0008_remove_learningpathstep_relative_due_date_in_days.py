@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('learning_paths', '0005_learningpathstep_weight_learningpathgradingcriteria'),
+        ('learning_paths', '0007_replace_uuid_with_learningpathkey'),
     ]
 
     operations = [
