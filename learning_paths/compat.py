@@ -1,6 +1,7 @@
 """
 Compatibility layer for testing without Open edX.
 """
+from datetime import datetime
 
 from django.contrib.auth.models import AbstractBaseUser
 from opaque_keys.edx.keys import CourseKey
@@ -41,7 +42,7 @@ def get_course_keys_with_outlines():
     return course_keys_with_outlines()
 
 
-def get_course_due_date(course_key):
+def get_course_due_date(course_key: CourseKey) -> datetime | None:
     """
     Retrieve course end date.
     """

@@ -2,7 +2,7 @@
 Database models for learning_paths.
 """
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from uuid import uuid4
 
 from django.contrib import auth
@@ -123,7 +123,8 @@ class LearningPathStep(TimeStampedModel):
     )
 
     @property
-    def due_date(self):
+    def due_date(self) -> datetime | None:
+        """Retrieve the due date for this course."""
         return get_course_due_date(self.course_key)
 
     def __str__(self):
