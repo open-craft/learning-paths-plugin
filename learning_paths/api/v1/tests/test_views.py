@@ -1,13 +1,12 @@
 # pylint: disable=missing-module-docstring,missing-class-docstring
 from datetime import datetime, timezone
-from unittest.mock import patch, PropertyMock
+from unittest.mock import PropertyMock, patch
 
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIRequestFactory, APITestCase, force_authenticate
 
-from learning_paths.models import LearningPathStep
 from learning_paths.api.v1.serializers import (
     LearningPathAsProgramSerializer,
     LearningPathProgressSerializer,
@@ -25,7 +24,11 @@ from learning_paths.api.v1.views import (
     LearningPathAsProgramViewSet,
     LearningPathUserProgressView,
 )
-from learning_paths.models import LearningPathEnrollment, LearningPathEnrollmentAllowed
+from learning_paths.models import (
+    LearningPathEnrollment,
+    LearningPathEnrollmentAllowed,
+    LearningPathStep,
+)
 
 
 class LearningPathAsProgramTests(APITestCase):
