@@ -1,6 +1,7 @@
 """
 Compatibility layer for testing without Open edX.
 """
+
 from datetime import datetime
 
 from django.contrib.auth.models import AbstractBaseUser
