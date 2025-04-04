@@ -8,6 +8,8 @@ from uuid import uuid4
 from django.contrib import auth
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
 from opaque_keys.edx.django.models import CourseKeyField
@@ -269,6 +271,14 @@ class LearningPathGradingCriteria(models.Model):
             total_weight += course_weight
 
         return weighted_sum / total_weight if total_weight > 0 else 0.0
+
+
+@receiver(post_save, sender=LearningPath)
+def create_grading_criteria(sender, instance, created, **_kwargs):  # pylint: disable=unused-argument
+    """
+    Create default grading criteria when a new learning path is created or updated.
+    """
+    LearningPathGradingCriteria.objects.get_or_create(learning_path=instance)
 
 
 class LearningPathEnrollmentAllowed(models.Model):

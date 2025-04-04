@@ -15,7 +15,6 @@ from learning_paths.api.v1.tests.factories import (
     AcquiredSkillFactory,
     LearningPathEnrollmentFactory,
     LearningPathFactory,
-    LearningPathGradingCriteriaFactory,
     LearningPathStepFactory,
     RequiredSkillFactory,
     UserFactory,
@@ -60,11 +59,6 @@ class LearningPathUserProgressTests(APITestCase):
         self.user = UserFactory()
         self.client.force_authenticate(user=self.user)
         self.learning_path = LearningPathFactory.create()
-        self.grading_criteria = LearningPathGradingCriteriaFactory.create(
-            learning_path=self.learning_path,
-            required_completion=0.80,
-            required_grade=0.75,
-        )
 
     @patch("learning_paths.api.v1.views.get_aggregate_progress", return_value=0.75)
     def test_learning_path_progress_success(
@@ -97,17 +91,12 @@ class LearningPathUserGradeTests(APITestCase):
         self.staff_user = UserFactory(is_staff=True)
         self.client.force_authenticate(user=self.staff_user)
         self.learning_path = LearningPathFactory.create()
-        self.grading_criteria = LearningPathGradingCriteriaFactory.create(
-            learning_path=self.learning_path,
-            required_completion=0.80,
-            required_grade=0.75,
-        )
 
     def test_learning_path_grade_grading_criteria_not_found(self):
         """
         Test that the grade view returns 404 if grading criteria are not found.
         """
-        self.grading_criteria.delete()
+        self.learning_path.grading_criteria.delete()
         url = reverse("learning-path-grade", args=[self.learning_path.key])
         response = self.client.get(url)
 

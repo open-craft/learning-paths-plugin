@@ -77,3 +77,11 @@ class TestLearningPath:
                 key=LearningPathKey("org2", "number2", "run2", "group2"),
                 slug=learning_path.slug,
             )
+
+    def test_grading_criteria_auto_creation(self, learning_path):
+        """Test that grading criteria is automatically created with a learning path."""
+
+        criteria = learning_path.grading_criteria
+        assert criteria is not None
+        assert criteria.required_completion == 0.80
+        assert criteria.required_grade == 0.75
