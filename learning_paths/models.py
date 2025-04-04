@@ -274,7 +274,9 @@ class LearningPathGradingCriteria(models.Model):
 
 
 @receiver(post_save, sender=LearningPath)
-def create_grading_criteria(sender, instance, created, **_kwargs):  # pylint: disable=unused-argument
+def create_grading_criteria(
+    sender, instance, created, **_kwargs
+):  # pylint: disable=unused-argument
     """
     Create default grading criteria when a new learning path is created or updated.
     """
