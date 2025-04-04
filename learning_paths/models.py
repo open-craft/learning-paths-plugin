@@ -88,6 +88,14 @@ class LearningPath(TimeStampedModel):
         """User-friendly string representation of this model."""
         return self.display_name
 
+    def save(self, *args, **kwargs):
+        """Create default grading criteria when a new learning path is created."""
+        is_new = self._state.adding
+        super().save(*args, **kwargs)
+
+        if is_new and not hasattr(self, "grading_criteria"):
+            LearningPathGradingCriteria.objects.get_or_create(learning_path=self)
+
 
 class LearningPathStep(TimeStampedModel):
     """
