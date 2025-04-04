@@ -12,6 +12,7 @@ from django.core.validators import validate_email
 from django.shortcuts import get_object_or_404
 from opaque_keys import InvalidKeyError
 from rest_framework import generics, status, viewsets
+from rest_framework.exceptions import NotFound
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -19,8 +20,10 @@ from rest_framework.views import APIView
 
 from learning_paths.api.v1.serializers import (
     LearningPathAsProgramSerializer,
+    LearningPathDetailSerializer,
     LearningPathEnrollmentSerializer,
     LearningPathGradeSerializer,
+    LearningPathListSerializer,
     LearningPathProgressSerializer,
 )
 from learning_paths.keys import LearningPathKey
@@ -123,6 +126,30 @@ class LearningPathUserGradeView(APIView):
         if serializer.is_valid():
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LearningPathViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for listing all learning paths and retrieving a specific learning path's details,
+    including steps and associated skills.
+    """
+
+    queryset = LearningPath.objects.all()
+    permission_classes = (IsAuthenticated,)
+    pagination_class = PageNumberPagination
+    lookup_field = "key"
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return LearningPathListSerializer
+        return LearningPathDetailSerializer
+
+    def get_object(self):
+        """Gracefully handle an invalid learning path key format."""
+        try:
+            return super().get_object()
+        except InvalidKeyError as exc:
+            raise NotFound("Invalid learning path key format.") from exc
 
 
 class LearningPathEnrollmentView(APIView):
