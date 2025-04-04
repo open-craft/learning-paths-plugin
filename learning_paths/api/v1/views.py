@@ -148,8 +148,8 @@ class LearningPathViewSet(viewsets.ReadOnlyModelViewSet):
         """Gracefully handle an invalid learning path key format."""
         try:
             return super().get_object()
-        except InvalidKeyError:
-            raise NotFound("Invalid learning path key format.")
+        except InvalidKeyError as exc:
+            raise NotFound("Invalid learning path key format.") from exc
 
 
 class LearningPathEnrollmentView(APIView):

@@ -207,6 +207,7 @@ class LearningPathViewSetTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data["detail"], "Invalid learning path key format.")
 
+
 class LearningPathEnrollmentTests(APITestCase):
     def setUp(self) -> None:
         super().setUp()
