@@ -36,7 +36,7 @@ billiard==4.2.1
     # via
     #   -r requirements/test.txt
     #   celery
-celery==5.4.0
+celery==5.5.0
     # via
     #   -r requirements/test.txt
     #   edx-celeryutils
@@ -189,7 +189,7 @@ edx-django-utils==7.2.0
     #   edx-toggles
     #   event-tracking
     #   openedx-events
-edx-drf-extensions==10.5.0
+edx-drf-extensions==10.6.0
     # via
     #   -r requirements/test.txt
     #   edx-completion
@@ -268,7 +268,7 @@ kombu==5.5.2
     # via
     #   -r requirements/test.txt
     #   celery
-lxml==5.3.1
+lxml==5.3.2
     # via
     #   -r requirements/test.txt
     #   xblock
@@ -284,7 +284,7 @@ markupsafe==3.0.2
     #   xblock
 mccabe==0.7.0
     # via pylint
-newrelic==10.8.0
+newrelic==10.8.1
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
@@ -363,9 +363,9 @@ pytest==8.3.5
     #   -r requirements/test.txt
     #   pytest-cov
     #   pytest-django
-pytest-cov==6.0.0
+pytest-cov==6.1.1
     # via -r requirements/test.txt
-pytest-django==4.10.0
+pytest-django==4.11.1
     # via -r requirements/test.txt
 python-dateutil==2.9.0.post0
     # via
@@ -439,14 +439,13 @@ tincan==1.0.0
     #   edx-event-routing-backends
 tomlkit==0.13.2
     # via pylint
-typing-extensions==4.13.0
+typing-extensions==4.13.1
     # via
     #   -r requirements/test.txt
     #   edx-opaque-keys
 tzdata==2025.2
     # via
     #   -r requirements/test.txt
-    #   celery
     #   faker
     #   kombu
 urllib3==2.2.3
@@ -464,7 +463,7 @@ wcwidth==0.2.13
     # via
     #   -r requirements/test.txt
     #   prompt-toolkit
-web-fragments==2.2.0
+web-fragments==3.0.0
     # via
     #   -r requirements/test.txt
     #   xblock
