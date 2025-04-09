@@ -104,10 +104,20 @@ class LearningPathListSerializer(serializers.ModelSerializer):
     """Serializer for the learning path list."""
 
     steps = LearningPathStepSerializer(many=True, read_only=True)
+    required_completion = serializers.FloatField(
+        source="grading_criteria.required_completion", read_only=True
+    )
 
     class Meta:
         model = LearningPath
-        fields = ["key", "slug", "display_name", "sequential", "steps"]
+        fields = [
+            "key",
+            "slug",
+            "display_name",
+            "sequential",
+            "steps",
+            "required_completion",
+        ]
 
 
 class SkillSerializer(serializers.ModelSerializer):
@@ -152,6 +162,9 @@ class LearningPathDetailSerializer(serializers.ModelSerializer):
     acquired_skills = AcquiredSkillSerializer(
         source="acquiredskill_set", many=True, read_only=True
     )
+    required_completion = serializers.FloatField(
+        source="grading_criteria.required_completion", read_only=True
+    )
 
     class Meta:
         model = LearningPath
@@ -168,6 +181,7 @@ class LearningPathDetailSerializer(serializers.ModelSerializer):
             "steps",
             "required_skills",
             "acquired_skills",
+            "required_completion",
         ]
 
 
