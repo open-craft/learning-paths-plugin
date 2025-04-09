@@ -150,7 +150,13 @@ class LearningPathViewSetTests(APITestCase):
             RequiredSkillFactory.create(learning_path=lp)
             AcquiredSkillFactory.create(learning_path=lp)
 
-    def test_learning_path_list(self):
+    @patch.object(
+        LearningPathStep,
+        "due_date",
+        new_callable=PropertyMock,
+        return_value=datetime(2025, 1, 1, tzinfo=timezone.utc),
+    )
+    def test_learning_path_list(self, _mock_due_date):
         """
         Test that the list endpoint returns all learning paths with basic fields.
         """
@@ -162,6 +168,7 @@ class LearningPathViewSetTests(APITestCase):
         self.assertIn("key", first_item)
         self.assertIn("slug", first_item)
         self.assertIn("display_name", first_item)
+        self.assertIn("steps", first_item)
 
     def test_learning_path_retrieve(self):
         """
