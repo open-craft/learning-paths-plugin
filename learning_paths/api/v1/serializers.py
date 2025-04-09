@@ -94,16 +94,20 @@ class LearningPathGradeSerializer(serializers.Serializer):
     required_grade = serializers.FloatField()
 
 
-class LearningPathListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = LearningPath
-        fields = ["key", "slug", "display_name", "sequential"]
-
-
 class LearningPathStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = LearningPathStep
         fields = ["order", "course_key", "due_date", "weight"]
+
+
+class LearningPathListSerializer(serializers.ModelSerializer):
+    """Serializer for the learning path list."""
+
+    steps = LearningPathStepSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = LearningPath
+        fields = ["key", "slug", "display_name", "sequential", "steps"]
 
 
 class SkillSerializer(serializers.ModelSerializer):

@@ -134,7 +134,7 @@ class LearningPathViewSet(viewsets.ReadOnlyModelViewSet):
     including steps and associated skills.
     """
 
-    queryset = LearningPath.objects.all()
+    queryset = LearningPath.objects.prefetch_related('steps')
     permission_classes = (IsAuthenticated,)
     pagination_class = PageNumberPagination
     lookup_field = "key"
