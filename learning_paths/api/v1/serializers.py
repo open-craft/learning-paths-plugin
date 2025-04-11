@@ -114,6 +114,7 @@ class LearningPathListSerializer(serializers.ModelSerializer):
             "key",
             "slug",
             "display_name",
+            "image_url",
             "sequential",
             "steps",
             "required_completion",
