@@ -4,7 +4,14 @@ Serializer for LearningPath.
 
 from rest_framework import serializers
 
-from learning_paths.models import LearningPath, LearningPathEnrollment
+from learning_paths.models import (
+    AcquiredSkill,
+    LearningPath,
+    LearningPathEnrollment,
+    LearningPathStep,
+    RequiredSkill,
+    Skill,
+)
 
 DEFAULT_STATUS = "active"
 IMAGE_WIDTH = 1440
@@ -85,6 +92,98 @@ class LearningPathGradeSerializer(serializers.Serializer):
     learning_path_key = serializers.CharField()
     grade = serializers.FloatField()
     required_grade = serializers.FloatField()
+
+
+class LearningPathStepSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LearningPathStep
+        fields = ["order", "course_key", "due_date", "weight"]
+
+
+class LearningPathListSerializer(serializers.ModelSerializer):
+    """Serializer for the learning path list."""
+
+    steps = LearningPathStepSerializer(many=True, read_only=True)
+    required_completion = serializers.FloatField(
+        source="grading_criteria.required_completion", read_only=True
+    )
+
+    class Meta:
+        model = LearningPath
+        fields = [
+            "key",
+            "slug",
+            "display_name",
+            "image_url",
+            "sequential",
+            "steps",
+            "required_completion",
+        ]
+
+
+class SkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Skill
+        fields = ["id", "display_name"]
+
+
+class RequiredSkillSerializer(serializers.ModelSerializer):
+    """
+    Serializer for required skill.
+    """
+
+    skill = SkillSerializer()
+
+    class Meta:
+        model = RequiredSkill
+        fields = ["skill", "level"]
+
+
+class AcquiredSkillSerializer(serializers.ModelSerializer):
+    """
+    Serializer for acquired skill.
+    """
+
+    skill = SkillSerializer()
+
+    class Meta:
+        model = AcquiredSkill
+        fields = ["skill", "level"]
+
+
+class LearningPathDetailSerializer(serializers.ModelSerializer):
+    """
+    Serializer for learning path details.
+    """
+
+    steps = LearningPathStepSerializer(many=True, read_only=True)
+    required_skills = RequiredSkillSerializer(
+        source="requiredskill_set", many=True, read_only=True
+    )
+    acquired_skills = AcquiredSkillSerializer(
+        source="acquiredskill_set", many=True, read_only=True
+    )
+    required_completion = serializers.FloatField(
+        source="grading_criteria.required_completion", read_only=True
+    )
+
+    class Meta:
+        model = LearningPath
+        fields = [
+            "key",
+            "slug",
+            "display_name",
+            "subtitle",
+            "description",
+            "image_url",
+            "level",
+            "duration_in_days",
+            "sequential",
+            "steps",
+            "required_skills",
+            "acquired_skills",
+            "required_completion",
+        ]
 
 
 class LearningPathEnrollmentSerializer(serializers.ModelSerializer):

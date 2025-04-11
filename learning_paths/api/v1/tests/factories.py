@@ -7,9 +7,13 @@ from factory.fuzzy import FuzzyText
 
 from learning_paths.keys import LearningPathKey
 from learning_paths.models import (
+    AcquiredSkill,
     LearningPath,
     LearningPathEnrollment,
     LearningPathGradingCriteria,
+    LearningPathStep,
+    RequiredSkill,
+    Skill,
 )
 
 User = auth.get_user_model()
@@ -52,6 +56,41 @@ class LearningPathGradingCriteriaFactory(factory.django.DjangoModelFactory):
     learning_path = factory.SubFactory(LearningPathFactory)
     required_completion = 0.80
     required_grade = 0.75
+
+
+class LearningPathStepFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = LearningPathStep
+
+    learning_path = factory.SubFactory(LearningPathFactory)
+    course_key = "course-v1:edX+DemoX+Demo_Course"
+    order = factory.Sequence(lambda n: n + 1)
+    weight = 1
+
+
+class SkillFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Skill
+
+    display_name = factory.Faker("word")
+
+
+class RequiredSkillFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = RequiredSkill
+
+    learning_path = factory.SubFactory(LearningPathFactory)
+    skill = factory.SubFactory(SkillFactory)
+    level = factory.Faker("random_int", min=1, max=5)
+
+
+class AcquiredSkillFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = AcquiredSkill
+
+    learning_path = factory.SubFactory(LearningPathFactory)
+    skill = factory.SubFactory(SkillFactory)
+    level = factory.Faker("random_int", min=1, max=5)
 
 
 class LearningPathEnrollmentFactory(factory.django.DjangoModelFactory):

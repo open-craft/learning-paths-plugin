@@ -2,18 +2,20 @@
 Database models for learning_paths.
 """
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 from uuid import uuid4
 
 from django.contrib import auth
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
 from opaque_keys.edx.django.models import CourseKeyField
 from simple_history.models import HistoricalRecords
 
-from .compat import get_user_course_grade
+from .compat import get_course_due_date, get_user_course_grade
 from .keys import LearningPathKeyField
 
 User = auth.get_user_model()
@@ -105,14 +107,6 @@ class LearningPathStep(TimeStampedModel):
     learning_path = models.ForeignKey(
         LearningPath, related_name="steps", on_delete=models.CASCADE
     )
-    relative_due_date_in_days = models.PositiveIntegerField(
-        blank=True,
-        null=True,
-        verbose_name=_("Due date (days)"),
-        help_text=_(
-            "Used to calculate the due date from the starting date of the course."
-        ),
-    )
     order = models.PositiveIntegerField(
         blank=True,
         null=True,
@@ -129,6 +123,11 @@ class LearningPathStep(TimeStampedModel):
             "Specify as a floating point number between 0 and 1, where 1 represents 100%."
         ),
     )
+
+    @property
+    def due_date(self) -> datetime | None:
+        """Retrieve the due date for this course."""
+        return get_course_due_date(self.course_key)
 
     def __str__(self):
         """User-friendly string representation of this model."""
@@ -272,6 +271,16 @@ class LearningPathGradingCriteria(models.Model):
             total_weight += course_weight
 
         return weighted_sum / total_weight if total_weight > 0 else 0.0
+
+
+@receiver(post_save, sender=LearningPath)
+def create_grading_criteria(
+    sender, instance, created, **_kwargs
+):  # pylint: disable=unused-argument
+    """
+    Create default grading criteria when a new learning path is created or updated.
+    """
+    LearningPathGradingCriteria.objects.get_or_create(learning_path=instance)
 
 
 class LearningPathEnrollmentAllowed(models.Model):

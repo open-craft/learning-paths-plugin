@@ -1,5 +1,6 @@
 # pylint: disable=missing-module-docstring,missing-class-docstring
-from unittest.mock import patch
+from datetime import datetime, timezone
+from unittest.mock import PropertyMock, patch
 
 from django.test import override_settings
 from django.urls import reverse
@@ -11,16 +12,22 @@ from learning_paths.api.v1.serializers import (
     LearningPathProgressSerializer,
 )
 from learning_paths.api.v1.tests.factories import (
+    AcquiredSkillFactory,
     LearningPathEnrollmentFactory,
     LearningPathFactory,
-    LearningPathGradingCriteriaFactory,
+    LearningPathStepFactory,
+    RequiredSkillFactory,
     UserFactory,
 )
 from learning_paths.api.v1.views import (
     LearningPathAsProgramViewSet,
     LearningPathUserProgressView,
 )
-from learning_paths.models import LearningPathEnrollment, LearningPathEnrollmentAllowed
+from learning_paths.models import (
+    LearningPathEnrollment,
+    LearningPathEnrollmentAllowed,
+    LearningPathStep,
+)
 
 
 class LearningPathAsProgramTests(APITestCase):
@@ -52,11 +59,6 @@ class LearningPathUserProgressTests(APITestCase):
         self.user = UserFactory()
         self.client.force_authenticate(user=self.user)
         self.learning_path = LearningPathFactory.create()
-        self.grading_criteria = LearningPathGradingCriteriaFactory.create(
-            learning_path=self.learning_path,
-            required_completion=0.80,
-            required_grade=0.75,
-        )
 
     @patch("learning_paths.api.v1.views.get_aggregate_progress", return_value=0.75)
     def test_learning_path_progress_success(
@@ -89,17 +91,12 @@ class LearningPathUserGradeTests(APITestCase):
         self.staff_user = UserFactory(is_staff=True)
         self.client.force_authenticate(user=self.staff_user)
         self.learning_path = LearningPathFactory.create()
-        self.grading_criteria = LearningPathGradingCriteriaFactory.create(
-            learning_path=self.learning_path,
-            required_completion=0.80,
-            required_grade=0.75,
-        )
 
     def test_learning_path_grade_grading_criteria_not_found(self):
         """
         Test that the grade view returns 404 if grading criteria are not found.
         """
-        self.grading_criteria.delete()
+        self.learning_path.grading_criteria.delete()
         url = reverse("learning-path-grade", args=[self.learning_path.key])
         response = self.client.get(url)
 
@@ -126,6 +123,85 @@ class LearningPathUserGradeTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["grade"], 0.85)
         self.assertTrue(response.data["required_grade"], 0.75)
+
+
+class LearningPathViewSetTests(APITestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        self.user = UserFactory()
+        self.client.force_authenticate(user=self.user)
+        self.learning_paths = LearningPathFactory.create_batch(3)
+        fake_due_date = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        for lp in self.learning_paths:
+            with patch.object(
+                LearningPathStep, "due_date", new_callable=PropertyMock
+            ) as mock_due_date:
+                mock_due_date.return_value = fake_due_date
+                LearningPathStepFactory.create(
+                    learning_path=lp,
+                    order=1,
+                    course_key="course-v1:edX+DemoX+Demo_Course",
+                )
+                LearningPathStepFactory.create(
+                    learning_path=lp,
+                    order=2,
+                    course_key="course-v1:edX+DemoX+Another_Course",
+                )
+            RequiredSkillFactory.create(learning_path=lp)
+            AcquiredSkillFactory.create(learning_path=lp)
+
+    @patch.object(
+        LearningPathStep,
+        "due_date",
+        new_callable=PropertyMock,
+        return_value=datetime(2025, 1, 1, tzinfo=timezone.utc),
+    )
+    def test_learning_path_list(self, _mock_due_date):
+        """
+        Test that the list endpoint returns all learning paths with basic fields.
+        """
+        url = reverse("learning-path-list")
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), len(self.learning_paths))
+        first_item = response.data[0]
+        self.assertIn("key", first_item)
+        self.assertIn("slug", first_item)
+        self.assertIn("display_name", first_item)
+        self.assertIn("steps", first_item)
+
+    def test_learning_path_retrieve(self):
+        """
+        Test that the retrieve endpoint returns the details of a learning path,
+        including steps and associated skills.
+        """
+        lp = self.learning_paths[0]
+        url = reverse("learning-path-detail", args=[lp.key])
+        fake_due_date = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        with patch.object(
+            LearningPathStep, "due_date", new_callable=PropertyMock
+        ) as mock_due_date:
+            mock_due_date.return_value = fake_due_date
+            response = self.client.get(url, format="json")
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertIn("steps", response.data)
+            self.assertIn("required_skills", response.data)
+            self.assertIn("acquired_skills", response.data)
+            if response.data["steps"]:
+                first_step = response.data["steps"][0]
+                self.assertIn("order", first_step)
+                self.assertIn("course_key", first_step)
+                self.assertIn("due_date", first_step)
+                self.assertIn("weight", first_step)
+
+    def test_invalid_learning_path_key_returns_404(self):
+        """
+        Test that an invalid learning path key format returns a 404 response.
+        """
+        url = reverse("learning-path-detail", args=["invalid-key-format"])
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data["detail"], "Invalid learning path key format.")
 
 
 class LearningPathEnrollmentTests(APITestCase):
