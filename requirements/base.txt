@@ -18,7 +18,7 @@ attrs==25.3.0
     # via openedx-events
 billiard==4.2.1
     # via celery
-celery==5.5.0
+celery==5.5.1
     # via
     #   edx-celeryutils
     #   event-tracking
@@ -45,7 +45,7 @@ click-plugins==1.1.1
     # via celery
 click-repl==0.3.0
     # via celery
-code-annotations==2.2.0
+code-annotations==2.3.0
     # via edx-toggles
 cryptography==44.0.2
     # via
@@ -74,7 +74,7 @@ django==4.2.20
     #   openedx-completion-aggregator
     #   openedx-events
     #   openedx-filters
-django-config-models==2.8.0
+django-config-models==2.9.0
     # via edx-event-routing-backends
 django-crum==0.7.9
     # via
@@ -119,7 +119,7 @@ edx-celeryutils==1.3.0
     #   openedx-completion-aggregator
 edx-completion==4.7.11
     # via openedx-completion-aggregator
-edx-django-utils==7.2.0
+edx-django-utils==7.4.0
     # via
     #   -r requirements/base.in
     #   django-config-models
@@ -129,7 +129,7 @@ edx-django-utils==7.2.0
     #   openedx-events
 edx-drf-extensions==10.6.0
     # via edx-completion
-edx-event-routing-backends==9.3.3
+edx-event-routing-backends==9.3.4
     # via openedx-completion-aggregator
 edx-opaque-keys[django]==2.12.0
     # via
@@ -171,20 +171,20 @@ kombu==5.5.2
     # via celery
 lxml==5.3.2
     # via xblock
-mako==1.3.9
+mako==1.3.10
     # via xblock
 markupsafe==3.0.2
     # via
     #   jinja2
     #   mako
     #   xblock
-newrelic==10.8.1
+newrelic==10.9.0
     # via edx-django-utils
-openedx-atlas==0.6.2
+openedx-atlas==0.7.0
     # via -r requirements/base.in
 openedx-completion-aggregator==4.2.0
     # via -r requirements/base.in
-openedx-events==9.20.0
+openedx-events==10.0.0
     # via event-tracking
 openedx-filters==2.0.1
     # via edx-event-routing-backends
@@ -253,7 +253,7 @@ text-unidecode==1.3
     # via python-slugify
 tincan==1.0.0
     # via edx-event-routing-backends
-typing-extensions==4.13.1
+typing-extensions==4.13.2
     # via edx-opaque-keys
 tzdata==2025.2
     # via kombu
@@ -272,7 +272,7 @@ web-fragments==3.0.0
     # via xblock
 webob==1.8.9
     # via xblock
-xblock==5.1.2
+xblock==5.2.0
     # via
     #   edx-completion
     #   openedx-completion-aggregator
