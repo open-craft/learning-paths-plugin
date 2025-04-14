@@ -16,6 +16,24 @@ Unreleased
 
 *
 
+0.3.1 - 2025-04-14
+******************
+
+Added
+=====
+
+* API for listing and retrieving Learning Paths.
+
+Fixed
+=====
+
+* Automatically create grading criteria for Learning Paths.
+
+Changed
+=======
+
+* Replaced relative due dates with actual due dates from course runs.
+
 0.3.0 - 2025-04-03
 ******************
 
