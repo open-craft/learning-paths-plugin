@@ -12,7 +12,7 @@ amqp==5.3.1
     # via
     #   -r requirements/test.txt
     #   kombu
-aniso8601==10.0.0
+aniso8601==10.0.1
     # via
     #   -r requirements/test.txt
     #   tincan
@@ -38,7 +38,7 @@ babel==2.17.0
     #   sphinx
 backports-tarfile==1.2.0
     # via jaraco-context
-beautifulsoup4==4.13.3
+beautifulsoup4==4.13.4
     # via pydata-sphinx-theme
 billiard==4.2.1
     # via
@@ -290,7 +290,7 @@ jsonfield==3.1.0
     #   edx-event-routing-backends
 keyring==25.6.0
     # via twine
-kombu==5.5.2
+kombu==5.5.3
     # via
     #   -r requirements/test.txt
     #   celery
@@ -334,7 +334,7 @@ openedx-filters==2.0.1
     # via
     #   -r requirements/test.txt
     #   edx-event-routing-backends
-packaging==24.2
+packaging==25.0
     # via
     #   -r requirements/test.txt
     #   build
@@ -350,7 +350,7 @@ pluggy==1.5.0
     # via
     #   -r requirements/test.txt
     #   pytest
-prompt-toolkit==3.0.50
+prompt-toolkit==3.0.51
     # via
     #   -r requirements/test.txt
     #   click-repl
@@ -466,7 +466,7 @@ six==1.17.0
     #   python-dateutil
 snowballstemmer==2.2.0
     # via sphinx
-soupsieve==2.6
+soupsieve==2.7
     # via beautifulsoup4
 sphinx==8.2.3
     # via

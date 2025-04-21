@@ -8,7 +8,7 @@ amqp==5.3.1
     # via
     #   -r requirements/test.txt
     #   kombu
-aniso8601==10.0.0
+aniso8601==10.0.1
     # via
     #   -r requirements/test.txt
     #   tincan
@@ -94,7 +94,7 @@ cryptography==44.0.2
     #   -r requirements/test.txt
     #   django-fernet-fields-v2
     #   pyjwt
-dill==0.3.9
+dill==0.4.0
     # via pylint
 django==4.2.20
     # via
@@ -264,7 +264,7 @@ jsonfield==3.1.0
     #   -r requirements/test.txt
     #   edx-celeryutils
     #   edx-event-routing-backends
-kombu==5.5.2
+kombu==5.5.3
     # via
     #   -r requirements/test.txt
     #   celery
@@ -300,7 +300,7 @@ openedx-filters==2.0.1
     # via
     #   -r requirements/test.txt
     #   edx-event-routing-backends
-packaging==24.2
+packaging==25.0
     # via
     #   -r requirements/test.txt
     #   pytest
@@ -314,7 +314,7 @@ pluggy==1.5.0
     # via
     #   -r requirements/test.txt
     #   pytest
-prompt-toolkit==3.0.50
+prompt-toolkit==3.0.51
     # via
     #   -r requirements/test.txt
     #   click-repl

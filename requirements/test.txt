@@ -8,7 +8,7 @@ amqp==5.3.1
     # via
     #   -r requirements/base.txt
     #   kombu
-aniso8601==10.0.0
+aniso8601==10.0.1
     # via
     #   -r requirements/base.txt
     #   tincan
@@ -241,7 +241,7 @@ jsonfield==3.1.0
     #   -r requirements/base.txt
     #   edx-celeryutils
     #   edx-event-routing-backends
-kombu==5.5.2
+kombu==5.5.3
     # via
     #   -r requirements/base.txt
     #   celery
@@ -275,7 +275,7 @@ openedx-filters==2.0.1
     # via
     #   -r requirements/base.txt
     #   edx-event-routing-backends
-packaging==24.2
+packaging==25.0
     # via pytest
 pbr==6.1.1
     # via
@@ -283,7 +283,7 @@ pbr==6.1.1
     #   stevedore
 pluggy==1.5.0
     # via pytest
-prompt-toolkit==3.0.50
+prompt-toolkit==3.0.51
     # via
     #   -r requirements/base.txt
     #   click-repl

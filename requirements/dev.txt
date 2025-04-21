@@ -8,7 +8,7 @@ amqp==5.3.1
     # via
     #   -r requirements/quality.txt
     #   kombu
-aniso8601==10.0.0
+aniso8601==10.0.1
     # via
     #   -r requirements/quality.txt
     #   tincan
@@ -118,7 +118,7 @@ cryptography==44.0.2
     #   pyjwt
 diff-cover==9.2.4
     # via -r requirements/dev.in
-dill==0.3.9
+dill==0.4.0
     # via
     #   -r requirements/quality.txt
     #   pylint
@@ -303,7 +303,7 @@ jsonfield==3.1.0
     #   -r requirements/quality.txt
     #   edx-celeryutils
     #   edx-event-routing-backends
-kombu==5.5.2
+kombu==5.5.3
     # via
     #   -r requirements/quality.txt
     #   celery
@@ -345,7 +345,7 @@ openedx-filters==2.0.1
     # via
     #   -r requirements/quality.txt
     #   edx-event-routing-backends
-packaging==24.2
+packaging==25.0
     # via
     #   -r requirements/ci.txt
     #   -r requirements/pip-tools.txt
@@ -378,7 +378,7 @@ pluggy==1.5.0
     #   tox
 polib==1.2.0
     # via edx-i18n-tools
-prompt-toolkit==3.0.50
+prompt-toolkit==3.0.51
     # via
     #   -r requirements/quality.txt
     #   click-repl
