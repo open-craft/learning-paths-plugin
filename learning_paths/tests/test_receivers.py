@@ -3,9 +3,10 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from learning_paths.api.v1.tests.factories import LearningPathFactory
 from learning_paths.models import LearningPathEnrollment, LearningPathEnrollmentAllowed
 from learning_paths.receivers import process_pending_enrollments
+
+from .factories import LearningPathFactory
 
 User = get_user_model()
 

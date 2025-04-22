@@ -12,14 +12,6 @@ from learning_paths.api.v1.serializers import (
     LearningPathAsProgramSerializer,
     LearningPathProgressSerializer,
 )
-from learning_paths.api.v1.tests.factories import (
-    AcquiredSkillFactory,
-    LearningPathEnrollmentFactory,
-    LearningPathFactory,
-    LearningPathStepFactory,
-    RequiredSkillFactory,
-    UserFactory,
-)
 from learning_paths.api.v1.views import (
     LearningPathAsProgramViewSet,
     LearningPathUserProgressView,
@@ -28,6 +20,14 @@ from learning_paths.models import (
     LearningPathEnrollment,
     LearningPathEnrollmentAllowed,
     LearningPathStep,
+)
+from learning_paths.tests.factories import (
+    AcquiredSkillFactory,
+    LearningPathEnrollmentFactory,
+    LearningPathFactory,
+    LearningPathStepFactory,
+    RequiredSkillFactory,
+    UserFactory,
 )
 
 

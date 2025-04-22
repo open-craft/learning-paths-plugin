@@ -6,7 +6,7 @@ from learning_paths.api.v1.serializers import (
     LearningPathGradeSerializer,
     LearningPathProgressSerializer,
 )
-from learning_paths.api.v1.tests.factories import LearningPathFactory
+from learning_paths.tests.factories import LearningPathFactory
 
 
 @pytest.mark.django_db
