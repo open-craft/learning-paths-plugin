@@ -9,6 +9,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.validators import validate_email
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from opaque_keys import InvalidKeyError
 from rest_framework import generics, status, viewsets
@@ -134,10 +135,27 @@ class LearningPathViewSet(viewsets.ReadOnlyModelViewSet):
     including steps and associated skills.
     """
 
-    queryset = LearningPath.objects.prefetch_related("steps", "grading_criteria")
     permission_classes = (IsAuthenticated,)
     pagination_class = PageNumberPagination
     lookup_field = "key"
+
+    def get_queryset(self):
+        """
+        Get all learning paths and prefetch the related data, including user enrollments.
+        """
+        user = self.request.user
+        queryset = LearningPath.objects.prefetch_related(
+            "steps",
+            "grading_criteria",
+            Prefetch(
+                "learningpathenrollment_set",
+                queryset=LearningPathEnrollment.objects.filter(
+                    user=user, is_active=True
+                ),
+                to_attr="user_enrollments",
+            ),
+        )
+        return queryset
 
     def get_serializer_class(self):
         if self.action == "list":

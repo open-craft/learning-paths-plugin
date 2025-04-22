@@ -107,6 +107,7 @@ class LearningPathListSerializer(serializers.ModelSerializer):
     required_completion = serializers.FloatField(
         source="grading_criteria.required_completion", read_only=True
     )
+    is_enrolled = serializers.SerializerMethodField()
 
     class Meta:
         model = LearningPath
@@ -117,7 +118,16 @@ class LearningPathListSerializer(serializers.ModelSerializer):
             "sequential",
             "steps",
             "required_completion",
+            "is_enrolled",
         ]
+
+    def get_is_enrolled(self, obj):
+        """
+        Check if the current user is enrolled in this learning path.
+        """
+        if hasattr(obj, "user_enrollments"):
+            return len(obj.user_enrollments) > 0
+        return False
 
 
 class SkillSerializer(serializers.ModelSerializer):
@@ -150,37 +160,26 @@ class AcquiredSkillSerializer(serializers.ModelSerializer):
         fields = ["skill", "level"]
 
 
-class LearningPathDetailSerializer(serializers.ModelSerializer):
+class LearningPathDetailSerializer(LearningPathListSerializer):
     """
     Serializer for learning path details.
     """
 
-    steps = LearningPathStepSerializer(many=True, read_only=True)
     required_skills = RequiredSkillSerializer(
         source="requiredskill_set", many=True, read_only=True
     )
     acquired_skills = AcquiredSkillSerializer(
         source="acquiredskill_set", many=True, read_only=True
     )
-    required_completion = serializers.FloatField(
-        source="grading_criteria.required_completion", read_only=True
-    )
 
-    class Meta:
-        model = LearningPath
-        fields = [
-            "key",
-            "display_name",
+    class Meta(LearningPathListSerializer.Meta):
+        fields = LearningPathListSerializer.Meta.fields + [
             "subtitle",
             "description",
-            "image_url",
             "level",
             "duration_in_days",
-            "sequential",
-            "steps",
             "required_skills",
             "acquired_skills",
-            "required_completion",
         ]
 
 

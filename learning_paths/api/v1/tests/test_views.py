@@ -227,6 +227,8 @@ class TestLearningPathViewSet:
         assert "key" in first_item
         assert "display_name" in first_item
         assert "steps" in first_item
+        assert "is_enrolled" in first_item
+        assert first_item["is_enrolled"] is False
 
     def test_learning_path_retrieve(
         self, authenticated_client, learning_paths_with_steps
@@ -245,6 +247,8 @@ class TestLearningPathViewSet:
             assert "steps" in response.data
             assert "required_skills" in response.data
             assert "acquired_skills" in response.data
+            assert "is_enrolled" in response.data
+            assert response.data["is_enrolled"] is False
 
             if response.data["steps"]:
                 first_step = response.data["steps"][0]
@@ -259,6 +263,41 @@ class TestLearningPathViewSet:
         response = authenticated_client.get(url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.data["detail"] == "Invalid learning path key format."
+
+    def test_learning_path_list_with_enrollment(
+        self, authenticated_client, active_enrollment, user
+    ):
+        """Test that the list endpoint returns all learning paths with enrollment status."""
+        url = reverse("learning-path-list")
+        response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 1
+        first_item = response.data[0]
+        assert "is_enrolled" in first_item
+        assert first_item["is_enrolled"] is True
+
+    def test_learning_path_retrieve_with_enrollment(
+        self, authenticated_client, active_enrollment, learning_path, user
+    ):
+        """Test that the retrieve endpoint returns the details of a learning path with enrollment status."""
+        url = reverse("learning-path-detail", args=[learning_path.key])
+        response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert "is_enrolled" in response.data
+        assert response.data["is_enrolled"] is True
+
+    def test_learning_path_retrieve_with_inactive_enrollment(
+        self, authenticated_client, inactive_enrollment, learning_path, user
+    ):
+        """Test that the retrieve endpoint returns the details of a learning path with inactive enrollment status."""
+        url = reverse("learning-path-detail", args=[learning_path.key])
+        response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert "is_enrolled" in response.data
+        assert response.data["is_enrolled"] is False
 
 
 @pytest.mark.django_db

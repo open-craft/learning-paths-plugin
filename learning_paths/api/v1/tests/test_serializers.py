@@ -3,10 +3,16 @@ import pytest
 
 from learning_paths.api.v1.serializers import (
     LearningPathAsProgramSerializer,
+    LearningPathDetailSerializer,
     LearningPathGradeSerializer,
+    LearningPathListSerializer,
     LearningPathProgressSerializer,
 )
-from learning_paths.tests.factories import LearningPathFactory
+from learning_paths.tests.factories import (
+    LearningPathEnrollmentFactory,
+    LearningPathFactory,
+    UserFactory,
+)
 
 
 @pytest.mark.django_db
@@ -78,3 +84,75 @@ def test_learning_path_grade_serializer():
     }
     grade_serializer = LearningPathGradeSerializer(grade_data)
     assert dict(grade_serializer.data) == grade_data
+
+
+@pytest.mark.django_db
+def test_list_serializer():
+    """
+    Test the default values of the LearningPathListSerializer.
+    """
+    learning_path = LearningPathFactory()
+    serializer = LearningPathListSerializer(learning_path)
+    expected = {
+        "key": str(learning_path.key),
+        "display_name": learning_path.display_name,
+        "image_url": "",
+        "sequential": False,
+        "steps": [],
+        "required_completion": 0.8,
+        "is_enrolled": False,
+    }
+    assert dict(serializer.data) == expected
+
+
+@pytest.mark.django_db
+def test_list_serializer_is_not_enrolled():
+    """
+    Tests LearningPathListSerializer shows is_enrolled as False when a user is not enrolled.
+    """
+    learning_path = LearningPathFactory()
+    learning_path.user_enrollments = []
+
+    serializer = LearningPathListSerializer(learning_path)
+    assert serializer.data["is_enrolled"] is False
+
+
+@pytest.mark.django_db
+def test_list_serializer_is_enrolled():
+    """
+    Tests LearningPathListSerializer shows is_enrolled as True when a user is enrolled.
+    """
+    user = UserFactory()
+    learning_path = LearningPathFactory()
+    enrollment = LearningPathEnrollmentFactory(
+        user=user, learning_path=learning_path, is_active=True
+    )
+    learning_path.user_enrollments = [enrollment]
+
+    serializer = LearningPathListSerializer(learning_path)
+    assert serializer.data["is_enrolled"] is True
+
+
+@pytest.mark.django_db
+def test_detail_serializer():
+    """
+    Tests LearningPathDetailSerializer default values.
+    """
+    learning_path = LearningPathFactory()
+    expected = {
+        "key": str(learning_path.key),
+        "display_name": learning_path.display_name,
+        "subtitle": "",
+        "description": learning_path.description,
+        "image_url": "",
+        "level": "",
+        "sequential": False,
+        "duration_in_days": None,
+        "required_skills": [],
+        "acquired_skills": [],
+        "steps": [],
+        "is_enrolled": False,
+        "required_completion": 0.8,
+    }
+    serializer = LearningPathDetailSerializer(learning_path)
+    assert dict(serializer.data) == expected
