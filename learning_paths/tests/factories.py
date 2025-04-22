@@ -46,7 +46,6 @@ class LearningPathFactory(factory.django.DjangoModelFactory):
     )
     uuid = factory.Faker("uuid4")
     display_name = FuzzyText()
-    slug = FuzzyText()
     description = FuzzyText()
     sequential = False
 

@@ -16,7 +16,6 @@ def test_learning_path_as_program_serializer():
     """
     learning_path = LearningPathFactory(
         uuid="817190bc-7bf1-4d95-aa43-bec5f58c2276",
-        slug="learn-slug",
         display_name="My Test Learning Path",
         subtitle="Best path there is",
         image_url="https://image.go/toto.png",
@@ -26,7 +25,7 @@ def test_learning_path_as_program_serializer():
     expected = {
         "uuid": "817190bc-7bf1-4d95-aa43-bec5f58c2276",
         "name": "My Test Learning Path",
-        "marketing_slug": "learn-slug",
+        "marketing_slug": str(learning_path.key),
         "title": "My Test Learning Path",
         "subtitle": "Best path there is",
         "status": "active",
@@ -45,7 +44,6 @@ def test_learning_path_progress_serializer():
     learning_path = LearningPathFactory(
         key="path-v1:test+test+test+test",
         uuid="817190bc-7bf1-4d95-aa43-bec5f58c2276",
-        slug="learn-slug",
         display_name="My Test Learning Path",
         subtitle="Best path there is",
         image_url="https://image.go/toto.png",
@@ -68,7 +66,6 @@ def test_learning_path_grade_serializer():
     learning_path = LearningPathFactory(
         key="path-v1:OpenedX+DemoX+DemoRun+DemoGroup",
         uuid="817190bc-7bf1-4d95-aa43-bec5f58c2276",
-        slug="learn-slug",
         display_name="My Test Learning Path",
         subtitle="Best path there is",
         image_url="https://image.go/toto.png",

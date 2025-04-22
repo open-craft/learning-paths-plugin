@@ -50,11 +50,6 @@ class LearningPath(TimeStampedModel):
         unique=True,
         help_text=_("Legacy identifier for compatibility with Course Discovery."),
     )
-    slug = models.SlugField(
-        db_index=True,
-        unique=True,
-        help_text=_("Custom unique code identifying this Learning Path."),
-    )
     display_name = models.CharField(max_length=255)
     subtitle = models.CharField(max_length=255)
     description = models.TextField(blank=True)

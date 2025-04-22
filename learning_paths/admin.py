@@ -148,13 +148,11 @@ class LearningPathAdmin(admin.ModelAdmin):
     form = BulkEnrollUsersForm
 
     search_fields = [
-        "slug",
         "display_name",
         "key",
     ]
     list_display = (
         "key",
-        "slug",
         "display_name",
         "level",
         "duration_in_days",
@@ -199,7 +197,6 @@ class EnrolledUsersAdmin(admin.ModelAdmin):
         "id",
         "user__username",
         "learning_path__key",
-        "learning_path__slug",
         "learning_path__display_name",
     ]
 

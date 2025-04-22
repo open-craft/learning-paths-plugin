@@ -23,7 +23,6 @@ def learning_path(learning_path_key):
     """Create a basic learning path for tests."""
     return LearningPath.objects.create(
         key=learning_path_key,
-        slug="test-path",
         display_name="Test Learning Path",
         subtitle="Test Subtitle",
         description="Test description",
@@ -40,7 +39,6 @@ class TestLearningPath:
     def test_creation(self, learning_path):
         """Test creating a learning path."""
         assert learning_path.display_name == "Test Learning Path"
-        assert learning_path.slug == "test-path"
         assert learning_path.sequential is True
 
     def test_string_representation(self, learning_path):
@@ -66,17 +64,6 @@ class TestLearningPath:
             match="UNIQUE constraint failed: learning_paths_learningpath.key",
         ):
             LearningPath.objects.create(key=learning_path_key)
-
-    def test_unique_slug(self, learning_path, learning_path_key):
-        """Test that slug must be unique."""
-        with pytest.raises(
-            IntegrityError,
-            match="UNIQUE constraint failed: learning_paths_learningpath.slug",
-        ):
-            LearningPath.objects.create(
-                key=LearningPathKey("org2", "number2", "run2", "group2"),
-                slug=learning_path.slug,
-            )
 
     def test_grading_criteria_auto_creation(self, learning_path):
         """Test that grading criteria is automatically created with a learning path."""

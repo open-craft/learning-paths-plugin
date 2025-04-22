@@ -225,7 +225,6 @@ class TestLearningPathViewSet:
         assert len(response.data) == len(learning_paths_with_steps)
         first_item = response.data[0]
         assert "key" in first_item
-        assert "slug" in first_item
         assert "display_name" in first_item
         assert "steps" in first_item
 

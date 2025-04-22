@@ -35,7 +35,7 @@ class LearningPathAsProgramSerializer(serializers.ModelSerializer):
     course_codes = serializers.SerializerMethodField()
 
     def get_marketing_slug(self, obj):
-        return obj.slug
+        return str(obj.key)
 
     def get_status(self, obj):  # pylint: disable=unused-argument
         return DEFAULT_STATUS
@@ -112,7 +112,6 @@ class LearningPathListSerializer(serializers.ModelSerializer):
         model = LearningPath
         fields = [
             "key",
-            "slug",
             "display_name",
             "image_url",
             "sequential",
@@ -171,7 +170,6 @@ class LearningPathDetailSerializer(serializers.ModelSerializer):
         model = LearningPath
         fields = [
             "key",
-            "slug",
             "display_name",
             "subtitle",
             "description",
