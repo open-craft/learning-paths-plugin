@@ -10,6 +10,7 @@ from learning_paths.models import (
     AcquiredSkill,
     LearningPath,
     LearningPathEnrollment,
+    LearningPathEnrollmentAllowed,
     LearningPathGradingCriteria,
     LearningPathStep,
     RequiredSkill,
@@ -105,3 +106,16 @@ class LearningPathEnrollmentFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = LearningPathEnrollment
+
+
+class LearningPathEnrollmentAllowedFactory(factory.django.DjangoModelFactory):
+    """
+    Factory for LearningPathEnrollmentAllowed model.
+    """
+
+    email = factory.Faker("email")
+    learning_path = factory.SubFactory(LearningPathFactory)
+    user = None
+
+    class Meta:
+        model = LearningPathEnrollmentAllowed
