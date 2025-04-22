@@ -125,38 +125,32 @@ class LearningPathUserGradeTests(APITestCase):
         self.assertTrue(response.data["required_grade"], 0.75)
 
 
+@patch(
+    "learning_paths.models.get_course_due_date",
+    return_value=datetime(2025, 1, 1, tzinfo=timezone.utc),
+)
 class LearningPathViewSetTests(APITestCase):
     def setUp(self) -> None:
         super().setUp()
         self.user = UserFactory()
         self.client.force_authenticate(user=self.user)
         self.learning_paths = LearningPathFactory.create_batch(3)
-        fake_due_date = datetime(2025, 1, 1, tzinfo=timezone.utc)
+
         for lp in self.learning_paths:
-            with patch.object(
-                LearningPathStep, "due_date", new_callable=PropertyMock
-            ) as mock_due_date:
-                mock_due_date.return_value = fake_due_date
-                LearningPathStepFactory.create(
-                    learning_path=lp,
-                    order=1,
-                    course_key="course-v1:edX+DemoX+Demo_Course",
-                )
-                LearningPathStepFactory.create(
-                    learning_path=lp,
-                    order=2,
-                    course_key="course-v1:edX+DemoX+Another_Course",
-                )
+            LearningPathStepFactory.create(
+                learning_path=lp,
+                order=1,
+                course_key="course-v1:edX+DemoX+Demo_Course",
+            )
+            LearningPathStepFactory.create(
+                learning_path=lp,
+                order=2,
+                course_key="course-v1:edX+DemoX+Another_Course",
+            )
             RequiredSkillFactory.create(learning_path=lp)
             AcquiredSkillFactory.create(learning_path=lp)
 
-    @patch.object(
-        LearningPathStep,
-        "due_date",
-        new_callable=PropertyMock,
-        return_value=datetime(2025, 1, 1, tzinfo=timezone.utc),
-    )
-    def test_learning_path_list(self, _mock_due_date):
+    def test_learning_path_list(self, _mock_get_due_date):
         """
         Test that the list endpoint returns all learning paths with basic fields.
         """
@@ -170,7 +164,7 @@ class LearningPathViewSetTests(APITestCase):
         self.assertIn("display_name", first_item)
         self.assertIn("steps", first_item)
 
-    def test_learning_path_retrieve(self):
+    def test_learning_path_retrieve(self, _mock_get_due_date):
         """
         Test that the retrieve endpoint returns the details of a learning path,
         including steps and associated skills.
@@ -194,7 +188,7 @@ class LearningPathViewSetTests(APITestCase):
                 self.assertIn("due_date", first_step)
                 self.assertIn("weight", first_step)
 
-    def test_invalid_learning_path_key_returns_404(self):
+    def test_invalid_learning_path_key_returns_404(self, _mock_get_due_date):
         """
         Test that an invalid learning path key format returns a 404 response.
         """
