@@ -55,11 +55,3 @@ def get_course_due_date(course_key: CourseKey) -> datetime | None:
         return overview.end
     except CourseOverview.DoesNotExist:
         return None
-
-
-__all__ = [
-    "get_course_keys_with_outlines",
-    "get_catalog_api_client",
-    "get_user_course_grade",
-    "get_course_due_date",
-]
