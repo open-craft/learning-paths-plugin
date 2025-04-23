@@ -206,6 +206,8 @@ event-tracking==3.0.0
     #   edx-completion
     #   edx-event-routing-backends
     #   openedx-completion-aggregator
+execnet==2.1.1
+    # via pytest-xdist
 factory-boy==3.3.3
     # via -r requirements/test.in
 faker==37.1.0
@@ -313,9 +315,12 @@ pytest==8.3.5
     # via
     #   pytest-cov
     #   pytest-django
+    #   pytest-xdist
 pytest-cov==6.1.1
     # via -r requirements/test.in
 pytest-django==4.11.1
+    # via -r requirements/test.in
+pytest-xdist==3.6.1
     # via -r requirements/test.in
 python-dateutil==2.9.0.post0
     # via
