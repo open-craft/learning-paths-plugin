@@ -31,7 +31,7 @@ def get_catalog_api_client(user: AbstractBaseUser):
     return api_client(user)
 
 
-def get_course_keys_with_outlines():
+def get_course_keys_with_outlines() -> list[CourseKey]:
     """
     Retrieve course keys.
     """
