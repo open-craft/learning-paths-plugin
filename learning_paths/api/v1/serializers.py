@@ -108,6 +108,7 @@ class LearningPathListSerializer(serializers.ModelSerializer):
         source="grading_criteria.required_completion", read_only=True
     )
     is_enrolled = serializers.SerializerMethodField()
+    invite_only = serializers.BooleanField()
 
     class Meta:
         model = LearningPath
@@ -119,14 +120,15 @@ class LearningPathListSerializer(serializers.ModelSerializer):
             "steps",
             "required_completion",
             "is_enrolled",
+            "invite_only",
         ]
 
     def get_is_enrolled(self, obj):
         """
         Check if the current user is enrolled in this learning path.
         """
-        if hasattr(obj, "user_enrollments"):
-            return len(obj.user_enrollments) > 0
+        if hasattr(obj, "is_enrolled"):
+            return obj.is_enrolled
         return False
 
 

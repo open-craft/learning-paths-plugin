@@ -71,12 +71,17 @@ def superuser_client(api_client, superuser):
 
 @pytest.fixture
 def learning_path():
+    return LearningPathFactory.create(invite_only=False)
+
+
+@pytest.fixture
+def learning_path_with_invite_only():
     return LearningPathFactory.create()
 
 
 @pytest.fixture
 def learning_paths():
-    return LearningPathFactory.create_batch(5)
+    return LearningPathFactory.create_batch(5, invite_only=False)
 
 
 @pytest.fixture
@@ -100,7 +105,7 @@ def learning_path_with_steps(
 
 @pytest.fixture
 def learning_paths_with_steps():  # pylint: disable=missing-function-docstring
-    learning_paths = LearningPathFactory.create_batch(3)
+    learning_paths = LearningPathFactory.create_batch(3, invite_only=False)
     for lp in learning_paths:
         LearningPathStepFactory.create(
             learning_path=lp, order=1, course_key="course-v1:edX+DemoX+Demo_Course"
@@ -169,6 +174,22 @@ class TestLearningPathUserProgress:
         serializer.is_valid()
         assert response.data == serializer.data
 
+    def test_learning_path_progress_not_found(self, authenticated_client):
+        """Test that the progress view returns 404 if the learning path is not found."""
+        url = reverse("learning-path-progress", args=["path-v1:this+does+not+exist"])
+        response = authenticated_client.get(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_invite_only_learning_path_progress_404(
+        self, authenticated_client, learning_path_with_invite_only
+    ):
+        """Test that the progress view returns 404 if the learning path is invite-only."""
+        url = reverse(
+            "learning-path-progress", args=[learning_path_with_invite_only.key]
+        )
+        response = authenticated_client.get(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
 
 @pytest.mark.django_db
 class TestLearningPathUserGrade:
@@ -206,6 +227,20 @@ class TestLearningPathUserGrade:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["grade"] == 0.85
         assert response.data["required_grade"] == 0.75
+
+    def test_learning_path_grade_not_found(self, authenticated_client):
+        """Test that the grade view returns 404 if the learning path is not found."""
+        url = reverse("learning-path-grade", args=["path-v1:this+does+not+exist"])
+        response = authenticated_client.get(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_invite_only_learning_path_grade_404(
+        self, authenticated_client, learning_path_with_invite_only
+    ):
+        """Test that the grade view returns 404 if the learning path is invite-only."""
+        url = reverse("learning-path-grade", args=[learning_path_with_invite_only.key])
+        response = authenticated_client.get(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 @pytest.mark.django_db
@@ -264,6 +299,13 @@ class TestLearningPathViewSet:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.data["detail"] == "Invalid learning path key format."
 
+    def test_non_existent_learning_path_returns_404(self, authenticated_client):
+        """Test that a non-existent learning path key returns a 404 response."""
+        url = reverse("learning-path-detail", args=["path-v1:this+does+not+exist"])
+        response = authenticated_client.get(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.data["detail"] == "No LearningPath matches the given query."
+
     def test_learning_path_list_with_enrollment(
         self, authenticated_client, active_enrollment, user
     ):
@@ -298,6 +340,52 @@ class TestLearningPathViewSet:
         assert response.status_code == status.HTTP_200_OK
         assert "is_enrolled" in response.data
         assert response.data["is_enrolled"] is False
+
+    def test_invite_only_learning_paths_hidden_from_non_enrolled_users(
+        self, authenticated_client, learning_path_with_invite_only, learning_path
+    ):
+        """Test that invite-only learning paths are hidden from non-enrolled users."""
+        url = reverse("learning-path-list")
+        response = authenticated_client.get(url)
+
+        # Only the public path should be visible
+        assert len(response.data) == 1
+        assert response.data[0]["key"] == str(learning_path.key)
+
+    def test_invite_only_learning_paths_visible_to_enrolled_users(
+        self, authenticated_client, user, learning_path_with_invite_only
+    ):
+        """Test that invite-only learning paths are visible to enrolled users."""
+        LearningPathEnrollmentFactory(
+            user=user, learning_path=learning_path_with_invite_only, is_active=True
+        )
+
+        url = reverse("learning-path-list")
+        response = authenticated_client.get(url)
+
+        assert len(response.data) == 1
+        assert response.data[0]["key"] == str(learning_path_with_invite_only.key)
+
+    def test_invite_only_learning_paths_visible_to_staff(
+        self, staff_client, learning_path_with_invite_only
+    ):
+        """Test that invite-only learning paths are visible to staff users."""
+        url = reverse("learning-path-list")
+        response = staff_client.get(url)
+
+        assert len(response.data) == 1
+        assert response.data[0]["key"] == str(learning_path_with_invite_only.key)
+
+    def test_invite_only_learning_path_detail_hidden_from_non_enrolled_users(
+        self, authenticated_client, user, learning_path_with_invite_only
+    ):
+        """Test that invite-only learning path details are hidden from non-enrolled users."""
+        url = reverse("learning-path-detail", args=[learning_path_with_invite_only.key])
+        response = authenticated_client.get(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        # Ensure the message is identical to the non-existent learning path case.
+        assert response.data["detail"] == "No LearningPath matches the given query."
 
 
 @pytest.mark.django_db
@@ -408,6 +496,21 @@ class TestLearningPathEnrollment:
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    @pytest.mark.parametrize("http_method", ["get", "post", "delete"])
+    def test_invite_only_learning_path_returns_404_for_non_enrolled_users(
+        self, authenticated_client, user, learning_path_with_invite_only, http_method
+    ):
+        """Test that invite-only learning paths return 404 for non-enrolled users."""
+        url = (
+            f"/api/learning_paths/v1/{learning_path_with_invite_only.key}/enrollments/"
+        )
+
+        request_method = getattr(authenticated_client, http_method)
+        response = request_method(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.data["detail"] == "No LearningPath matches the given query."
+
     def test_enrollment_returns_404_for_invalid_user_or_learning_path(
         self, staff_client, learning_path
     ):
@@ -416,11 +519,13 @@ class TestLearningPathEnrollment:
         url = f"/api/learning_paths/v1/{learning_path.key}/enrollments/"
         response = staff_client.post(url, {"username": "non-existent-user"})
         assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.data["detail"] == "No User matches the given query."
 
         # Test invalid learning_path_id
         url = reverse("learning-path-enrollments", args=["path-v1:this+does+not+exist"])
         response = staff_client.post(url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.data["detail"] == "No LearningPath matches the given query."
 
     def test_enrollment_returns_409_if_already_enrolled(
         self, authenticated_client, active_enrollment, enrollment_url
@@ -484,6 +589,51 @@ class TestLearningPathEnrollment:
         """Test unenrollment returns 404 when no active enrollment exists."""
         response = authenticated_client.delete(enrollment_url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_self_enrollment_denied_for_invite_only_learning_path(
+        self, authenticated_client, user, learning_path_with_invite_only
+    ):
+        """Test that users cannot self-enroll in invite-only learning paths."""
+        url = reverse(
+            "learning-path-enrollments", args=[learning_path_with_invite_only.key]
+        )
+        response = authenticated_client.post(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+        assert not LearningPathEnrollment.objects.filter(
+            user=user, learning_path=learning_path_with_invite_only
+        ).exists()
+
+    def test_self_enrollment_allowed_for_non_invite_only_learning_path(
+        self, authenticated_client, user, learning_path
+    ):
+        """Test that users can self-enroll in non-invite-only learning paths."""
+        url = reverse("learning-path-enrollments", args=[learning_path.key])
+        response = authenticated_client.post(url)
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        assert LearningPathEnrollment.objects.filter(
+            user=user, learning_path=learning_path, is_active=True
+        ).exists()
+
+    def test_staff_can_enroll_users_in_invite_only_learning_path(
+        self, staff_client, another_user, learning_path_with_invite_only
+    ):
+        """Test that staff can enroll users in invite-only learning paths."""
+        url = reverse(
+            "learning-path-enrollments", args=[learning_path_with_invite_only.key]
+        )
+        response = staff_client.post(url, {"username": another_user.username})
+
+        assert response.status_code == status.HTTP_201_CREATED
+
+        assert LearningPathEnrollment.objects.filter(
+            user=another_user,
+            learning_path=learning_path_with_invite_only,
+            is_active=True,
+        ).exists()
 
 
 @pytest.mark.django_db

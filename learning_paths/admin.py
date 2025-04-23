@@ -156,7 +156,9 @@ class LearningPathAdmin(admin.ModelAdmin):
         "display_name",
         "level",
         "duration_in_days",
+        "invite_only",
     )
+    list_filter = ("invite_only",)
     readonly_fields = ("key",)
 
     inlines = [

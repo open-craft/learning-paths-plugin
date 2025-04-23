@@ -8,6 +8,7 @@ from uuid import uuid4
 from django.contrib import auth
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Exists, OuterRef, Q
 from django.utils.translation import gettext_lazy as _
 from model_utils.models import TimeStampedModel
 from opaque_keys.edx.django.models import CourseKeyField
@@ -23,6 +24,34 @@ LEVEL_CHOICES = [
     ("intermediate", _("Intermediate")),
     ("advanced", _("Advanced")),
 ]
+
+
+class LearningPathManager(models.Manager):
+    """Manager for LearningPath model that handles visibility rules."""
+
+    def get_paths_visible_to_user(self, user: User) -> models.QuerySet:
+        """
+        Return only learning paths that should be visible to the given user with enrollment status.
+
+        For staff users: all learning paths.
+        For non-staff: non-invite-only paths or invite-only paths they're enrolled in.
+
+        Each learning path in the queryset is annotated with `is_enrolled` indicating
+        whether the user has an active enrollment in that learning path.
+        """
+        queryset = self.get_queryset()
+
+        # Annotate each path with whether the user is enrolled.
+        enrollment_exists = LearningPathEnrollment.objects.filter(
+            learning_path=OuterRef("pk"), user=user, is_active=True
+        )
+        queryset = queryset.annotate(is_enrolled=Exists(enrollment_exists))
+
+        # Apply visibility filtering based on the user role.
+        if not user.is_staff:
+            queryset = queryset.filter(Q(invite_only=False) | Q(is_enrolled=True))
+
+        return queryset
 
 
 class LearningPath(TimeStampedModel):
@@ -77,7 +106,20 @@ class LearningPath(TimeStampedModel):
             "Whether the courses in this Learning Path are meant to be taken sequentially."
         ),
     )
+    # Note: the enrolled learners will be able to self-enroll in all courses
+    # (steps) of the learning path. To avoid mistakes of making the courses
+    # visible to all users, we decided to make the learning paths invite-only
+    # by default. Making them public must be an explicit action.
+    invite_only = models.BooleanField(
+        default=True,
+        verbose_name=_("Invite only"),
+        help_text=_(
+            "If enabled, only staff can enroll users and only enrolled users can see the learning path."
+        ),
+    )
     enrolled_users = models.ManyToManyField(User, through="LearningPathEnrollment")
+
+    objects = LearningPathManager()
 
     def __str__(self):
         """User-friendly string representation of this model."""

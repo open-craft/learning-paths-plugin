@@ -97,6 +97,7 @@ def test_list_serializer():
         "key": str(learning_path.key),
         "display_name": learning_path.display_name,
         "image_url": "",
+        "invite_only": True,
         "sequential": False,
         "steps": [],
         "required_completion": 0.8,
@@ -106,31 +107,24 @@ def test_list_serializer():
 
 
 @pytest.mark.django_db
-def test_list_serializer_is_not_enrolled():
-    """
-    Tests LearningPathListSerializer shows is_enrolled as False when a user is not enrolled.
-    """
-    learning_path = LearningPathFactory()
-    learning_path.user_enrollments = []
-
-    serializer = LearningPathListSerializer(learning_path)
-    assert serializer.data["is_enrolled"] is False
-
-
-@pytest.mark.django_db
-def test_list_serializer_is_enrolled():
+@pytest.mark.parametrize("is_enrolled", [True, False], ids=["enrolled", "not_enrolled"])
+def test_list_serializer_enrollment(is_enrolled):
     """
     Tests LearningPathListSerializer shows is_enrolled as True when a user is enrolled.
     """
     user = UserFactory()
-    learning_path = LearningPathFactory()
-    enrollment = LearningPathEnrollmentFactory(
-        user=user, learning_path=learning_path, is_active=True
+    learning_path = LearningPathFactory(invite_only=False)
+    LearningPathEnrollmentFactory(
+        user=user, learning_path=learning_path, is_active=is_enrolled
     )
-    learning_path.user_enrollments = [enrollment]
+
+    # Get the annotated learning path with the enrollment status.
+    learning_path = learning_path.__class__.objects.get_paths_visible_to_user(user).get(
+        key=learning_path.key
+    )
 
     serializer = LearningPathListSerializer(learning_path)
-    assert serializer.data["is_enrolled"] is True
+    assert serializer.data["is_enrolled"] is is_enrolled
 
 
 @pytest.mark.django_db
@@ -145,6 +139,7 @@ def test_detail_serializer():
         "subtitle": "",
         "description": learning_path.description,
         "image_url": "",
+        "invite_only": True,
         "level": "",
         "sequential": False,
         "duration_in_days": None,

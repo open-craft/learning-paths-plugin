@@ -9,7 +9,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.validators import validate_email
-from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from opaque_keys import InvalidKeyError
 from rest_framework import generics, status, viewsets
@@ -69,8 +68,10 @@ class LearningPathUserProgressView(APIView):
         """
         Fetch the learning path progress
         """
-        learning_path_key = LearningPathKey.from_string(learning_path_key_str)
-        learning_path = get_object_or_404(LearningPath, key=learning_path_key)
+        learning_path = get_object_or_404(
+            LearningPath.objects.get_paths_visible_to_user(self.request.user),
+            key=learning_path_key_str,
+        )
 
         progress = get_aggregate_progress(request.user, learning_path)
         required_completion = None
@@ -81,7 +82,7 @@ class LearningPathUserProgressView(APIView):
             pass
 
         data = {
-            "learning_path_key": str(learning_path_key),
+            "learning_path_key": learning_path_key_str,
             "progress": progress,
             "required_completion": required_completion,
         }
@@ -104,8 +105,10 @@ class LearningPathUserGradeView(APIView):
         Fetch learning path grade
         """
 
-        learning_path_key = LearningPathKey.from_string(learning_path_key_str)
-        learning_path = get_object_or_404(LearningPath, key=learning_path_key)
+        learning_path = get_object_or_404(
+            LearningPath.objects.get_paths_visible_to_user(self.request.user),
+            key=learning_path_key_str,
+        )
 
         try:
             grading_criteria = learning_path.grading_criteria
@@ -118,7 +121,7 @@ class LearningPathUserGradeView(APIView):
         grade = grading_criteria.calculate_grade(request.user)
 
         data = {
-            "learning_path_key": str(learning_path_key),
+            "learning_path_key": learning_path_key_str,
             "grade": grade,
             "required_grade": grading_criteria.required_grade,
         }
@@ -141,19 +144,14 @@ class LearningPathViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         """
-        Get all learning paths and prefetch the related data, including user enrollments.
+        Get all learning paths and prefetch the related data.
         """
         user = self.request.user
-        queryset = LearningPath.objects.prefetch_related(
+        queryset = LearningPath.objects.get_paths_visible_to_user(
+            user
+        ).prefetch_related(
             "steps",
             "grading_criteria",
-            Prefetch(
-                "learningpathenrollment_set",
-                queryset=LearningPathEnrollment.objects.filter(
-                    user=user, is_active=True
-                ),
-                to_attr="user_enrollments",
-            ),
         )
         return queryset
 
@@ -177,6 +175,17 @@ class LearningPathEnrollmentView(APIView):
 
     permission_classes = [IsAuthenticated, IsAdminOrSelf]
 
+    def _get_learning_path(self, learning_path_key_str: str) -> LearningPath:
+        """
+        Get the learning path and verify user has access to it.
+
+        :raises: Http404 if the learning path is not found or user does not have access.
+        """
+        return get_object_or_404(
+            LearningPath.objects.get_paths_visible_to_user(self.request.user),
+            key=learning_path_key_str,
+        )
+
     def get(self, request, learning_path_key_str: str):
         """Get the learning path of users.
 
@@ -187,8 +196,7 @@ class LearningPathEnrollmentView(APIView):
             username (optional): When provided it returns the enrollment for
                 the specified user.
         """
-        learning_path_key = LearningPathKey.from_string(learning_path_key_str)
-        learning_path = get_object_or_404(LearningPath, key=learning_path_key)
+        learning_path = self._get_learning_path(learning_path_key_str)
 
         enrollments = LearningPathEnrollment.objects.filter(
             learning_path=learning_path, is_active=True
@@ -207,7 +215,7 @@ class LearningPathEnrollmentView(APIView):
         """Enroll learners in Learning Paths.
 
         Staff/Admin can enroll anyone with the username query param.
-        Learners can enroll only themselves.
+        Learners can enroll only themselves, and only if the learning path is not invite-only.
 
         Example payload::
 
@@ -216,8 +224,7 @@ class LearningPathEnrollmentView(APIView):
             }
 
         """
-        learning_path_key = LearningPathKey.from_string(learning_path_key_str)
-        learning_path = get_object_or_404(LearningPath, key=learning_path_key)
+        learning_path = self._get_learning_path(learning_path_key_str)
         username = request.data.get("username")
         user = get_object_or_404(User, username=username) if username else request.user
 
@@ -253,8 +260,7 @@ class LearningPathEnrollmentView(APIView):
             }
 
         """
-        learning_path_key = LearningPathKey.from_string(learning_path_key_str)
-        learning_path = get_object_or_404(LearningPath, key=learning_path_key)
+        learning_path = self._get_learning_path(learning_path_key_str)
         username = request.data.get("username")
         user = get_object_or_404(User, username=username) if username else request.user
 
