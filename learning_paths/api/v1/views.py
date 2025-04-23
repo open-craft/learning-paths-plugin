@@ -11,8 +11,9 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, Validat
 from django.core.validators import validate_email
 from django.shortcuts import get_object_or_404
 from opaque_keys import InvalidKeyError
+from opaque_keys.edx.keys import CourseKey
 from rest_framework import generics, status, viewsets
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -26,6 +27,7 @@ from learning_paths.api.v1.serializers import (
     LearningPathListSerializer,
     LearningPathProgressSerializer,
 )
+from learning_paths.compat import enroll_user_in_course
 from learning_paths.keys import LearningPathKey
 from learning_paths.models import (
     LearningPath,
@@ -393,3 +395,42 @@ class BulkEnrollView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+class LearningPathCourseEnrollmentView(APIView):
+    """API View to enroll a user in a course that's part of a learning path."""
+
+    permission_classes = [IsAuthenticated, IsAdminOrSelf]
+
+    def _get_enrolled_learning_path(self, learning_path_key_str: str) -> LearningPath:
+        """
+        Get the learning path and verify the user has access and is enrolled.
+
+        :raises: Http404 if the learning path is not found or the user does not have access.
+        """
+        return get_object_or_404(
+            LearningPath.objects.get_paths_visible_to_user(self.request.user).filter(
+                is_enrolled=True
+            ),
+            key=learning_path_key_str,
+        )
+
+    def post(self, request, learning_path_key_str: str, course_key_str: str):
+        """
+        Enroll a user in a course that's part of a learning path.
+
+        The user must be enrolled in the learning path, and the course must be a step in the path.
+        """
+        learning_path = self._get_enrolled_learning_path(learning_path_key_str)
+        course_key = CourseKey.from_string(course_key_str)
+
+        if not learning_path.steps.filter(course_key=course_key).exists():
+            raise ParseError("The course is not part of this learning path.")
+
+        if enroll_user_in_course(request.user, course_key):
+            return Response(
+                {"detail": "User successfully enrolled in the course."},
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            raise ParseError("Failed to enroll the user in the course.")

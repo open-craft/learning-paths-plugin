@@ -10,6 +10,12 @@ from opaque_keys import InvalidKeyError
 from opaque_keys.edx.django.models import LearningContextKeyField
 from opaque_keys.edx.keys import LearningContextKey
 
+COURSE_KEY_NAMESPACE = "course-v1"
+COURSE_KEY_PATTERN = r"([^+]+)\+([^+]+)\+([^+]+)"
+COURSE_KEY_URL_PATTERN = (
+    rf"(?P<course_key_str>{COURSE_KEY_NAMESPACE}:{COURSE_KEY_PATTERN})"
+)
+
 LEARNING_PATH_NAMESPACE = "path-v1"
 LEARNING_PATH_PATTERN = r"([^+]+)\+([^+]+)\+([^+]+)\+([^+]+)"
 LEARNING_PATH_URL_PATTERN = (

@@ -832,3 +832,99 @@ class TestBulkEnrollAPI:
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["enrollments_created"] == 1
+
+
+@pytest.mark.django_db
+class TestLearningPathCourseEnrollment:
+
+    @pytest.fixture
+    def course_enrollment_url(self, learning_path_with_steps):
+        return reverse(
+            "learning-path-course-enroll",
+            kwargs={
+                "learning_path_key_str": str(learning_path_with_steps.key),
+                "course_key_str": learning_path_with_steps.steps.first().course_key,
+            },
+        )
+
+    @pytest.fixture
+    def user_enrollment(self, user, learning_path_with_steps):
+        return LearningPathEnrollmentFactory(
+            user=user, learning_path=learning_path_with_steps, is_active=True
+        )
+
+    @patch("learning_paths.api.v1.views.enroll_user_in_course", return_value=True)
+    def test_self_enrollment_successful(  # pylint: disable=too-many-positional-arguments
+        self,
+        mock_enroll,
+        authenticated_client,
+        user,
+        course_enrollment_url,
+        learning_path_with_steps,
+        user_enrollment,
+    ):
+        """Test that a user can enroll themselves in a course that's part of a learning path they're enrolled in."""
+        response = authenticated_client.post(course_enrollment_url)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["detail"] == "User successfully enrolled in the course."
+        mock_enroll.assert_called_once_with(
+            user, learning_path_with_steps.steps.first().course_key
+        )
+
+    def test_course_not_in_learning_path(
+        self, authenticated_client, user, learning_path_with_steps, user_enrollment
+    ):
+        """Test that a user cannot enroll in a course that's not part of the learning path."""
+        url = reverse(
+            "learning-path-course-enroll",
+            kwargs={
+                "learning_path_key_str": str(learning_path_with_steps.key),
+                "course_key_str": "course-v1:edX+DemoX+NonExistent_Course",
+            },
+        )
+        response = authenticated_client.post(url)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert (
+            response.data["detail"] == "The course is not part of this learning path."
+        )
+
+    def test_user_not_enrolled_in_learning_path(
+        self, authenticated_client, learning_path_with_steps, course_enrollment_url
+    ):
+        """Test that a user must be enrolled in the learning path to enroll in its courses."""
+        response = authenticated_client.post(course_enrollment_url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.data["detail"] == "No LearningPath matches the given query."
+
+    @patch("learning_paths.api.v1.views.enroll_user_in_course", return_value=False)
+    def test_enrollment_failure(
+        self, _mock_enroll, authenticated_client, course_enrollment_url, user_enrollment
+    ):
+        """Test handling of enrollment failure."""
+        response = authenticated_client.post(course_enrollment_url)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data["detail"] == "Failed to enroll the user in the course."
+
+    def test_invite_only_learning_path_returns_404(
+        self, authenticated_client, user, learning_path_with_invite_only
+    ):
+        """Test that invite-only learning paths return 404 for non-enrolled users."""
+        LearningPathStepFactory.create(
+            learning_path=learning_path_with_invite_only,
+            course_key="course-v1:edX+DemoX+Demo_Course",
+        )
+
+        url = reverse(
+            "learning-path-course-enroll",
+            kwargs={
+                "learning_path_key_str": str(learning_path_with_invite_only.key),
+                "course_key_str": learning_path_with_invite_only.steps.first().course_key,
+            },
+        )
+        response = authenticated_client.post(url)
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND

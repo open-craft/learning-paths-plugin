@@ -2,10 +2,13 @@
 Compatibility layer for testing without Open edX.
 """
 
+import logging
 from datetime import datetime
 
 from django.contrib.auth.models import AbstractBaseUser
 from opaque_keys.edx.keys import CourseKey
+
+log = logging.getLogger(__name__)
 
 
 def get_user_course_grade(user: AbstractBaseUser, course_key: CourseKey):
@@ -55,3 +58,21 @@ def get_course_due_date(course_key: CourseKey) -> datetime | None:
         return overview.end
     except CourseOverview.DoesNotExist:
         return None
+
+
+def enroll_user_in_course(user: AbstractBaseUser, course_key: CourseKey) -> bool:
+    """Enroll a user in a course."""
+    # pylint: disable=import-outside-toplevel, import-error
+    from common.djangoapps.student.api import CourseEnrollment
+    from common.djangoapps.student.models.course_enrollment import (
+        CourseEnrollmentException,
+    )
+
+    try:
+        CourseEnrollment.enroll(user, course_key)
+        return True
+    except CourseEnrollmentException as exc:
+        log.exception(
+            "Failed to enroll user %s in course %s: %s", user, course_key, exc
+        )
+        return False

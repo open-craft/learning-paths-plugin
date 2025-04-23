@@ -6,13 +6,14 @@ from rest_framework import routers
 from learning_paths.api.v1.views import (
     BulkEnrollView,
     LearningPathAsProgramViewSet,
+    LearningPathCourseEnrollmentView,
     LearningPathEnrollmentView,
     LearningPathUserGradeView,
     LearningPathUserProgressView,
     LearningPathViewSet,
     ListEnrollmentsView,
 )
-from learning_paths.keys import LEARNING_PATH_URL_PATTERN
+from learning_paths.keys import COURSE_KEY_URL_PATTERN, LEARNING_PATH_URL_PATTERN
 
 router = routers.SimpleRouter()
 router.register(
@@ -32,7 +33,7 @@ urlpatterns = router.urls + [
         name="learning-path-grade",
     ),
     re_path(
-        rf"{LEARNING_PATH_URL_PATTERN}/enrollments/",
+        rf"{LEARNING_PATH_URL_PATTERN}/enrollments/$",
         LearningPathEnrollmentView.as_view(),
         name="learning-path-enrollments",
     ),
@@ -45,5 +46,10 @@ urlpatterns = router.urls + [
         "enrollments/bulk-enroll/",
         BulkEnrollView.as_view(),
         name="bulk-enroll",
+    ),
+    re_path(
+        rf"{LEARNING_PATH_URL_PATTERN}/enrollments/{COURSE_KEY_URL_PATTERN}/",
+        LearningPathCourseEnrollmentView.as_view(),
+        name="learning-path-course-enroll",
     ),
 ]
