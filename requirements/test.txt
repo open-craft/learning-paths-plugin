@@ -8,7 +8,7 @@ amqp==5.3.1
     # via
     #   -r requirements/base.txt
     #   kombu
-aniso8601==10.0.0
+aniso8601==10.0.1
     # via
     #   -r requirements/base.txt
     #   tincan
@@ -32,13 +32,13 @@ billiard==4.2.1
     # via
     #   -r requirements/base.txt
     #   celery
-celery==5.5.1
+celery==5.5.2
     # via
     #   -r requirements/base.txt
     #   edx-celeryutils
     #   event-tracking
     #   openedx-completion-aggregator
-certifi==2025.1.31
+certifi==2025.4.26
     # via
     #   -r requirements/base.txt
     #   requests
@@ -184,7 +184,7 @@ edx-event-routing-backends==9.3.4
     # via
     #   -r requirements/base.txt
     #   openedx-completion-aggregator
-edx-opaque-keys[django]==2.12.0
+edx-opaque-keys[django]==3.0.0
     # via
     #   -r requirements/base.txt
     #   edx-ccx-keys
@@ -241,11 +241,11 @@ jsonfield==3.1.0
     #   -r requirements/base.txt
     #   edx-celeryutils
     #   edx-event-routing-backends
-kombu==5.5.2
+kombu==5.5.3
     # via
     #   -r requirements/base.txt
     #   celery
-lxml==5.3.2
+lxml==5.4.0
     # via
     #   -r requirements/base.txt
     #   xblock
@@ -259,7 +259,7 @@ markupsafe==3.0.2
     #   jinja2
     #   mako
     #   xblock
-newrelic==10.9.0
+newrelic==10.10.0
     # via
     #   -r requirements/base.txt
     #   edx-django-utils
@@ -275,7 +275,7 @@ openedx-filters==2.0.1
     # via
     #   -r requirements/base.txt
     #   edx-event-routing-backends
-packaging==24.2
+packaging==25.0
     # via pytest
 pbr==6.1.1
     # via
@@ -283,7 +283,7 @@ pbr==6.1.1
     #   stevedore
 pluggy==1.5.0
     # via pytest
-prompt-toolkit==3.0.50
+prompt-toolkit==3.0.51
     # via
     #   -r requirements/base.txt
     #   click-repl
