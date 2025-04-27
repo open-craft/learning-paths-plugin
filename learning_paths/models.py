@@ -99,7 +99,7 @@ class LearningPath(TimeStampedModel):
         help_text=_("Legacy identifier for compatibility with Course Discovery."),
     )
     display_name = models.CharField(max_length=255)
-    subtitle = models.CharField(max_length=255)
+    subtitle = models.TextField(blank=True)
     description = models.TextField(blank=True)
     image = models.ImageField(
         upload_to=_learning_path_image_upload_path,
