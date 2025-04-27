@@ -53,10 +53,13 @@ class LearningPathAsProgramViewSet(viewsets.ReadOnlyModelViewSet):
     https://github.com/openedx/course-discovery/blob/d6a57fd69479b3d5f5afb682d2668b58503a6af6/course_discovery/apps/course_metadata/data_loaders/api.py#L843
     """
 
-    queryset = LearningPath.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = LearningPathAsProgramSerializer
     pagination_class = PageNumberPagination
+
+    def get_queryset(self):
+        """Get the learning paths visible to the current user."""
+        return LearningPath.objects.get_paths_visible_to_user(self.request.user)
 
 
 class LearningPathUserProgressView(APIView):
