@@ -41,9 +41,9 @@ class LearningPathAsProgramSerializer(serializers.ModelSerializer):
         return DEFAULT_STATUS
 
     def get_banner_image_urls(self, obj):
-        if obj.image_url:
+        if obj.image:
             image_key = f"w{IMAGE_WIDTH}h{IMAGE_HEIGHT}"
-            return {image_key: obj.image_url}
+            return {image_key: obj.image.url}
         return {}
 
     def get_organizations(self, obj):  # pylint: disable=unused-argument
@@ -109,13 +109,14 @@ class LearningPathListSerializer(serializers.ModelSerializer):
     )
     is_enrolled = serializers.SerializerMethodField()
     invite_only = serializers.BooleanField()
+    image = serializers.ImageField(read_only=True)
 
     class Meta:
         model = LearningPath
         fields = [
             "key",
             "display_name",
-            "image_url",
+            "image",
             "sequential",
             "steps",
             "required_completion",

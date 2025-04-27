@@ -364,6 +364,8 @@ pbr==6.1.1
     # via
     #   -r requirements/quality.txt
     #   stevedore
+pillow==11.2.1
+    # via -r requirements/base.in
 pip-tools==7.4.1
     # via -r requirements/pip-tools.txt
 platformdirs==4.3.7

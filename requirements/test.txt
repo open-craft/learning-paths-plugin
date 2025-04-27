@@ -283,6 +283,8 @@ pbr==6.1.1
     # via
     #   -r requirements/base.txt
     #   stevedore
+pillow==11.2.1
+    # via -r requirements/base.txt
 pluggy==1.5.0
     # via pytest
 prompt-toolkit==3.0.51

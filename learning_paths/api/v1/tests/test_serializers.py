@@ -1,5 +1,6 @@
 # pylint: disable=missing-module-docstring
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from learning_paths.api.v1.serializers import (
     LearningPathAsProgramSerializer,
@@ -16,17 +17,24 @@ from learning_paths.tests.factories import (
 
 
 @pytest.mark.django_db
-def test_learning_path_as_program_serializer():
+def test_learning_path_as_program_serializer(
+    temp_media,
+):  # pylint: disable=unused-argument
     """
     Tests LearningPathAsProgram serializer data.
     """
+    test_image = SimpleUploadedFile(
+        name="test_image.png", content=b"test image content", content_type="image/png"
+    )
+
     learning_path = LearningPathFactory(
         uuid="817190bc-7bf1-4d95-aa43-bec5f58c2276",
         display_name="My Test Learning Path",
         subtitle="Best path there is",
-        image_url="https://image.go/toto.png",
+        image=test_image,
         sequential=False,
     )
+
     serializer = LearningPathAsProgramSerializer(learning_path)
     expected = {
         "uuid": "817190bc-7bf1-4d95-aa43-bec5f58c2276",
@@ -35,7 +43,7 @@ def test_learning_path_as_program_serializer():
         "title": "My Test Learning Path",
         "subtitle": "Best path there is",
         "status": "active",
-        "banner_image_urls": {"w1440h480": "https://image.go/toto.png"},
+        "banner_image_urls": {"w1440h480": learning_path.image.url},
         "organizations": [],
         "course_codes": [],
     }
@@ -52,7 +60,6 @@ def test_learning_path_progress_serializer():
         uuid="817190bc-7bf1-4d95-aa43-bec5f58c2276",
         display_name="My Test Learning Path",
         subtitle="Best path there is",
-        image_url="https://image.go/toto.png",
         sequential=False,
     )
     progress_data = {
@@ -74,7 +81,6 @@ def test_learning_path_grade_serializer():
         uuid="817190bc-7bf1-4d95-aa43-bec5f58c2276",
         display_name="My Test Learning Path",
         subtitle="Best path there is",
-        image_url="https://image.go/toto.png",
         sequential=False,
     )
     grade_data = {
@@ -96,7 +102,7 @@ def test_list_serializer():
     expected = {
         "key": str(learning_path.key),
         "display_name": learning_path.display_name,
-        "image_url": "",
+        "image": None,
         "invite_only": True,
         "sequential": False,
         "steps": [],
@@ -138,7 +144,7 @@ def test_detail_serializer():
         "display_name": learning_path.display_name,
         "subtitle": "",
         "description": learning_path.description,
-        "image_url": "",
+        "image": None,
         "invite_only": True,
         "level": "",
         "sequential": False,

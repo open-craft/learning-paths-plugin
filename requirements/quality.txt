@@ -312,6 +312,8 @@ pbr==6.1.1
     # via
     #   -r requirements/test.txt
     #   stevedore
+pillow==11.2.1
+    # via -r requirements/base.in
 platformdirs==4.3.7
     # via pylint
 pluggy==1.5.0

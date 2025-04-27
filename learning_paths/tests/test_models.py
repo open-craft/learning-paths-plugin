@@ -1,12 +1,16 @@
+# pylint: disable=redefined-outer-name,unused-argument,protected-access
 """
 Tests for the learning_paths models.
 """
 
-# pylint: disable=redefined-outer-name,unused-argument
+import re
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.core.files.storage import default_storage
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError
+from slugify import slugify
 
 from learning_paths.keys import LearningPathKey
 from learning_paths.models import LearningPath
@@ -32,6 +36,14 @@ def learning_path(learning_path_key):
     )
 
 
+@pytest.fixture
+def test_image(temp_media):
+    """Create an image for testing."""
+    return SimpleUploadedFile(
+        name="test_image.png", content=b"test image content", content_type="image/png"
+    )
+
+
 @pytest.mark.django_db
 class TestLearningPath:
     """Tests for the LearningPath model."""
@@ -49,6 +61,61 @@ class TestLearningPath:
         """Test that the UUID is auto-generated."""
         path = LearningPath.objects.create(key=learning_path_key)
         assert path.uuid is not None
+
+    def test_create_with_image(self, learning_path_key, test_image):
+        """Test creating a learning path with an image."""
+        path = LearningPath.objects.create(
+            key=learning_path_key,
+            display_name="Test create with image",
+            image=test_image,
+        )
+        assert path.image is not None
+        assert slugify(str(path.key)) in path.image.name
+        assert ".png" in path.image.name
+
+    def test_image_replacement(self, learning_path, test_image):
+        """Test that old images are deleted when replaced."""
+        learning_path.image = test_image
+        learning_path.save()
+        original_image = learning_path.image
+        assert default_storage.exists(original_image.name)
+
+        new_image = SimpleUploadedFile(
+            name="new_image.png", content=b"new image content", content_type="image/png"
+        )
+        learning_path.image = new_image
+        learning_path.save()
+
+        assert learning_path.image is not None
+        assert learning_path.image.path != original_image.path
+        assert default_storage.exists(learning_path.image.name)
+        assert not default_storage.exists(original_image.name)
+
+    def test_image_deletion_on_delete(self, learning_path_key, test_image):
+        """Test that images are deleted when the learning path is deleted."""
+        path = LearningPath.objects.create(
+            key=learning_path_key,
+            display_name="Test image deletion",
+            image=test_image,
+        )
+
+        image_path = path.image.name
+        assert default_storage.exists(image_path)
+
+        path.delete()
+        assert not default_storage.exists(image_path)
+
+    def test_upload_path_includes_random_suffix(self, learning_path):
+        """Test that the upload path includes a random suffix."""
+        path1 = learning_path._learning_path_image_upload_path("test.jpg")
+        path2 = learning_path._learning_path_image_upload_path("test.jpg")
+
+        slugified_key = slugify(str(learning_path.key))
+        regexp = rf"learning_paths/images/{slugified_key}_.*\.jpg"
+
+        assert re.search(regexp, path1)
+        assert re.search(regexp, path2)
+        assert path1 != path2
 
     # TODO: https://github.com/open-craft/learning-paths-plugin/issues/12
     @pytest.mark.skip(reason="UUID migration incomplete")

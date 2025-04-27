@@ -190,6 +190,8 @@ openedx-filters==2.0.1
     # via edx-event-routing-backends
 pbr==6.1.1
     # via stevedore
+pillow==11.2.1
+    # via -r requirements/base.in
 prompt-toolkit==3.0.51
     # via click-repl
 psutil==7.0.0

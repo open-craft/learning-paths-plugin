@@ -350,6 +350,8 @@ pbr==6.1.1
     # via
     #   -r requirements/test.txt
     #   stevedore
+pillow==11.2.1
+    # via -r requirements/test.txt
 pluggy==1.5.0
     # via
     #   -r requirements/test.txt
