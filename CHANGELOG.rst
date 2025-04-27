@@ -16,6 +16,32 @@ Unreleased
 
 *
 
+0.3.2 - 2025-05-02
+******************
+
+Added
+=====
+
+* Course key selection in admin forms.
+* Learning Path selection field in admin forms.
+* Enrollment status to the Learning Path list and retrieve APIs.
+* Invite-only functionality for Learning Paths.
+* Course enrollment API.
+
+Changed
+=======
+
+* The Learning Path ``subtitle`` to ``TextField`` and made it optional.
+* The image URL field to ``ImageField``.
+* The user field on the admin enrollments page to raw ID, to prevent the page
+  from retrieving all users in the system.
+
+Removed
+=======
+
+* The ``slug`` field from the Learning Path model.
+* The UUID compatibility layer from Learning Path keys.
+
 0.3.1 - 2025-04-14
 ******************
 
