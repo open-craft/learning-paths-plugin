@@ -195,6 +195,7 @@ class EnrolledUsersAdmin(admin.ModelAdmin):
 
     model = LearningPathEnrollment
     raw_id_fields = ("user",)
+    autocomplete_fields = ["learning_path"]
 
     search_fields = [
         "id",

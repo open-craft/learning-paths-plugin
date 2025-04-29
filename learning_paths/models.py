@@ -142,7 +142,7 @@ class LearningPath(TimeStampedModel):
 
     def __str__(self):
         """User-friendly string representation of this model."""
-        return self.display_name
+        return str(self.key)
 
     def save(self, *args, **kwargs):
         """

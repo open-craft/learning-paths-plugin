@@ -55,7 +55,7 @@ class TestLearningPath:
 
     def test_string_representation(self, learning_path):
         """Test the string representation."""
-        assert str(learning_path) == "Test Learning Path"
+        assert str(learning_path) == str(learning_path.key)
 
     def test_uuid_auto_generation(self, learning_path_key):
         """Test that the UUID is auto-generated."""
