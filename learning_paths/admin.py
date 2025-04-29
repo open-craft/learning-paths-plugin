@@ -194,6 +194,7 @@ class EnrolledUsersAdmin(admin.ModelAdmin):
     """Admin for Learning Path enrollment."""
 
     model = LearningPathEnrollment
+    raw_id_fields = ("user",)
 
     search_fields = [
         "id",
