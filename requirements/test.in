@@ -6,4 +6,5 @@
 factory-boy
 pytest-cov                # pytest extension for code coverage statistics
 pytest-django             # pytest extension for better Django support
+pytest-xdist              # distribute tests across multiple CPUs
 code-annotations          # provides commands used by the pii_check make target.

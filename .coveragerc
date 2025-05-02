@@ -8,3 +8,7 @@ omit =
     *admin.py
     */static/*
     */templates/*
+    */tests/*
+    settings.py
+    */settings/*
+    compat.py

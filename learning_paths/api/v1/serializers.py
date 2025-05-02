@@ -35,15 +35,15 @@ class LearningPathAsProgramSerializer(serializers.ModelSerializer):
     course_codes = serializers.SerializerMethodField()
 
     def get_marketing_slug(self, obj):
-        return obj.slug
+        return str(obj.key)
 
     def get_status(self, obj):  # pylint: disable=unused-argument
         return DEFAULT_STATUS
 
     def get_banner_image_urls(self, obj):
-        if obj.image_url:
+        if obj.image:
             image_key = f"w{IMAGE_WIDTH}h{IMAGE_HEIGHT}"
-            return {image_key: obj.image_url}
+            return {image_key: obj.image.url}
         return {}
 
     def get_organizations(self, obj):  # pylint: disable=unused-argument
@@ -107,18 +107,30 @@ class LearningPathListSerializer(serializers.ModelSerializer):
     required_completion = serializers.FloatField(
         source="grading_criteria.required_completion", read_only=True
     )
+    is_enrolled = serializers.SerializerMethodField()
+    invite_only = serializers.BooleanField()
+    image = serializers.ImageField(read_only=True)
 
     class Meta:
         model = LearningPath
         fields = [
             "key",
-            "slug",
             "display_name",
-            "image_url",
+            "image",
             "sequential",
             "steps",
             "required_completion",
+            "is_enrolled",
+            "invite_only",
         ]
+
+    def get_is_enrolled(self, obj):
+        """
+        Check if the current user is enrolled in this learning path.
+        """
+        if hasattr(obj, "is_enrolled"):
+            return obj.is_enrolled
+        return False
 
 
 class SkillSerializer(serializers.ModelSerializer):
@@ -151,38 +163,26 @@ class AcquiredSkillSerializer(serializers.ModelSerializer):
         fields = ["skill", "level"]
 
 
-class LearningPathDetailSerializer(serializers.ModelSerializer):
+class LearningPathDetailSerializer(LearningPathListSerializer):
     """
     Serializer for learning path details.
     """
 
-    steps = LearningPathStepSerializer(many=True, read_only=True)
     required_skills = RequiredSkillSerializer(
         source="requiredskill_set", many=True, read_only=True
     )
     acquired_skills = AcquiredSkillSerializer(
         source="acquiredskill_set", many=True, read_only=True
     )
-    required_completion = serializers.FloatField(
-        source="grading_criteria.required_completion", read_only=True
-    )
 
-    class Meta:
-        model = LearningPath
-        fields = [
-            "key",
-            "slug",
-            "display_name",
+    class Meta(LearningPathListSerializer.Meta):
+        fields = LearningPathListSerializer.Meta.fields + [
             "subtitle",
             "description",
-            "image_url",
             "level",
             "duration_in_days",
-            "sequential",
-            "steps",
             "required_skills",
             "acquired_skills",
-            "required_completion",
         ]
 
 

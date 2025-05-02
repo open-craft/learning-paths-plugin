@@ -10,6 +10,7 @@ from learning_paths.models import (
     AcquiredSkill,
     LearningPath,
     LearningPathEnrollment,
+    LearningPathEnrollmentAllowed,
     LearningPathGradingCriteria,
     LearningPathStep,
     RequiredSkill,
@@ -33,6 +34,7 @@ class UserFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = User
+        skip_postgeneration_save = True
 
 
 class LearningPathFactory(factory.django.DjangoModelFactory):
@@ -44,7 +46,6 @@ class LearningPathFactory(factory.django.DjangoModelFactory):
     )
     uuid = factory.Faker("uuid4")
     display_name = FuzzyText()
-    slug = FuzzyText()
     description = FuzzyText()
     sequential = False
 
@@ -105,3 +106,16 @@ class LearningPathEnrollmentFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = LearningPathEnrollment
+
+
+class LearningPathEnrollmentAllowedFactory(factory.django.DjangoModelFactory):
+    """
+    Factory for LearningPathEnrollmentAllowed model.
+    """
+
+    email = factory.Faker("email")
+    learning_path = factory.SubFactory(LearningPathFactory)
+    user = None
+
+    class Meta:
+        model = LearningPathEnrollmentAllowed

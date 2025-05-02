@@ -2,19 +2,28 @@
 Database models for learning_paths.
 """
 
+import logging
+import os
+import uuid
 from datetime import datetime, timedelta
 from uuid import uuid4
 
 from django.contrib import auth
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Exists, OuterRef, Q
 from django.utils.translation import gettext_lazy as _
+from model_utils import FieldTracker
 from model_utils.models import TimeStampedModel
 from opaque_keys.edx.django.models import CourseKeyField
 from simple_history.models import HistoricalRecords
+from slugify import slugify
 
 from .compat import get_course_due_date, get_user_course_grade
 from .keys import LearningPathKeyField
+
+log = logging.getLogger(__name__)
 
 User = auth.get_user_model()
 
@@ -25,12 +34,52 @@ LEVEL_CHOICES = [
 ]
 
 
+class LearningPathManager(models.Manager):
+    """Manager for LearningPath model that handles visibility rules."""
+
+    def get_paths_visible_to_user(self, user: User) -> models.QuerySet:
+        """
+        Return only learning paths that should be visible to the given user with enrollment status.
+
+        For staff users: all learning paths.
+        For non-staff: non-invite-only paths or invite-only paths they're enrolled in.
+
+        Each learning path in the queryset is annotated with `is_enrolled` indicating
+        whether the user has an active enrollment in that learning path.
+        """
+        queryset = self.get_queryset()
+
+        # Annotate each path with whether the user is enrolled.
+        enrollment_exists = LearningPathEnrollment.objects.filter(
+            learning_path=OuterRef("pk"), user=user, is_active=True
+        )
+        queryset = queryset.annotate(is_enrolled=Exists(enrollment_exists))
+
+        # Apply visibility filtering based on the user role.
+        if not user.is_staff:
+            queryset = queryset.filter(Q(invite_only=False) | Q(is_enrolled=True))
+
+        return queryset
+
+
 class LearningPath(TimeStampedModel):
     """
     A Learning Path, containing a sequence of courses.
 
     .. no_pii:
     """
+
+    def _learning_path_image_upload_path(self, filename: str) -> str:
+        """
+        Return the path where learning path images should be stored.
+
+        Uses the learning path key with a random suffix to ensure cache invalidation.
+        """
+        _, extension = os.path.splitext(filename)
+        random_suffix = uuid.uuid4().hex[:8]
+        slugified_key = slugify(str(self.key))
+        new_filename = f"{slugified_key}_{random_suffix}{extension}"
+        return f"learning_paths/images/{new_filename}"
 
     key = LearningPathKeyField(
         max_length=255,
@@ -50,21 +99,15 @@ class LearningPath(TimeStampedModel):
         unique=True,
         help_text=_("Legacy identifier for compatibility with Course Discovery."),
     )
-    slug = models.SlugField(
-        db_index=True,
-        unique=True,
-        help_text=_("Custom unique code identifying this Learning Path."),
-    )
     display_name = models.CharField(max_length=255)
-    subtitle = models.CharField(max_length=255)
+    subtitle = models.TextField(blank=True)
     description = models.TextField(blank=True)
-    # We don't use URLField here in order to allow e.g. relative URLs.
-    # max_length=200 as from URLField.
-    image_url = models.CharField(
-        max_length=200,
+    image = models.ImageField(
+        upload_to=_learning_path_image_upload_path,
         blank=True,
-        verbose_name=_("Image URL"),
-        help_text=_("URL to an image representing this Learning Path."),
+        null=True,
+        verbose_name=_("Image"),
+        help_text=_("Image representing this Learning Path."),
     )
     level = models.CharField(max_length=255, blank=True, choices=LEVEL_CHOICES)
     duration_in_days = models.PositiveIntegerField(
@@ -82,19 +125,59 @@ class LearningPath(TimeStampedModel):
             "Whether the courses in this Learning Path are meant to be taken sequentially."
         ),
     )
+    # Note: the enrolled learners will be able to self-enroll in all courses
+    # (steps) of the learning path. To avoid mistakes of making the courses
+    # visible to all users, we decided to make the learning paths invite-only
+    # by default. Making them public must be an explicit action.
+    invite_only = models.BooleanField(
+        default=True,
+        verbose_name=_("Invite only"),
+        help_text=_(
+            "If enabled, only staff can enroll users and only enrolled users can see the learning path."
+        ),
+    )
     enrolled_users = models.ManyToManyField(User, through="LearningPathEnrollment")
+    tracker = FieldTracker(fields=["image"])
+
+    objects = LearningPathManager()
 
     def __str__(self):
         """User-friendly string representation of this model."""
-        return self.display_name
+        return str(self.key)
 
     def save(self, *args, **kwargs):
-        """Create default grading criteria when a new learning path is created."""
+        """
+        Perform the validation and cleanup when saving a Learning Path.
+
+        This method performs the following actions:
+        1. Check that the key is not empty.
+        2. Create default grading criteria when a new learning path is created.
+        3. Delete the old image if the image is changed.
+        """
+        if not self.key:
+            raise ValidationError("Learning Path key cannot be empty.")
+
+        if self.tracker.has_changed("image"):
+            if old_image := self.tracker.previous("image"):
+                try:
+                    old_image.delete(save=False)
+                except Exception as e:  # pylint: disable=broad-except
+                    log.exception("Failed to delete old image: %s", e)
+
         is_new = self._state.adding
         super().save(*args, **kwargs)
 
         if is_new and not hasattr(self, "grading_criteria"):
             LearningPathGradingCriteria.objects.get_or_create(learning_path=self)
+
+    def delete(self, *args, **kwargs):
+        """Delete the image file when the learning path is deleted."""
+        if self.image:
+            try:
+                self.image.delete(save=False)
+            except Exception as e:  # pylint: disable=broad-except
+                log.exception("Failed to delete image: %s", e)
+        super().delete(*args, **kwargs)
 
 
 class LearningPathStep(TimeStampedModel):
@@ -138,6 +221,13 @@ class LearningPathStep(TimeStampedModel):
     def __str__(self):
         """User-friendly string representation of this model."""
         return "{}: {}".format(self.order, self.course_key)
+
+    def save(self, *args, **kwargs):
+        """Validate the course key before saving."""
+        if not self.course_key:
+            raise ValidationError("Course key cannot be empty.")
+
+        super().save(*args, **kwargs)
 
 
 class Skill(TimeStampedModel):

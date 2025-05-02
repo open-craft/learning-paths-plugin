@@ -12,7 +12,7 @@ amqp==5.3.1
     # via
     #   -r requirements/test.txt
     #   kombu
-aniso8601==10.0.0
+aniso8601==10.0.1
     # via
     #   -r requirements/test.txt
     #   tincan
@@ -38,7 +38,7 @@ babel==2.17.0
     #   sphinx
 backports-tarfile==1.2.0
     # via jaraco-context
-beautifulsoup4==4.13.3
+beautifulsoup4==4.13.4
     # via pydata-sphinx-theme
 billiard==4.2.1
     # via
@@ -46,13 +46,13 @@ billiard==4.2.1
     #   celery
 build==1.2.2.post1
     # via -r requirements/doc.in
-celery==5.5.1
+celery==5.5.2
     # via
     #   -r requirements/test.txt
     #   edx-celeryutils
     #   event-tracking
     #   openedx-completion-aggregator
-certifi==2025.1.31
+certifi==2025.4.26
     # via
     #   -r requirements/test.txt
     #   requests
@@ -61,7 +61,7 @@ cffi==1.17.1
     #   -r requirements/test.txt
     #   cryptography
     #   pynacl
-charset-normalizer==3.4.1
+charset-normalizer==3.4.2
     # via
     #   -r requirements/test.txt
     #   requests
@@ -210,7 +210,7 @@ edx-event-routing-backends==9.3.4
     # via
     #   -r requirements/test.txt
     #   openedx-completion-aggregator
-edx-opaque-keys[django]==2.12.0
+edx-opaque-keys[django]==3.0.0
     # via
     #   -r requirements/test.txt
     #   edx-ccx-keys
@@ -226,12 +226,16 @@ edx-toggles==5.3.0
     #   edx-event-routing-backends
     #   event-tracking
     #   openedx-completion-aggregator
-event-tracking==3.0.0
+event-tracking==3.3.0
     # via
     #   -r requirements/test.txt
     #   edx-completion
     #   edx-event-routing-backends
     #   openedx-completion-aggregator
+execnet==2.1.1
+    # via
+    #   -r requirements/test.txt
+    #   pytest-xdist
 factory-boy==3.3.3
     # via -r requirements/test.txt
 faker==37.1.0
@@ -258,7 +262,7 @@ idna==3.10
     #   requests
 imagesize==1.4.1
     # via sphinx
-importlib-metadata==8.6.1
+importlib-metadata==8.7.0
     # via keyring
 iniconfig==2.1.0
     # via
@@ -290,11 +294,11 @@ jsonfield==3.1.0
     #   edx-event-routing-backends
 keyring==25.6.0
     # via twine
-kombu==5.5.2
+kombu==5.5.3
     # via
     #   -r requirements/test.txt
     #   celery
-lxml==5.3.2
+lxml==5.4.0
     # via
     #   -r requirements/test.txt
     #   xblock
@@ -312,11 +316,11 @@ markupsafe==3.0.2
     #   xblock
 mdurl==0.1.2
     # via markdown-it-py
-more-itertools==10.6.0
+more-itertools==10.7.0
     # via
     #   jaraco-classes
     #   jaraco-functools
-newrelic==10.9.0
+newrelic==10.11.0
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
@@ -326,15 +330,15 @@ openedx-atlas==0.7.0
     # via -r requirements/test.txt
 openedx-completion-aggregator==4.2.0
     # via -r requirements/test.txt
-openedx-events==10.0.0
+openedx-events==10.1.0
     # via
     #   -r requirements/test.txt
     #   event-tracking
-openedx-filters==2.0.1
+openedx-filters==2.1.0
     # via
     #   -r requirements/test.txt
     #   edx-event-routing-backends
-packaging==24.2
+packaging==25.0
     # via
     #   -r requirements/test.txt
     #   build
@@ -346,11 +350,13 @@ pbr==6.1.1
     # via
     #   -r requirements/test.txt
     #   stevedore
+pillow==11.2.1
+    # via -r requirements/test.txt
 pluggy==1.5.0
     # via
     #   -r requirements/test.txt
     #   pytest
-prompt-toolkit==3.0.50
+prompt-toolkit==3.0.51
     # via
     #   -r requirements/test.txt
     #   click-repl
@@ -377,7 +383,7 @@ pyjwt[crypto]==2.10.1
     #   -r requirements/test.txt
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==4.4.0
+pymongo==4.12.1
     # via
     #   -r requirements/test.txt
     #   edx-opaque-keys
@@ -393,9 +399,12 @@ pytest==8.3.5
     #   -r requirements/test.txt
     #   pytest-cov
     #   pytest-django
+    #   pytest-xdist
 pytest-cov==6.1.1
     # via -r requirements/test.txt
 pytest-django==4.11.1
+    # via -r requirements/test.txt
+pytest-xdist==3.6.1
     # via -r requirements/test.txt
 python-dateutil==2.9.0.post0
     # via
@@ -422,7 +431,7 @@ pyyaml==6.0.2
     #   xblock
 readme-renderer==44.0
     # via twine
-redis==5.2.1
+redis==6.0.0
     # via
     #   -r requirements/test.txt
     #   django-redis
@@ -466,7 +475,7 @@ six==1.17.0
     #   python-dateutil
 snowballstemmer==2.2.0
     # via sphinx
-soupsieve==2.6
+soupsieve==2.7
     # via beautifulsoup4
 sphinx==8.2.3
     # via

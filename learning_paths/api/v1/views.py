@@ -11,8 +11,9 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, Validat
 from django.core.validators import validate_email
 from django.shortcuts import get_object_or_404
 from opaque_keys import InvalidKeyError
+from opaque_keys.edx.keys import CourseKey
 from rest_framework import generics, status, viewsets
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -26,6 +27,7 @@ from learning_paths.api.v1.serializers import (
     LearningPathListSerializer,
     LearningPathProgressSerializer,
 )
+from learning_paths.compat import enroll_user_in_course
 from learning_paths.keys import LearningPathKey
 from learning_paths.models import (
     LearningPath,
@@ -51,10 +53,13 @@ class LearningPathAsProgramViewSet(viewsets.ReadOnlyModelViewSet):
     https://github.com/openedx/course-discovery/blob/d6a57fd69479b3d5f5afb682d2668b58503a6af6/course_discovery/apps/course_metadata/data_loaders/api.py#L843
     """
 
-    queryset = LearningPath.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = LearningPathAsProgramSerializer
     pagination_class = PageNumberPagination
+
+    def get_queryset(self):
+        """Get the learning paths visible to the current user."""
+        return LearningPath.objects.get_paths_visible_to_user(self.request.user)
 
 
 class LearningPathUserProgressView(APIView):
@@ -68,8 +73,10 @@ class LearningPathUserProgressView(APIView):
         """
         Fetch the learning path progress
         """
-        learning_path_key = LearningPathKey.from_string(learning_path_key_str)
-        learning_path = get_object_or_404(LearningPath, key=learning_path_key)
+        learning_path = get_object_or_404(
+            LearningPath.objects.get_paths_visible_to_user(self.request.user),
+            key=learning_path_key_str,
+        )
 
         progress = get_aggregate_progress(request.user, learning_path)
         required_completion = None
@@ -80,7 +87,7 @@ class LearningPathUserProgressView(APIView):
             pass
 
         data = {
-            "learning_path_key": str(learning_path_key),
+            "learning_path_key": learning_path_key_str,
             "progress": progress,
             "required_completion": required_completion,
         }
@@ -103,8 +110,10 @@ class LearningPathUserGradeView(APIView):
         Fetch learning path grade
         """
 
-        learning_path_key = LearningPathKey.from_string(learning_path_key_str)
-        learning_path = get_object_or_404(LearningPath, key=learning_path_key)
+        learning_path = get_object_or_404(
+            LearningPath.objects.get_paths_visible_to_user(self.request.user),
+            key=learning_path_key_str,
+        )
 
         try:
             grading_criteria = learning_path.grading_criteria
@@ -117,7 +126,7 @@ class LearningPathUserGradeView(APIView):
         grade = grading_criteria.calculate_grade(request.user)
 
         data = {
-            "learning_path_key": str(learning_path_key),
+            "learning_path_key": learning_path_key_str,
             "grade": grade,
             "required_grade": grading_criteria.required_grade,
         }
@@ -134,10 +143,22 @@ class LearningPathViewSet(viewsets.ReadOnlyModelViewSet):
     including steps and associated skills.
     """
 
-    queryset = LearningPath.objects.prefetch_related("steps", "grading_criteria")
     permission_classes = (IsAuthenticated,)
     pagination_class = PageNumberPagination
     lookup_field = "key"
+
+    def get_queryset(self):
+        """
+        Get all learning paths and prefetch the related data.
+        """
+        user = self.request.user
+        queryset = LearningPath.objects.get_paths_visible_to_user(
+            user
+        ).prefetch_related(
+            "steps",
+            "grading_criteria",
+        )
+        return queryset
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -159,6 +180,17 @@ class LearningPathEnrollmentView(APIView):
 
     permission_classes = [IsAuthenticated, IsAdminOrSelf]
 
+    def _get_learning_path(self, learning_path_key_str: str) -> LearningPath:
+        """
+        Get the learning path and verify user has access to it.
+
+        :raises: Http404 if the learning path is not found or user does not have access.
+        """
+        return get_object_or_404(
+            LearningPath.objects.get_paths_visible_to_user(self.request.user),
+            key=learning_path_key_str,
+        )
+
     def get(self, request, learning_path_key_str: str):
         """Get the learning path of users.
 
@@ -169,8 +201,7 @@ class LearningPathEnrollmentView(APIView):
             username (optional): When provided it returns the enrollment for
                 the specified user.
         """
-        learning_path_key = LearningPathKey.from_string(learning_path_key_str)
-        learning_path = get_object_or_404(LearningPath, key=learning_path_key)
+        learning_path = self._get_learning_path(learning_path_key_str)
 
         enrollments = LearningPathEnrollment.objects.filter(
             learning_path=learning_path, is_active=True
@@ -189,7 +220,7 @@ class LearningPathEnrollmentView(APIView):
         """Enroll learners in Learning Paths.
 
         Staff/Admin can enroll anyone with the username query param.
-        Learners can enroll only themselves.
+        Learners can enroll only themselves, and only if the learning path is not invite-only.
 
         Example payload::
 
@@ -198,8 +229,7 @@ class LearningPathEnrollmentView(APIView):
             }
 
         """
-        learning_path_key = LearningPathKey.from_string(learning_path_key_str)
-        learning_path = get_object_or_404(LearningPath, key=learning_path_key)
+        learning_path = self._get_learning_path(learning_path_key_str)
         username = request.data.get("username")
         user = get_object_or_404(User, username=username) if username else request.user
 
@@ -235,8 +265,7 @@ class LearningPathEnrollmentView(APIView):
             }
 
         """
-        learning_path_key = LearningPathKey.from_string(learning_path_key_str)
-        learning_path = get_object_or_404(LearningPath, key=learning_path_key)
+        learning_path = self._get_learning_path(learning_path_key_str)
         username = request.data.get("username")
         user = get_object_or_404(User, username=username) if username else request.user
 
@@ -369,3 +398,42 @@ class BulkEnrollView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+class LearningPathCourseEnrollmentView(APIView):
+    """API View to enroll a user in a course that's part of a learning path."""
+
+    permission_classes = [IsAuthenticated, IsAdminOrSelf]
+
+    def _get_enrolled_learning_path(self, learning_path_key_str: str) -> LearningPath:
+        """
+        Get the learning path and verify the user has access and is enrolled.
+
+        :raises: Http404 if the learning path is not found or the user does not have access.
+        """
+        return get_object_or_404(
+            LearningPath.objects.get_paths_visible_to_user(self.request.user).filter(
+                is_enrolled=True
+            ),
+            key=learning_path_key_str,
+        )
+
+    def post(self, request, learning_path_key_str: str, course_key_str: str):
+        """
+        Enroll a user in a course that's part of a learning path.
+
+        The user must be enrolled in the learning path, and the course must be a step in the path.
+        """
+        learning_path = self._get_enrolled_learning_path(learning_path_key_str)
+        course_key = CourseKey.from_string(course_key_str)
+
+        if not learning_path.steps.filter(course_key=course_key).exists():
+            raise ParseError("The course is not part of this learning path.")
+
+        if enroll_user_in_course(request.user, course_key):
+            return Response(
+                {"detail": "User successfully enrolled in the course."},
+                status=status.HTTP_201_CREATED,
+            )
+        else:
+            raise ParseError("Failed to enroll the user in the course.")

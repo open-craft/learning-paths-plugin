@@ -85,6 +85,7 @@ class TestLearningPathKeyField:
     @pytest.mark.parametrize(
         "key_str",
         [
+            "path-v1:",
             "path-v1:invalid_key_format",
             "path-v1:org+number+run+group+extra",  # Extra part
             "path-v1:org+number+run",  # Missing group

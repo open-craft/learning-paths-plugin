@@ -10,6 +10,12 @@ from opaque_keys import InvalidKeyError
 from opaque_keys.edx.django.models import LearningContextKeyField
 from opaque_keys.edx.keys import LearningContextKey
 
+COURSE_KEY_NAMESPACE = "course-v1"
+COURSE_KEY_PATTERN = r"([^+]+)\+([^+]+)\+([^+]+)"
+COURSE_KEY_URL_PATTERN = (
+    rf"(?P<course_key_str>{COURSE_KEY_NAMESPACE}:{COURSE_KEY_PATTERN})"
+)
+
 LEARNING_PATH_NAMESPACE = "path-v1"
 LEARNING_PATH_PATTERN = r"([^+]+)\+([^+]+)\+([^+]+)\+([^+]+)"
 LEARNING_PATH_URL_PATTERN = (
@@ -62,14 +68,7 @@ class LearningPathKeyField(LearningContextKeyField):
 
     def to_python(self, value):
         """Convert the input value to a LearningPathKey object."""
-        # TODO: https://github.com/open-craft/learning-paths-plugin/issues/12
-        if not value:
-            return None
-
         try:
-            if not value:
-                raise InvalidKeyError(self.KEY_CLASS, None)
-
             return super().to_python(value)
         except InvalidKeyError:
             raise ValidationError(  # pylint: disable=raise-missing-from

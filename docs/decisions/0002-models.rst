@@ -28,7 +28,7 @@ We will define the following database models and their relationships:
 * LearningPath
 
   - represents a Learning Path
-  - identified by a unique user-defined `slug`
+  - identified by a unique user-defined `key`
   - contains multiple `LearningPathStep` children
 
 * LearningPathStep

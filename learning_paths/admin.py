@@ -29,13 +29,59 @@ def get_course_keys_choices():
         yield key, key
 
 
-class LearningPathStepForm(forms.ModelForm):
-    """Admin form for Learning Path step."""
+class CourseKeyDatalistWidget(forms.TextInput):
+    """A widget that provides a datalist for course keys."""
 
-    # TODO: Use autocomplete select instead.
-    # See <https://github.com/open-craft/section-to-course/blob/db6fd6f8f4478e91bb531e6c2fa50143e1c2e012/
-    #      section_to_course/admin.py#L31-L140>
-    course_key = forms.ChoiceField(choices=get_course_keys_choices, label=_("Course"))
+    def __init__(self, choices=None, attrs=None):
+        """Initialize the widget with a datalist and apply styles."""
+        attrs = attrs or {}
+        attrs.update(
+            {
+                "style": "width: 30em;",
+                "class": "form-control datalist-input",
+                "placeholder": _("Type to search courses..."),
+            }
+        )
+        super().__init__(attrs)
+        self.choices = choices or []
+
+    def render(self, name, value, attrs=None, renderer=None):
+        """Render the widget with a datalist."""
+        final_attrs = attrs or {}
+        data_list_id = f"datalist_{name}"
+        final_attrs["list"] = data_list_id
+
+        text_input_html = super().render(name, value, attrs, renderer)
+        data_list_id = f"datalist_{name}"
+        options = "\n".join(f'<option value="{choice}" />' for choice in self.choices)
+        datalist_html = f'<datalist id="{data_list_id}">\n{options}\n</datalist>'
+        return f"{text_input_html}\n{datalist_html}"
+
+
+class LearningPathStepForm(forms.ModelForm):
+    """Form for Learning Path step."""
+
+    def __init__(self, *args, **kwargs):
+        """Lazily fetch course keys to avoid calling compat code in all environments."""
+        super().__init__(*args, **kwargs)
+        self._course_keys = get_course_keys_with_outlines()
+        self.fields["course_key"].widget = CourseKeyDatalistWidget(
+            choices=self._course_keys
+        )
+
+    course_key = forms.CharField(label=_("Course"))
+
+    def clean_course_key(self):
+        """Validate that the course key is on the list of available course keys."""
+        course_key = self.cleaned_data.get("course_key")
+        valid_keys = {str(key).strip() for key in self._course_keys}
+
+        if course_key not in valid_keys:
+            raise ValidationError(
+                _("Invalid course key. Please select a course from the suggestions.")
+            )
+
+        return course_key
 
 
 class LearningPathStepInline(admin.TabularInline):
@@ -102,17 +148,17 @@ class LearningPathAdmin(admin.ModelAdmin):
     form = BulkEnrollUsersForm
 
     search_fields = [
-        "slug",
         "display_name",
         "key",
     ]
     list_display = (
         "key",
-        "slug",
         "display_name",
         "level",
         "duration_in_days",
+        "invite_only",
     )
+    list_filter = ("invite_only",)
     readonly_fields = ("key",)
 
     inlines = [
@@ -148,12 +194,13 @@ class EnrolledUsersAdmin(admin.ModelAdmin):
     """Admin for Learning Path enrollment."""
 
     model = LearningPathEnrollment
+    raw_id_fields = ("user",)
+    autocomplete_fields = ["learning_path"]
 
     search_fields = [
         "id",
         "user__username",
         "learning_path__key",
-        "learning_path__slug",
         "learning_path__display_name",
     ]
 
