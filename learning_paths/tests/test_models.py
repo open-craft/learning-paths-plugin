@@ -117,12 +117,11 @@ class TestLearningPath:
         assert re.search(regexp, path2)
         assert path1 != path2
 
-    # TODO: https://github.com/open-craft/learning-paths-plugin/issues/12
-    @pytest.mark.skip(reason="UUID migration incomplete")
     def test_key_required(self, learning_path_key):
-        """Test that key is required."""
-        with pytest.raises(ValidationError):
+        """Test that the key is required."""
+        with pytest.raises(ValidationError) as exc:
             LearningPath.objects.create()
+        assert exc.value.message == "Learning Path key cannot be empty."
 
     def test_unique_key(self, learning_path, learning_path_key):
         """Test that key must be unique."""

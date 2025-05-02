@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 
 from django.contrib import auth
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Exists, OuterRef, Q
@@ -146,10 +147,16 @@ class LearningPath(TimeStampedModel):
 
     def save(self, *args, **kwargs):
         """
-        Create default grading criteria when a new learning path is created.
+        Perform the validation and cleanup when saving a Learning Path.
 
-        Also handle image replacement if the image is changed.
+        This method performs the following actions:
+        1. Check that the key is not empty.
+        2. Create default grading criteria when a new learning path is created.
+        3. Delete the old image if the image is changed.
         """
+        if not self.key:
+            raise ValidationError("Learning Path key cannot be empty.")
+
         if self.tracker.has_changed("image"):
             if old_image := self.tracker.previous("image"):
                 try:
@@ -214,6 +221,13 @@ class LearningPathStep(TimeStampedModel):
     def __str__(self):
         """User-friendly string representation of this model."""
         return "{}: {}".format(self.order, self.course_key)
+
+    def save(self, *args, **kwargs):
+        """Validate the course key before saving."""
+        if not self.course_key:
+            raise ValidationError("Course key cannot be empty.")
+
+        super().save(*args, **kwargs)
 
 
 class Skill(TimeStampedModel):

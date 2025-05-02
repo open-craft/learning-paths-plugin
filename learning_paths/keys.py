@@ -68,14 +68,7 @@ class LearningPathKeyField(LearningContextKeyField):
 
     def to_python(self, value):
         """Convert the input value to a LearningPathKey object."""
-        # TODO: https://github.com/open-craft/learning-paths-plugin/issues/12
-        if not value:
-            return None
-
         try:
-            if not value:
-                raise InvalidKeyError(self.KEY_CLASS, None)
-
             return super().to_python(value)
         except InvalidKeyError:
             raise ValidationError(  # pylint: disable=raise-missing-from
