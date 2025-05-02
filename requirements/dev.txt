@@ -65,7 +65,7 @@ chardet==5.2.0
     #   -r requirements/ci.txt
     #   diff-cover
     #   tox
-charset-normalizer==3.4.1
+charset-normalizer==3.4.2
     # via
     #   -r requirements/quality.txt
     #   requests
@@ -228,7 +228,7 @@ edx-event-routing-backends==9.3.4
     # via
     #   -r requirements/quality.txt
     #   openedx-completion-aggregator
-edx-i18n-tools==1.8.0
+edx-i18n-tools==1.9.0
     # via -r requirements/dev.in
 edx-lint==5.6.0
     # via -r requirements/quality.txt
@@ -248,7 +248,7 @@ edx-toggles==5.3.0
     #   edx-event-routing-backends
     #   event-tracking
     #   openedx-completion-aggregator
-event-tracking==3.0.0
+event-tracking==3.3.0
     # via
     #   -r requirements/quality.txt
     #   edx-completion
@@ -333,7 +333,7 @@ mccabe==0.7.0
     # via
     #   -r requirements/quality.txt
     #   pylint
-newrelic==10.10.0
+newrelic==10.11.0
     # via
     #   -r requirements/quality.txt
     #   edx-django-utils
@@ -341,11 +341,11 @@ openedx-atlas==0.7.0
     # via -r requirements/quality.txt
 openedx-completion-aggregator==4.2.0
     # via -r requirements/quality.txt
-openedx-events==10.0.0
+openedx-events==10.1.0
     # via
     #   -r requirements/quality.txt
     #   event-tracking
-openedx-filters==2.0.1
+openedx-filters==2.1.0
     # via
     #   -r requirements/quality.txt
     #   edx-event-routing-backends
@@ -365,7 +365,7 @@ pbr==6.1.1
     #   -r requirements/quality.txt
     #   stevedore
 pillow==11.2.1
-    # via -r requirements/base.in
+    # via -r requirements/quality.txt
 pip-tools==7.4.1
     # via -r requirements/pip-tools.txt
 platformdirs==4.3.7
@@ -427,7 +427,7 @@ pylint-plugin-utils==0.8.2
     #   -r requirements/quality.txt
     #   pylint-celery
     #   pylint-django
-pymongo==4.4.0
+pymongo==4.12.1
     # via
     #   -r requirements/quality.txt
     #   edx-opaque-keys
@@ -481,7 +481,7 @@ pyyaml==6.0.2
     #   code-annotations
     #   edx-i18n-tools
     #   xblock
-redis==5.2.1
+redis==6.0.0
     # via
     #   -r requirements/quality.txt
     #   django-redis

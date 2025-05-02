@@ -61,7 +61,7 @@ cffi==1.17.1
     #   -r requirements/test.txt
     #   cryptography
     #   pynacl
-charset-normalizer==3.4.1
+charset-normalizer==3.4.2
     # via
     #   -r requirements/test.txt
     #   requests
@@ -226,7 +226,7 @@ edx-toggles==5.3.0
     #   edx-event-routing-backends
     #   event-tracking
     #   openedx-completion-aggregator
-event-tracking==3.0.0
+event-tracking==3.3.0
     # via
     #   -r requirements/test.txt
     #   edx-completion
@@ -320,7 +320,7 @@ more-itertools==10.7.0
     # via
     #   jaraco-classes
     #   jaraco-functools
-newrelic==10.10.0
+newrelic==10.11.0
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
@@ -330,11 +330,11 @@ openedx-atlas==0.7.0
     # via -r requirements/test.txt
 openedx-completion-aggregator==4.2.0
     # via -r requirements/test.txt
-openedx-events==10.0.0
+openedx-events==10.1.0
     # via
     #   -r requirements/test.txt
     #   event-tracking
-openedx-filters==2.0.1
+openedx-filters==2.1.0
     # via
     #   -r requirements/test.txt
     #   edx-event-routing-backends
@@ -383,7 +383,7 @@ pyjwt[crypto]==2.10.1
     #   -r requirements/test.txt
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==4.4.0
+pymongo==4.12.1
     # via
     #   -r requirements/test.txt
     #   edx-opaque-keys
@@ -431,7 +431,7 @@ pyyaml==6.0.2
     #   xblock
 readme-renderer==44.0
     # via twine
-redis==5.2.1
+redis==6.0.0
     # via
     #   -r requirements/test.txt
     #   django-redis
