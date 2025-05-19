@@ -111,7 +111,7 @@ coverage[toml]==7.8.0
     # via
     #   -r requirements/quality.txt
     #   pytest-cov
-cryptography==44.0.3
+cryptography==45.0.2
     # via
     #   -r requirements/quality.txt
     #   django-fernet-fields-v2
@@ -224,7 +224,7 @@ edx-drf-extensions==10.6.0
     # via
     #   -r requirements/quality.txt
     #   edx-completion
-edx-event-routing-backends==9.3.4
+edx-event-routing-backends==9.3.5
     # via
     #   -r requirements/quality.txt
     #   openedx-completion-aggregator
@@ -260,11 +260,11 @@ execnet==2.1.1
     #   pytest-xdist
 factory-boy==3.3.3
     # via -r requirements/quality.txt
-faker==37.1.0
+faker==37.3.0
     # via
     #   -r requirements/quality.txt
     #   factory-boy
-fastavro==1.10.0
+fastavro==1.11.1
     # via
     #   -r requirements/quality.txt
     #   openedx-events
@@ -333,7 +333,7 @@ mccabe==0.7.0
     # via
     #   -r requirements/quality.txt
     #   pylint
-newrelic==10.11.0
+newrelic==10.12.0
     # via
     #   -r requirements/quality.txt
     #   edx-django-utils
@@ -341,7 +341,7 @@ openedx-atlas==0.7.0
     # via -r requirements/quality.txt
 openedx-completion-aggregator==4.2.0
     # via -r requirements/quality.txt
-openedx-events==10.2.0
+openedx-events==10.2.1
     # via
     #   -r requirements/quality.txt
     #   event-tracking
@@ -375,7 +375,7 @@ platformdirs==4.3.8
     #   pylint
     #   tox
     #   virtualenv
-pluggy==1.5.0
+pluggy==1.6.0
     # via
     #   -r requirements/ci.txt
     #   -r requirements/quality.txt
@@ -427,7 +427,7 @@ pylint-plugin-utils==0.8.2
     #   -r requirements/quality.txt
     #   pylint-celery
     #   pylint-django
-pymongo==4.12.1
+pymongo==4.13.0
     # via
     #   -r requirements/quality.txt
     #   edx-opaque-keys
@@ -436,7 +436,7 @@ pynacl==1.5.0
     # via
     #   -r requirements/quality.txt
     #   edx-django-utils
-pyproject-api==1.9.0
+pyproject-api==1.9.1
     # via
     #   -r requirements/ci.txt
     #   tox
@@ -481,7 +481,7 @@ pyyaml==6.0.2
     #   code-annotations
     #   edx-i18n-tools
     #   xblock
-redis==6.0.0
+redis==6.1.0
     # via
     #   -r requirements/quality.txt
     #   django-redis
@@ -534,7 +534,7 @@ tomlkit==0.13.2
     # via
     #   -r requirements/quality.txt
     #   pylint
-tox==4.25.0
+tox==4.26.0
     # via -r requirements/ci.txt
 typing-extensions==4.13.2
     # via

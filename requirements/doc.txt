@@ -94,7 +94,7 @@ coverage[toml]==7.8.0
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==44.0.3
+cryptography==45.0.2
     # via
     #   -r requirements/test.txt
     #   django-fernet-fields-v2
@@ -206,7 +206,7 @@ edx-drf-extensions==10.6.0
     # via
     #   -r requirements/test.txt
     #   edx-completion
-edx-event-routing-backends==9.3.4
+edx-event-routing-backends==9.3.5
     # via
     #   -r requirements/test.txt
     #   openedx-completion-aggregator
@@ -238,11 +238,11 @@ execnet==2.1.1
     #   pytest-xdist
 factory-boy==3.3.3
     # via -r requirements/test.txt
-faker==37.1.0
+faker==37.3.0
     # via
     #   -r requirements/test.txt
     #   factory-boy
-fastavro==1.10.0
+fastavro==1.11.1
     # via
     #   -r requirements/test.txt
     #   openedx-events
@@ -320,7 +320,7 @@ more-itertools==10.7.0
     # via
     #   jaraco-classes
     #   jaraco-functools
-newrelic==10.11.0
+newrelic==10.12.0
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
@@ -330,7 +330,7 @@ openedx-atlas==0.7.0
     # via -r requirements/test.txt
 openedx-completion-aggregator==4.2.0
     # via -r requirements/test.txt
-openedx-events==10.2.0
+openedx-events==10.2.1
     # via
     #   -r requirements/test.txt
     #   event-tracking
@@ -352,7 +352,7 @@ pbr==6.1.1
     #   stevedore
 pillow==11.2.1
     # via -r requirements/test.txt
-pluggy==1.5.0
+pluggy==1.6.0
     # via
     #   -r requirements/test.txt
     #   pytest
@@ -383,7 +383,7 @@ pyjwt[crypto]==2.10.1
     #   -r requirements/test.txt
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==4.12.1
+pymongo==4.13.0
     # via
     #   -r requirements/test.txt
     #   edx-opaque-keys
@@ -431,7 +431,7 @@ pyyaml==6.0.2
     #   xblock
 readme-renderer==44.0
     # via twine
-redis==6.0.0
+redis==6.1.0
     # via
     #   -r requirements/test.txt
     #   django-redis
