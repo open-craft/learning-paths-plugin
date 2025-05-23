@@ -16,6 +16,14 @@ Unreleased
 
 *
 
+0.3.3 - 2025-05-23
+******************
+
+Changed
+=======
+
+* Changed line length from 80 to 120 characters.
+
 0.3.2 - 2025-05-02
 ******************
 

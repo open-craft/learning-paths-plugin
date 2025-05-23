@@ -12,15 +12,11 @@ from opaque_keys.edx.keys import LearningContextKey
 
 COURSE_KEY_NAMESPACE = "course-v1"
 COURSE_KEY_PATTERN = r"([^+]+)\+([^+]+)\+([^+]+)"
-COURSE_KEY_URL_PATTERN = (
-    rf"(?P<course_key_str>{COURSE_KEY_NAMESPACE}:{COURSE_KEY_PATTERN})"
-)
+COURSE_KEY_URL_PATTERN = rf"(?P<course_key_str>{COURSE_KEY_NAMESPACE}:{COURSE_KEY_PATTERN})"
 
 LEARNING_PATH_NAMESPACE = "path-v1"
 LEARNING_PATH_PATTERN = r"([^+]+)\+([^+]+)\+([^+]+)\+([^+]+)"
-LEARNING_PATH_URL_PATTERN = (
-    rf"(?P<learning_path_key_str>{LEARNING_PATH_NAMESPACE}:{LEARNING_PATH_PATTERN})"
-)
+LEARNING_PATH_URL_PATTERN = rf"(?P<learning_path_key_str>{LEARNING_PATH_NAMESPACE}:{LEARNING_PATH_PATTERN})"
 
 
 class LearningPathKey(LearningContextKey):
@@ -52,9 +48,7 @@ class LearningPathKey(LearningContextKey):
 
     def _to_string(self) -> str:
         """Return a string representing this key."""
-        return "+".join(
-            [self.org, self.number, self.run, self.group]  # pylint: disable=no-member
-        )
+        return "+".join([self.org, self.number, self.run, self.group])  # pylint: disable=no-member
 
 
 class LearningPathKeyField(LearningContextKeyField):

@@ -23,9 +23,7 @@ def test_learning_path_as_program_serializer(
     """
     Tests LearningPathAsProgram serializer data.
     """
-    test_image = SimpleUploadedFile(
-        name="test_image.png", content=b"test image content", content_type="image/png"
-    )
+    test_image = SimpleUploadedFile(name="test_image.png", content=b"test image content", content_type="image/png")
 
     learning_path = LearningPathFactory(
         uuid="817190bc-7bf1-4d95-aa43-bec5f58c2276",
@@ -120,14 +118,10 @@ def test_list_serializer_enrollment(is_enrolled):
     """
     user = UserFactory()
     learning_path = LearningPathFactory(invite_only=False)
-    LearningPathEnrollmentFactory(
-        user=user, learning_path=learning_path, is_active=is_enrolled
-    )
+    LearningPathEnrollmentFactory(user=user, learning_path=learning_path, is_active=is_enrolled)
 
     # Get the annotated learning path with the enrollment status.
-    learning_path = learning_path.__class__.objects.get_paths_visible_to_user(user).get(
-        key=learning_path.key
-    )
+    learning_path = learning_path.__class__.objects.get_paths_visible_to_user(user).get(key=learning_path.key)
 
     serializer = LearningPathListSerializer(learning_path)
     assert serializer.data["is_enrolled"] is is_enrolled

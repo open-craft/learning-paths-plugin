@@ -39,9 +39,7 @@ def learning_path(learning_path_key):
 @pytest.fixture
 def test_image(temp_media):
     """Create an image for testing."""
-    return SimpleUploadedFile(
-        name="test_image.png", content=b"test image content", content_type="image/png"
-    )
+    return SimpleUploadedFile(name="test_image.png", content=b"test image content", content_type="image/png")
 
 
 @pytest.mark.django_db
@@ -80,9 +78,7 @@ class TestLearningPath:
         original_image = learning_path.image
         assert default_storage.exists(original_image.name)
 
-        new_image = SimpleUploadedFile(
-            name="new_image.png", content=b"new image content", content_type="image/png"
-        )
+        new_image = SimpleUploadedFile(name="new_image.png", content=b"new image content", content_type="image/png")
         learning_path.image = new_image
         learning_path.save()
 

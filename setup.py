@@ -62,13 +62,10 @@ def load_requirements(*requirements_paths):
     re_package_name_base_chars = r"a-zA-Z0-9\-_."  # chars allowed in base package name
     # Two groups: name[maybe,extras], and optionally a constraint
     requirement_line_regex = re.compile(
-        r"([%s]+(?:\[[%s,\s]+\])?)([<>=][^#\s]+)?"
-        % (re_package_name_base_chars, re_package_name_base_chars)
+        r"([%s]+(?:\[[%s,\s]+\])?)([<>=][^#\s]+)?" % (re_package_name_base_chars, re_package_name_base_chars)
     )
 
-    def add_version_constraint_or_raise(
-        current_line, current_requirements, add_if_not_present
-    ):
+    def add_version_constraint_or_raise(current_line, current_requirements, add_if_not_present):
         regex_match = requirement_line_regex.match(current_line)
         if regex_match:
             package = regex_match.group(1)
@@ -77,10 +74,7 @@ def load_requirements(*requirements_paths):
             existing_version_constraints = current_requirements.get(package, None)
             # It's fine to add constraints to an unconstrained package,
             # but raise an error if there are already constraints in place.
-            if (
-                existing_version_constraints
-                and existing_version_constraints != version_constraints
-            ):
+            if existing_version_constraints and existing_version_constraints != version_constraints:
                 raise BaseException(
                     f"Multiple constraint definitions found for {package}:"
                     f' "{existing_version_constraints}" and "{version_constraints}".'
@@ -98,11 +92,7 @@ def load_requirements(*requirements_paths):
                 if is_requirement(line):
                     add_version_constraint_or_raise(line, requirements, True)
                 if line and line.startswith("-c") and not line.startswith("-c http"):
-                    constraint_files.add(
-                        os.path.dirname(path)
-                        + "/"
-                        + line.split("#")[0].replace("-c", "").strip()
-                    )
+                    constraint_files.add(os.path.dirname(path) + "/" + line.split("#")[0].replace("-c", "").strip())
 
     # process constraint files: add constraints to existing requirements
     for constraint_file in constraint_files:
@@ -112,9 +102,7 @@ def load_requirements(*requirements_paths):
                     add_version_constraint_or_raise(line, requirements, False)
 
     # process back into list of pkg><=constraints strings
-    constrained_requirements = [
-        f'{pkg}{version or ""}' for (pkg, version) in sorted(requirements.items())
-    ]
+    constrained_requirements = [f'{pkg}{version or ""}' for (pkg, version) in sorted(requirements.items())]
     return constrained_requirements
 
 
@@ -126,9 +114,7 @@ def is_requirement(line):
         bool: True if the line is not blank, a comment,
         a URL, or an included file
     """
-    return (
-        line and line.strip() and not line.startswith(("-r", "#", "-e", "git+", "-c"))
-    )
+    return line and line.strip() and not line.startswith(("-r", "#", "-e", "git+", "-c"))
 
 
 VERSION = get_version("learning_paths", "__init__.py")
@@ -139,12 +125,8 @@ if sys.argv[-1] == "tag":
     os.system("git push --tags")
     sys.exit()
 
-README = open(
-    os.path.join(os.path.dirname(__file__), "README.rst"), encoding="utf8"
-).read()
-CHANGELOG = open(
-    os.path.join(os.path.dirname(__file__), "CHANGELOG.rst"), encoding="utf8"
-).read()
+README = open(os.path.join(os.path.dirname(__file__), "README.rst"), encoding="utf8").read()
+CHANGELOG = open(os.path.join(os.path.dirname(__file__), "CHANGELOG.rst"), encoding="utf8").read()
 
 setup(
     name="learning-paths-plugin",

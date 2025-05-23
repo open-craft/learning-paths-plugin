@@ -65,9 +65,7 @@ class LearningPathStepForm(forms.ModelForm):
         """Lazily fetch course keys to avoid calling compat code in all environments."""
         super().__init__(*args, **kwargs)
         self._course_keys = get_course_keys_with_outlines()
-        self.fields["course_key"].widget = CourseKeyDatalistWidget(
-            choices=self._course_keys
-        )
+        self.fields["course_key"].widget = CourseKeyDatalistWidget(choices=self._course_keys)
 
     course_key = forms.CharField(label=_("Course"))
 
@@ -77,9 +75,7 @@ class LearningPathStepForm(forms.ModelForm):
         valid_keys = {str(key).strip() for key in self._course_keys}
 
         if course_key not in valid_keys:
-            raise ValidationError(
-                _("Invalid course key. Please select a course from the suggestions.")
-            )
+            raise ValidationError(_("Invalid course key. Please select a course from the suggestions."))
 
         return course_key
 
@@ -135,9 +131,7 @@ class BulkEnrollUsersForm(forms.ModelForm):
         found_usernames = list(users.values_list("username", flat=True))
         invalid_usernames = set(usernames) - set(found_usernames)
         if invalid_usernames:
-            raise ValidationError(
-                f"The following usernames are not valid: {', '.join(invalid_usernames)}"
-            )
+            raise ValidationError(f"The following usernames are not valid: {', '.join(invalid_usernames)}")
         return users
 
 
@@ -179,9 +173,7 @@ class LearningPathAdmin(admin.ModelAdmin):
         super().save_related(request, form, formsets, change)
         with transaction.atomic():
             for user in form.cleaned_data["usernames"]:
-                LearningPathEnrollment.objects.get_or_create(
-                    user=user, learning_path=form.instance
-                )
+                LearningPathEnrollment.objects.get_or_create(user=user, learning_path=form.instance)
 
 
 class SkillAdmin(admin.ModelAdmin):

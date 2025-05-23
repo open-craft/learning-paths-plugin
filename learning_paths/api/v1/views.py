@@ -152,9 +152,7 @@ class LearningPathViewSet(viewsets.ReadOnlyModelViewSet):
         Get all learning paths and prefetch the related data.
         """
         user = self.request.user
-        queryset = LearningPath.objects.get_paths_visible_to_user(
-            user
-        ).prefetch_related(
+        queryset = LearningPath.objects.get_paths_visible_to_user(user).prefetch_related(
             "steps",
             "grading_criteria",
         )
@@ -203,9 +201,7 @@ class LearningPathEnrollmentView(APIView):
         """
         learning_path = self._get_learning_path(learning_path_key_str)
 
-        enrollments = LearningPathEnrollment.objects.filter(
-            learning_path=learning_path, is_active=True
-        )
+        enrollments = LearningPathEnrollment.objects.filter(learning_path=learning_path, is_active=True)
 
         if request.user.is_staff:
             if username := request.query_params.get("username"):
@@ -233,18 +229,14 @@ class LearningPathEnrollmentView(APIView):
         username = request.data.get("username")
         user = get_object_or_404(User, username=username) if username else request.user
 
-        enrollment, created = LearningPathEnrollment.objects.get_or_create(
-            learning_path=learning_path, user=user
-        )
+        enrollment, created = LearningPathEnrollment.objects.get_or_create(learning_path=learning_path, user=user)
         if created:
             return Response(
                 LearningPathEnrollmentSerializer(enrollment).data,
                 status=status.HTTP_201_CREATED,
             )
         if enrollment.is_active:
-            return Response(
-                {"detail": "Enrollment exists."}, status=status.HTTP_409_CONFLICT
-            )
+            return Response({"detail": "Enrollment exists."}, status=status.HTTP_409_CONFLICT)
 
         enrollment.is_active = True
         enrollment.enrolled_at = datetime.now(timezone.utc)
@@ -276,10 +268,7 @@ class LearningPathEnrollmentView(APIView):
             user=user,
         )
 
-        if (
-            not request.user.is_staff
-            and not settings.LEARNING_PATHS_ALLOW_SELF_UNENROLLMENT
-        ):
+        if not request.user.is_staff and not settings.LEARNING_PATHS_ALLOW_SELF_UNENROLLMENT:
             raise PermissionDenied
 
         enrollment.is_active = False
@@ -360,9 +349,7 @@ class BulkEnrollView(APIView):
 
             # Create LearningPathEnrollment for existing users
             for user in existing_users:
-                enrollment = LearningPathEnrollment.objects.filter(
-                    user=user, learning_path=learning_path
-                ).first()
+                enrollment = LearningPathEnrollment.objects.filter(user=user, learning_path=learning_path).first()
                 enrolled_now = False
                 if not enrollment:
                     enrollment = LearningPathEnrollment(
@@ -412,9 +399,7 @@ class LearningPathCourseEnrollmentView(APIView):
         :raises: Http404 if the learning path is not found or the user does not have access.
         """
         return get_object_or_404(
-            LearningPath.objects.get_paths_visible_to_user(self.request.user).filter(
-                is_enrolled=True
-            ),
+            LearningPath.objects.get_paths_visible_to_user(self.request.user).filter(is_enrolled=True),
             key=learning_path_key_str,
         )
 
