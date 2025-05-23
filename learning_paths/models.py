@@ -114,16 +114,12 @@ class LearningPath(TimeStampedModel):
         blank=True,
         null=True,
         verbose_name=_("Duration (days)"),
-        help_text=_(
-            "Approximate time (in days) it should take to complete this Learning Path."
-        ),
+        help_text=_("Approximate time (in days) it should take to complete this Learning Path."),
     )
     sequential = models.BooleanField(
         default=False,
         verbose_name=_("Is sequential"),
-        help_text=_(
-            "Whether the courses in this Learning Path are meant to be taken sequentially."
-        ),
+        help_text=_("Whether the courses in this Learning Path are meant to be taken sequentially."),
     )
     # Note: the enrolled learners will be able to self-enroll in all courses
     # (steps) of the learning path. To avoid mistakes of making the courses
@@ -132,9 +128,7 @@ class LearningPath(TimeStampedModel):
     invite_only = models.BooleanField(
         default=True,
         verbose_name=_("Invite only"),
-        help_text=_(
-            "If enabled, only staff can enroll users and only enrolled users can see the learning path."
-        ),
+        help_text=_("If enabled, only staff can enroll users and only enrolled users can see the learning path."),
     )
     enrolled_users = models.ManyToManyField(User, through="LearningPathEnrollment")
     tracker = FieldTracker(fields=["image"])
@@ -193,16 +187,12 @@ class LearningPathStep(TimeStampedModel):
         unique_together = ("learning_path", "course_key")
 
     course_key = CourseKeyField(max_length=255)
-    learning_path = models.ForeignKey(
-        LearningPath, related_name="steps", on_delete=models.CASCADE
-    )
+    learning_path = models.ForeignKey(LearningPath, related_name="steps", on_delete=models.CASCADE)
     order = models.PositiveIntegerField(
         blank=True,
         null=True,
         verbose_name=_("Sequential order"),
-        help_text=_(
-            "Ordinal position of this step in the sequence of the Learning Path, if applicable."
-        ),
+        help_text=_("Ordinal position of this step in the sequence of the Learning Path, if applicable."),
     )
     weight = models.FloatField(
         default=1.0,
@@ -259,9 +249,7 @@ class LearningPathSkill(TimeStampedModel):
 
     learning_path = models.ForeignKey(LearningPath, on_delete=models.CASCADE)
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
-    level = models.PositiveIntegerField(
-        help_text=_("The skill level associated with this course.")
-    )
+    level = models.PositiveIntegerField(help_text=_("The skill level associated with this course."))
 
     def __str__(self):
         """User-friendly string representation of this model."""
@@ -305,8 +293,7 @@ class LearningPathEnrollment(TimeStampedModel):
     enrolled_at = models.DateTimeField(
         auto_now_add=True,
         help_text=_(
-            "Timestamp of enrollment or un-enrollment. To be explicitly set when performing"
-            " a learner enrollment."
+            "Timestamp of enrollment or un-enrollment. To be explicitly set when performing a learner enrollment."
         ),
     )
 
@@ -331,9 +318,7 @@ class LearningPathGradingCriteria(models.Model):
     .. no_pii:
     """
 
-    learning_path = models.OneToOneField(
-        LearningPath, related_name="grading_criteria", on_delete=models.CASCADE
-    )
+    learning_path = models.OneToOneField(LearningPath, related_name="grading_criteria", on_delete=models.CASCADE)
     required_completion = models.FloatField(
         default=0.80,
         help_text=(

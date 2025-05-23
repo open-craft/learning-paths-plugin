@@ -29,9 +29,7 @@ def get_course_completion(username: str, course_key: CourseKey, client: Any) -> 
         if err.response.status_code == 404:
             return 0.0
         else:
-            raise APIException(
-                f"Error fetching completion for course {course_id}: {err}"
-            ) from err
+            raise APIException(f"Error fetching completion for course {course_id}: {err}") from err
 
     if data and data.get("results"):
         return data["results"][0]["completion"]["percent"]
@@ -51,9 +49,7 @@ def get_aggregate_progress(user, learning_path):
     total_completion = 0.0
 
     for step in steps:
-        course_completion = get_course_completion(
-            user.username, step.course_key, client
-        )
+        course_completion = get_course_completion(user.username, step.course_key, client)
         total_completion += course_completion
 
     total_courses = len(steps)

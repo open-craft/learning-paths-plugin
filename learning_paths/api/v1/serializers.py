@@ -104,9 +104,7 @@ class LearningPathListSerializer(serializers.ModelSerializer):
     """Serializer for the learning path list."""
 
     steps = LearningPathStepSerializer(many=True, read_only=True)
-    required_completion = serializers.FloatField(
-        source="grading_criteria.required_completion", read_only=True
-    )
+    required_completion = serializers.FloatField(source="grading_criteria.required_completion", read_only=True)
     is_enrolled = serializers.SerializerMethodField()
     invite_only = serializers.BooleanField()
     image = serializers.ImageField(read_only=True)
@@ -168,12 +166,8 @@ class LearningPathDetailSerializer(LearningPathListSerializer):
     Serializer for learning path details.
     """
 
-    required_skills = RequiredSkillSerializer(
-        source="requiredskill_set", many=True, read_only=True
-    )
-    acquired_skills = AcquiredSkillSerializer(
-        source="acquiredskill_set", many=True, read_only=True
-    )
+    required_skills = RequiredSkillSerializer(source="requiredskill_set", many=True, read_only=True)
+    acquired_skills = AcquiredSkillSerializer(source="acquiredskill_set", many=True, read_only=True)
 
     class Meta(LearningPathListSerializer.Meta):
         fields = LearningPathListSerializer.Meta.fields + [

@@ -7,9 +7,7 @@ from learning_paths.models import LearningPathEnrollment, LearningPathEnrollment
 logger = logging.getLogger(__name__)
 
 
-def process_pending_enrollments(
-    sender, instance, created, **kwargs
-):  # pylint: disable=unused-argument
+def process_pending_enrollments(sender, instance, created, **kwargs):  # pylint: disable=unused-argument
     """
     Process pending enrollments after a user instance has been created.
 
@@ -31,9 +29,7 @@ def process_pending_enrollments(
         return
 
     logger.info("[LearningPaths] Processing pending enrollments for user %s", instance)
-    pending_enrollments = LearningPathEnrollmentAllowed.objects.filter(
-        email=instance.email
-    ).all()
+    pending_enrollments = LearningPathEnrollmentAllowed.objects.filter(email=instance.email).all()
 
     enrollments = []
 
@@ -41,9 +37,7 @@ def process_pending_enrollments(
         entry.user = instance
         entry.save()
 
-        enrollments.append(
-            LearningPathEnrollment(learning_path=entry.learning_path, user=instance)
-        )
+        enrollments.append(LearningPathEnrollment(learning_path=entry.learning_path, user=instance))
     new_enrollments = LearningPathEnrollment.objects.bulk_create(enrollments)
     logger.info(
         "[LearningPaths] Processed %d pending Learning Path enrollments for user %s.",

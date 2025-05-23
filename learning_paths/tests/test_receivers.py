@@ -29,20 +29,14 @@ def learning_paths():
 
 
 @pytest.mark.django_db
-def test_process_pending_enrollments_with_pending_enrollments(
-    user_email, learning_paths
-):
+def test_process_pending_enrollments_with_pending_enrollments(user_email, learning_paths):
     """
     GIVEN that there are LearningPathEnrollmentAllowed objects for an email
     WHEN the process_pending_enrollments signal handler is triggered
     THEN actual enrollment objects are created for the user
     """
-    pending_entry_1 = LearningPathEnrollmentAllowedFactory(
-        email=user_email, learning_path=learning_paths[0]
-    )
-    pending_entry_2 = LearningPathEnrollmentAllowedFactory(
-        email=user_email, learning_path=learning_paths[1]
-    )
+    pending_entry_1 = LearningPathEnrollmentAllowedFactory(email=user_email, learning_path=learning_paths[0])
+    pending_entry_2 = LearningPathEnrollmentAllowedFactory(email=user_email, learning_path=learning_paths[1])
 
     user = UserFactory(email=user_email)
     process_pending_enrollments(sender=User, instance=user, created=True)

@@ -25,9 +25,7 @@ class TestLearningPathKey:
     def test_key_from_string(self):
         """Test creating a key from a string."""
         key_str = "path-v1:org+number+run+group"
-        assert LearningPathKey.from_string(key_str) == LearningPathKey(
-            "org", "number", "run", "group"
-        )
+        assert LearningPathKey.from_string(key_str) == LearningPathKey("org", "number", "run", "group")
 
     def test_key_to_string(self):
         """Test serializing a key to a string."""
@@ -106,6 +104,4 @@ class TestLearningPathKeyField:
         with pytest.raises(ValidationError) as excinfo:
             field.to_python("invalid_key_format")
 
-        assert "Invalid format. Use: 'path-v1:{org}+{number}+{run}+{group}'" in str(
-            excinfo.value
-        )
+        assert "Invalid format. Use: 'path-v1:{org}+{number}+{run}+{group}'" in str(excinfo.value)

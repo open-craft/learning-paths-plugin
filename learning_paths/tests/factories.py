@@ -41,9 +41,7 @@ class LearningPathFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = LearningPath
 
-    key = factory.Sequence(
-        lambda n: LearningPathKey.from_string(f"path-v1:test+number{n}+run+group")
-    )
+    key = factory.Sequence(lambda n: LearningPathKey.from_string(f"path-v1:test+number{n}+run+group"))
     uuid = factory.Faker("uuid4")
     display_name = FuzzyText()
     description = FuzzyText()

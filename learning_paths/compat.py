@@ -72,7 +72,5 @@ def enroll_user_in_course(user: AbstractBaseUser, course_key: CourseKey) -> bool
         CourseEnrollment.enroll(user, course_key)
         return True
     except CourseEnrollmentException as exc:
-        log.exception(
-            "Failed to enroll user %s in course %s: %s", user, course_key, exc
-        )
+        log.exception("Failed to enroll user %s in course %s: %s", user, course_key, exc)
         return False
