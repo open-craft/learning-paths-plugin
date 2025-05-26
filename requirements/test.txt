@@ -51,7 +51,7 @@ charset-normalizer==3.4.2
     # via
     #   -r requirements/base.txt
     #   requests
-click==8.2.0
+click==8.2.1
     # via
     #   -r requirements/base.txt
     #   celery
@@ -77,9 +77,9 @@ code-annotations==2.3.0
     #   -r requirements/base.txt
     #   -r requirements/test.in
     #   edx-toggles
-coverage[toml]==7.8.0
+coverage[toml]==7.8.2
     # via pytest-cov
-cryptography==45.0.2
+cryptography==45.0.3
     # via
     #   -r requirements/base.txt
     #   django-fernet-fields-v2
@@ -168,7 +168,7 @@ edx-completion==4.9
     # via
     #   -r requirements/base.txt
     #   openedx-completion-aggregator
-edx-django-utils==7.4.0
+edx-django-utils==8.0.0
     # via
     #   -r requirements/base.txt
     #   django-config-models
@@ -261,10 +261,6 @@ markupsafe==3.0.2
     #   jinja2
     #   mako
     #   xblock
-newrelic==10.12.0
-    # via
-    #   -r requirements/base.txt
-    #   edx-django-utils
 openedx-atlas==0.7.0
     # via -r requirements/base.txt
 openedx-completion-aggregator==4.2.0
