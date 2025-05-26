@@ -41,7 +41,7 @@ build==1.2.2.post1
     # via
     #   -r requirements/pip-tools.txt
     #   pip-tools
-cachetools==5.5.2
+cachetools==6.0.0
     # via
     #   -r requirements/ci.txt
     #   tox
@@ -69,7 +69,7 @@ charset-normalizer==3.4.2
     # via
     #   -r requirements/quality.txt
     #   requests
-click==8.2.0
+click==8.2.1
     # via
     #   -r requirements/pip-tools.txt
     #   -r requirements/quality.txt
@@ -107,16 +107,16 @@ colorama==0.4.6
     # via
     #   -r requirements/ci.txt
     #   tox
-coverage[toml]==7.8.0
+coverage[toml]==7.8.2
     # via
     #   -r requirements/quality.txt
     #   pytest-cov
-cryptography==45.0.2
+cryptography==45.0.3
     # via
     #   -r requirements/quality.txt
     #   django-fernet-fields-v2
     #   pyjwt
-diff-cover==9.2.4
+diff-cover==9.3.1
     # via -r requirements/dev.in
 dill==0.4.0
     # via
@@ -212,7 +212,7 @@ edx-completion==4.9
     # via
     #   -r requirements/quality.txt
     #   openedx-completion-aggregator
-edx-django-utils==7.4.0
+edx-django-utils==8.0.0
     # via
     #   -r requirements/quality.txt
     #   django-config-models
@@ -333,10 +333,6 @@ mccabe==0.7.0
     # via
     #   -r requirements/quality.txt
     #   pylint
-newrelic==10.12.0
-    # via
-    #   -r requirements/quality.txt
-    #   edx-django-utils
 openedx-atlas==0.7.0
     # via -r requirements/quality.txt
 openedx-completion-aggregator==4.2.0
