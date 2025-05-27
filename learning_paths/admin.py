@@ -13,6 +13,8 @@ from .models import (
     AcquiredSkill,
     LearningPath,
     LearningPathEnrollment,
+    LearningPathEnrollmentAllowed,
+    LearningPathEnrollmentAudit,
     LearningPathGradingCriteria,
     LearningPathStep,
     RequiredSkill,
@@ -135,6 +137,7 @@ class BulkEnrollUsersForm(forms.ModelForm):
         return users
 
 
+@admin.register(LearningPath)
 class LearningPathAdmin(admin.ModelAdmin):
     """Admin for Learning Path."""
 
@@ -176,18 +179,85 @@ class LearningPathAdmin(admin.ModelAdmin):
                 LearningPathEnrollment.objects.get_or_create(user=user, learning_path=form.instance)
 
 
+@admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):
     """Admin for Learning Path generic skill."""
 
     model = Skill
 
 
+class EnrollmentAuditInline(admin.TabularInline):
+    """Inline admin for LearningPathEnrollmentAudit records."""
+
+    model = LearningPathEnrollmentAudit
+    fk_name = "enrollment"
+    extra = 0
+    exclude = ["enrollment_allowed"]
+    readonly_fields = [
+        "state_transition",
+        "enrolled_by",
+        "reason",
+        "org",
+        "role",
+        "created",
+    ]
+
+    def has_add_permission(self, request, obj=None):
+        """Disable manual creation of audit records."""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Disable deletion of audit records."""
+        return False
+
+
+class EnrollmentAllowedAuditInline(admin.TabularInline):
+    """Inline admin for LearningPathEnrollmentAudit records related to enrollment allowed."""
+
+    model = LearningPathEnrollmentAudit
+    fk_name = "enrollment_allowed"
+    extra = 0
+    exclude = ["enrollment"]
+    readonly_fields = [
+        "state_transition",
+        "enrolled_by",
+        "reason",
+        "org",
+        "role",
+        "created",
+    ]
+
+    def has_add_permission(self, request, obj=None):
+        """Disable manual creation of audit records."""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Disable deletion of audit records."""
+        return False
+
+
+@admin.register(LearningPathEnrollment)
 class EnrolledUsersAdmin(admin.ModelAdmin):
     """Admin for Learning Path enrollment."""
 
     model = LearningPathEnrollment
     raw_id_fields = ("user",)
     autocomplete_fields = ["learning_path"]
+    inlines = [EnrollmentAuditInline]
+
+    list_display = [
+        "id",
+        "user",
+        "learning_path",
+        "is_active",
+        "created",
+    ]
+
+    list_filter = [
+        "learning_path__key",
+        "created",
+        "is_active",
+    ]
 
     search_fields = [
         "id",
@@ -197,6 +267,103 @@ class EnrolledUsersAdmin(admin.ModelAdmin):
     ]
 
 
-admin.site.register(LearningPath, LearningPathAdmin)
-admin.site.register(Skill, SkillAdmin)
-admin.site.register(LearningPathEnrollment, EnrolledUsersAdmin)
+@admin.register(LearningPathEnrollmentAllowed)
+class EnrollmentAllowedAdmin(admin.ModelAdmin):
+    """Admin configuration for LearningPathEnrollmentAllowed model."""
+
+    list_display = [
+        "id",
+        "email",
+        "get_user",
+        "learning_path",
+        "created",
+    ]
+
+    list_filter = [
+        "learning_path",
+        "created",
+    ]
+
+    search_fields = [
+        "email",
+        "user__username",
+        "user__email",
+        "learning_path__key",
+    ]
+
+    readonly_fields = [
+        "user",
+        "created",
+        "modified",
+    ]
+
+    inlines = [EnrollmentAllowedAuditInline]
+
+    def get_user(self, obj):
+        """Get the associated user, if any."""
+        return obj.user.username if obj.user else "-"
+
+    get_user.short_description = "User"
+
+
+@admin.register(LearningPathEnrollmentAudit)
+class EnrollmentAuditAdmin(admin.ModelAdmin):
+    """Admin configuration for LearningPathEnrollmentAudit model."""
+
+    list_display = [
+        "id",
+        "state_transition",
+        "enrolled_by",
+        "get_enrollee",
+        "get_learning_path",
+        "created",
+        "org",
+        "role",
+    ]
+
+    list_filter = [
+        "state_transition",
+        "created",
+        "org",
+        "role",
+    ]
+
+    search_fields = [
+        "enrolled_by__username",
+        "enrolled_by__email",
+        "enrollment__user__username",
+        "enrollment__user__email",
+        "enrollment_allowed__email",
+        "enrollment__learning_path__key",
+        "enrollment_allowed__learning_path__key",
+        "reason",
+    ]
+
+    readonly_fields = [
+        "enrollment",
+        "enrollment_allowed",
+        "enrolled_by",
+        "state_transition",
+        "created",
+        "modified",
+    ]
+
+    def get_enrollee(self, obj):
+        """Get the enrollee (user or email)."""
+        if obj.enrollment:
+            return obj.enrollment.user.username
+        elif obj.enrollment_allowed:
+            return obj.enrollment_allowed.user.username if obj.enrollment_allowed.user else obj.enrollment_allowed.email
+        return "-"
+
+    get_enrollee.short_description = "Enrollee"
+
+    def get_learning_path(self, obj):
+        """Get the learning path title."""
+        if obj.enrollment:
+            return obj.enrollment.learning_path.key
+        elif obj.enrollment_allowed:
+            return obj.enrollment_allowed.learning_path.key
+        return "-"
+
+    get_learning_path.short_description = "Learning Path"
