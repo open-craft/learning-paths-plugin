@@ -15,8 +15,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python-version: ['3.11']
-        toxenv: [quality, docs, pii_check, django42]
+        python-version: [3.11, 3.12]
+        toxenv: [django42, django52, quality, docs, pii_check]
 
     steps:
     - uses: actions/checkout@v3
