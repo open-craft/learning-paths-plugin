@@ -102,7 +102,7 @@ cryptography==45.0.3
     #   secretstorage
 django==4.2.21
     # via
-    #   -c requirements/common_constraints.txt
+    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
     #   django-config-models
     #   django-crum
@@ -146,10 +146,6 @@ django-redis==5.4.0
     # via
     #   -r requirements/test.txt
     #   edx-event-routing-backends
-django-simple-history==3.4.0
-    # via
-    #   -c requirements/constraints.txt
-    #   -r requirements/test.txt
 django-waffle==4.2.0
     # via
     #   -r requirements/test.txt
@@ -400,7 +396,7 @@ pytest-cov==6.1.1
     # via -r requirements/test.txt
 pytest-django==4.11.1
     # via -r requirements/test.txt
-pytest-xdist==3.6.1
+pytest-xdist==3.7.0
     # via -r requirements/test.txt
 python-dateutil==2.9.0.post0
     # via
@@ -526,7 +522,7 @@ tzdata==2025.2
     #   kombu
 urllib3==2.2.3
     # via
-    #   -c requirements/common_constraints.txt
+    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
     #   requests
     #   twine
@@ -553,7 +549,7 @@ xblock==5.2.0
     #   -r requirements/test.txt
     #   edx-completion
     #   openedx-completion-aggregator
-zipp==3.21.0
+zipp==3.22.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:

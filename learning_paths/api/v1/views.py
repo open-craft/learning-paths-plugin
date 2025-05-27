@@ -33,6 +33,7 @@ from learning_paths.models import (
     LearningPath,
     LearningPathEnrollment,
     LearningPathEnrollmentAllowed,
+    LearningPathEnrollmentAudit,
 )
 
 from .filters import AdminOrSelfFilterBackend
@@ -329,6 +330,14 @@ class BulkEnrollView(APIView):
         learning_paths_keys = data.get("learning_paths", "").split(",")
         emails = data.get("emails", "").split(",")
 
+        audit_data = {
+            "enrolled_by": request.user,
+            "reason": data.get("reason", ""),
+            "org": data.get("org", ""),
+            "role": data.get("role", ""),
+            "state_transition": LearningPathEnrollmentAudit.DEFAULT_TRANSITION_STATE,
+        }
+
         valid_learning_paths_keys = []
         for key in learning_paths_keys:
             try:
@@ -351,16 +360,20 @@ class BulkEnrollView(APIView):
             for user in existing_users:
                 enrollment = LearningPathEnrollment.objects.filter(user=user, learning_path=learning_path).first()
                 enrolled_now = False
-                if not enrollment:
-                    enrollment = LearningPathEnrollment(
-                        user=user,
-                        learning_path=learning_path,
-                    )
+                audit_data["state_transition"] = LearningPathEnrollmentAudit.UNENROLLED_TO_ENROLLED
+                if enrollment:
+                    if not enrollment.is_active:
+                        enrollment.is_active = True
+                        enrollment.enrolled_at = datetime.now(timezone.utc)
+                        enrolled_now = True
+                    else:
+                        audit_data["state_transition"] = LearningPathEnrollmentAudit.ENROLLED_TO_ENROLLED
+                else:
+                    enrollment = LearningPathEnrollment(user=user, learning_path=learning_path)
                     enrolled_now = True
-                if not enrollment.is_active:
-                    enrollment.is_active = True
-                    enrollment.enrolled_at = datetime.now(timezone.utc)
-                    enrolled_now = True
+
+                # Set enrollment audit data that will be used by the post_save receiver.
+                enrollment._audit = audit_data  # pylint: disable=protected-access
                 enrollment.save()
                 if enrolled_now:
                     enrollments_created.append(enrollment)
@@ -377,6 +390,10 @@ class BulkEnrollView(APIView):
                 )
                 if created:
                     enrollment_allowed_created.append(allowed)
+
+                audit_data["state_transition"] = LearningPathEnrollmentAudit.UNENROLLED_TO_ALLOWEDTOENROLL
+                allowed._audit = audit_data  # pylint: disable=protected-access
+                allowed.save()
 
         return Response(
             {
