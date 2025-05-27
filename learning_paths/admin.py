@@ -137,6 +137,7 @@ class BulkEnrollUsersForm(forms.ModelForm):
         return users
 
 
+@admin.register(LearningPath)
 class LearningPathAdmin(admin.ModelAdmin):
     """Admin for Learning Path."""
 
@@ -178,13 +179,14 @@ class LearningPathAdmin(admin.ModelAdmin):
                 LearningPathEnrollment.objects.get_or_create(user=user, learning_path=form.instance)
 
 
+@admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):
     """Admin for Learning Path generic skill."""
 
     model = Skill
 
 
-class LearningPathEnrollmentAuditInline(admin.TabularInline):
+class EnrollmentAuditInline(admin.TabularInline):
     """Inline admin for LearningPathEnrollmentAudit records."""
 
     model = LearningPathEnrollmentAudit
@@ -209,7 +211,7 @@ class LearningPathEnrollmentAuditInline(admin.TabularInline):
         return False
 
 
-class LearningPathEnrollmentAllowedAuditInline(admin.TabularInline):
+class EnrollmentAllowedAuditInline(admin.TabularInline):
     """Inline admin for LearningPathEnrollmentAudit records related to enrollment allowed."""
 
     model = LearningPathEnrollmentAudit
@@ -234,13 +236,28 @@ class LearningPathEnrollmentAllowedAuditInline(admin.TabularInline):
         return False
 
 
+@admin.register(LearningPathEnrollment)
 class EnrolledUsersAdmin(admin.ModelAdmin):
     """Admin for Learning Path enrollment."""
 
     model = LearningPathEnrollment
     raw_id_fields = ("user",)
     autocomplete_fields = ["learning_path"]
-    inlines = [LearningPathEnrollmentAuditInline]
+    inlines = [EnrollmentAuditInline]
+
+    list_display = [
+        "id",
+        "user",
+        "learning_path",
+        "enrolled_at",
+        "is_active",
+    ]
+
+    list_filter = [
+        "learning_path__key",
+        "created",
+        "is_active",
+    ]
 
     search_fields = [
         "id",
@@ -251,7 +268,7 @@ class EnrolledUsersAdmin(admin.ModelAdmin):
 
 
 @admin.register(LearningPathEnrollmentAllowed)
-class LearningPathEnrollmentAllowedAdmin(admin.ModelAdmin):
+class EnrollmentAllowedAdmin(admin.ModelAdmin):
     """Admin configuration for LearningPathEnrollmentAllowed model."""
 
     list_display = [
@@ -264,7 +281,6 @@ class LearningPathEnrollmentAllowedAdmin(admin.ModelAdmin):
 
     list_filter = [
         "learning_path",
-        "user",
         "created",
     ]
 
@@ -272,7 +288,6 @@ class LearningPathEnrollmentAllowedAdmin(admin.ModelAdmin):
         "email",
         "user__username",
         "user__email",
-        "learning_path__title",
         "learning_path__key",
     ]
 
@@ -282,7 +297,7 @@ class LearningPathEnrollmentAllowedAdmin(admin.ModelAdmin):
         "modified",
     ]
 
-    inlines = [LearningPathEnrollmentAllowedAuditInline]
+    inlines = [EnrollmentAllowedAuditInline]
 
     def get_user(self, obj):
         """Get the associated user, if any."""
@@ -292,7 +307,7 @@ class LearningPathEnrollmentAllowedAdmin(admin.ModelAdmin):
 
 
 @admin.register(LearningPathEnrollmentAudit)
-class LearningPathEnrollmentAuditAdmin(admin.ModelAdmin):
+class EnrollmentAuditAdmin(admin.ModelAdmin):
     """Admin configuration for LearningPathEnrollmentAudit model."""
 
     list_display = [
@@ -311,7 +326,6 @@ class LearningPathEnrollmentAuditAdmin(admin.ModelAdmin):
         "created",
         "org",
         "role",
-        "enrolled_by",
     ]
 
     search_fields = [
@@ -320,8 +334,8 @@ class LearningPathEnrollmentAuditAdmin(admin.ModelAdmin):
         "enrollment__user__username",
         "enrollment__user__email",
         "enrollment_allowed__email",
-        "enrollment__learning_path__title",
-        "enrollment_allowed__learning_path__title",
+        "enrollment__learning_path__key",
+        "enrollment_allowed__learning_path__key",
         "reason",
     ]
 
@@ -353,8 +367,3 @@ class LearningPathEnrollmentAuditAdmin(admin.ModelAdmin):
         return "-"
 
     get_learning_path.short_description = "Learning Path"
-
-
-admin.site.register(LearningPath, LearningPathAdmin)
-admin.site.register(Skill, SkillAdmin)
-admin.site.register(LearningPathEnrollment, EnrolledUsersAdmin)
