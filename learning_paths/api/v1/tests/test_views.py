@@ -672,20 +672,25 @@ class TestBulkEnrollAPI:
             email="invalid_email", learning_path=learning_path
         ).exists()
 
-    def test_bulk_enrollment_unauthenticated(self, api_client, bulk_enroll_url, user, learning_path):
-        """Test unauthenticated and non-staff users receive 403 for bulk enrollment."""
+    @pytest.mark.parametrize("http_method", ["post", "delete"])
+    def test_bulk_operation_unauthenticated_and_non_staff(  # pylint: disable=too-many-positional-arguments
+        self, api_client, bulk_enroll_url, user, learning_path, http_method
+    ):
+        """Test unauthenticated and non-staff users receive 403 for bulk operations (enroll/unenroll)."""
         payload = {
             "learning_paths": learning_path.key,
             "emails": user.email,
         }
 
         # Unauthenticated
-        response = api_client.post(bulk_enroll_url, payload)
+        request_method_func = getattr(api_client, http_method)
+        response = request_method_func(bulk_enroll_url, payload)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
         # Non-staff user
         api_client.force_authenticate(user=user)
-        response = api_client.post(bulk_enroll_url, payload)
+        request_method_func = getattr(api_client, http_method)
+        response = request_method_func(bulk_enroll_url, payload)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_bulk_enrollment_returned_counts_reflect_only_new_ones(  # pylint: disable=too-many-positional-arguments
@@ -733,6 +738,79 @@ class TestBulkEnrollAPI:
         assert latest_audit.state_transition == LearningPathEnrollmentAudit.UNENROLLED_TO_ENROLLED
         assert latest_audit.enrolled_by == staff_user
         assert latest_audit.reason == payload["reason"]
+
+    # Bulk unenrollment tests
+
+    def test_unenroll_success(self, staff_client, staff_user, bulk_enroll_url):
+        """Test bulk unenrollment deactivates enrollments and creates audit records."""
+        user1 = UserFactory()
+        user2 = UserFactory()
+        user3 = UserFactory()  # Not enrolled, should not be affected.
+        lp1 = LearningPathFactory()
+        lp2 = LearningPathFactory()
+
+        enrollments = [
+            LearningPathEnrollmentFactory(user=user1, learning_path=lp1),
+            LearningPathEnrollmentFactory(user=user1, learning_path=lp2),
+            LearningPathEnrollmentFactory(user=user2, learning_path=lp1),
+            LearningPathEnrollmentFactory(user=user2, learning_path=lp2, is_active=False),
+        ]
+
+        payload = {
+            "learning_paths": f"{lp1.key},{lp2.key}",
+            "emails": f"{user1.email},{user2.email},{user3.email}",
+            "reason": "TestReason",
+            "org": "TestOrg",
+            "role": "TestRole",
+        }
+
+        response = staff_client.delete(bulk_enroll_url, payload)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert response.data["enrollments_unenrolled"] == 3
+
+        assert LearningPathEnrollmentAudit.objects.count() == 8  # 4 enrollments + 3 unenrollments + 1 inactive update
+
+        for i, enrollment in enumerate(enrollments):
+            enrollment.refresh_from_db()
+            assert not enrollment.is_active
+
+            audit = enrollment.audit.last()
+            if i < 3:
+                assert audit.state_transition == LearningPathEnrollmentAudit.ENROLLED_TO_UNENROLLED
+            else:
+                assert audit.state_transition == LearningPathEnrollmentAudit.UNENROLLED_TO_UNENROLLED
+            assert audit.enrolled_by == staff_user
+            assert audit.reason == payload["reason"]
+            assert audit.org == payload["org"]
+            assert audit.role == payload["role"]
+
+    def test_unenroll_with_invalid_learning_path(self, staff_client, bulk_enroll_url):
+        """Test bulk unenrollment with invalid learning path creates no changes."""
+        payload = {"learning_paths": "invalid-path-key", "emails": "user1@example.com"}
+        response = staff_client.delete(bulk_enroll_url, payload)
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert response.data["enrollments_unenrolled"] == 0
+
+    def test_unenroll_does_not_affect_enrollment_allowed(self, staff_client, bulk_enroll_url, learning_path):
+        """Test bulk unenrollment does not affect LearningPathEnrollmentAllowed records."""
+        allowed_email = "new_user@example.com"
+        payload = {"learning_paths": learning_path.key, "emails": allowed_email}
+        staff_client.post(bulk_enroll_url, payload)
+        response = staff_client.delete(bulk_enroll_url, payload)
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert response.data["enrollments_unenrolled"] == 0
+        assert LearningPathEnrollmentAllowed.objects.filter(email=allowed_email).exists()
+
+    def test_unenroll_empty_parameters(self, staff_client, bulk_enroll_url):
+        """Test bulk unenrollment with empty or missing parameters doesn't affect existing enrollments."""
+        response1 = staff_client.delete(bulk_enroll_url, {"learning_paths": "", "emails": ""})
+        response2 = staff_client.delete(bulk_enroll_url, {})
+
+        for response in [response1, response2]:
+            assert response.status_code == status.HTTP_204_NO_CONTENT
+            assert response.data["enrollments_unenrolled"] == 0
 
 
 @pytest.mark.django_db
