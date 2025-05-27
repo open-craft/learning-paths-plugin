@@ -85,7 +85,7 @@ cryptography==45.0.3
     #   django-fernet-fields-v2
     #   pyjwt
     # via
-    #   -c requirements/common_constraints.txt
+    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.txt
     #   django-config-models
     #   django-crum
@@ -129,10 +129,6 @@ django-redis==5.4.0
     # via
     #   -r requirements/base.txt
     #   edx-event-routing-backends
-django-simple-history==3.4.0
-    # via
-    #   -c requirements/constraints.txt
-    #   -r requirements/base.txt
 django-waffle==4.2.0
     # via
     #   -r requirements/base.txt
@@ -318,7 +314,7 @@ pytest-cov==6.1.1
     # via -r requirements/test.in
 pytest-django==4.11.1
     # via -r requirements/test.in
-pytest-xdist==3.6.1
+pytest-xdist==3.7.0
     # via -r requirements/test.in
 python-dateutil==2.9.0.post0
     # via
@@ -398,7 +394,7 @@ tzdata==2025.2
     #   kombu
 urllib3==2.2.3
     # via
-    #   -c requirements/common_constraints.txt
+    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.txt
     #   requests
 vine==5.1.0

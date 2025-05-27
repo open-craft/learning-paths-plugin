@@ -1,6 +1,4 @@
 # pylint: disable=missing-module-docstring,missing-class-docstring
-from datetime import datetime, timezone
-
 import factory
 from django.contrib import auth
 from factory.fuzzy import FuzzyText
@@ -11,6 +9,7 @@ from learning_paths.models import (
     LearningPath,
     LearningPathEnrollment,
     LearningPathEnrollmentAllowed,
+    LearningPathEnrollmentAudit,
     LearningPathGradingCriteria,
     LearningPathStep,
     RequiredSkill,
@@ -92,7 +91,22 @@ class AcquiredSkillFactory(factory.django.DjangoModelFactory):
     level = factory.Faker("random_int", min=1, max=5)
 
 
-class LearningPathEnrollmentFactory(factory.django.DjangoModelFactory):
+class AuditAttributeMixin:
+    """Mixin for factory classes that need to handle the _audit attribute before saving."""
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        """A custom create method to handle _audit attribute before the first save."""
+        audit_data = kwargs.pop("_audit", None)
+        instance = model_class(*args, **kwargs)
+        if audit_data is not None:
+            instance._audit = audit_data  # pylint: disable=protected-access
+
+        instance.save()
+        return instance
+
+
+class LearningPathEnrollmentFactory(AuditAttributeMixin, factory.django.DjangoModelFactory):
     """
     Factory for LearningPathEnrollment model.
     """
@@ -100,13 +114,12 @@ class LearningPathEnrollmentFactory(factory.django.DjangoModelFactory):
     user = factory.SubFactory(UserFactory)
     learning_path = factory.SubFactory(LearningPathFactory)
     is_active = True
-    enrolled_at = factory.LazyFunction(lambda: datetime.now(timezone.utc))
 
     class Meta:
         model = LearningPathEnrollment
 
 
-class LearningPathEnrollmentAllowedFactory(factory.django.DjangoModelFactory):
+class LearningPathEnrollmentAllowedFactory(AuditAttributeMixin, factory.django.DjangoModelFactory):
     """
     Factory for LearningPathEnrollmentAllowed model.
     """
@@ -114,6 +127,24 @@ class LearningPathEnrollmentAllowedFactory(factory.django.DjangoModelFactory):
     email = factory.Faker("email")
     learning_path = factory.SubFactory(LearningPathFactory)
     user = None
+    is_active = True
 
     class Meta:
         model = LearningPathEnrollmentAllowed
+
+
+class LearningPathEnrollmentAuditFactory(factory.django.DjangoModelFactory):
+    """
+    Factory for LearningPathEnrollmentAudit model.
+    """
+
+    enrolled_by = factory.SubFactory(UserFactory)
+    enrollment = None
+    enrollment_allowed = None
+    state_transition = LearningPathEnrollmentAudit.DEFAULT_TRANSITION_STATE
+    reason = factory.Faker("sentence")
+    org = factory.Faker("company")
+    role = factory.Faker("job")
+
+    class Meta:
+        model = LearningPathEnrollmentAudit
