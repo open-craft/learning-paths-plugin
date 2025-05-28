@@ -2,4 +2,4 @@
 Learning Paths plugin.
 """
 
-__version__ = "0.3.4-rc4"
+__version__ = "0.3.4-rc5"
