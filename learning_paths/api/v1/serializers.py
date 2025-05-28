@@ -97,7 +97,7 @@ class LearningPathGradeSerializer(serializers.Serializer):
 class LearningPathStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = LearningPathStep
-        fields = ["order", "course_key", "due_date", "weight"]
+        fields = ["order", "course_key", "course_dates", "weight"]
 
 
 class LearningPathListSerializer(serializers.ModelSerializer):

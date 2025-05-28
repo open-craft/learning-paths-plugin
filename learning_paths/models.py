@@ -19,7 +19,7 @@ from model_utils.models import TimeStampedModel
 from opaque_keys.edx.django.models import CourseKeyField
 from slugify import slugify
 
-from .compat import get_course_due_date, get_user_course_grade
+from .compat import get_course_dates, get_user_course_grade
 from .keys import LearningPathKeyField
 
 log = logging.getLogger(__name__)
@@ -203,9 +203,9 @@ class LearningPathStep(TimeStampedModel):
     )
 
     @property
-    def due_date(self) -> datetime | None:
+    def course_dates(self) -> tuple[datetime | None, datetime | None]:
         """Retrieve the due date for this course."""
-        return get_course_due_date(self.course_key)
+        return get_course_dates(self.course_key)
 
     def __str__(self):
         """User-friendly string representation of this model."""
