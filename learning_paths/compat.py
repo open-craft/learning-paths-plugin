@@ -46,18 +46,16 @@ def get_course_keys_with_outlines() -> list[CourseKey]:
     return course_keys_with_outlines()
 
 
-def get_course_due_date(course_key: CourseKey) -> datetime | None:
-    """
-    Retrieve course end date.
-    """
+def get_course_dates(course_key: CourseKey) -> tuple[datetime | None, datetime | None]:
+    """Retrieve course start and end dates."""
     # pylint: disable=import-outside-toplevel, import-error
     from openedx.core.djangoapps.content.course_overviews.models import CourseOverview
 
     try:
         overview = CourseOverview.objects.get(id=course_key)
-        return overview.end
+        return overview.start, overview.end
     except CourseOverview.DoesNotExist:
-        return None
+        return None, None
 
 
 def enroll_user_in_course(user: AbstractBaseUser, course_key: CourseKey) -> bool:
