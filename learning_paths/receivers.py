@@ -44,16 +44,25 @@ def process_pending_enrollments(sender, instance, created, **kwargs):
 
     for entry in pending_enrollments:
         try:
-            enrollment = LearningPathEnrollment(learning_path=entry.learning_path, user=instance)
-            enrollment._audit = {  # pylint: disable=protected-access
+            audit_data = {
                 "enrolled_by": instance,
                 "state_transition": LearningPathEnrollmentAudit.ALLOWEDTOENROLL_TO_ENROLLED,
             }
+            if last_allowed_audit := entry.audit.order_by("-created").first():
+                for field in ["reason", "org", "role"]:
+                    audit_data[field] = getattr(last_allowed_audit, field, "")
+
+            enrollment = LearningPathEnrollment(learning_path=entry.learning_path, user=instance)
+            enrollment._audit = audit_data  # pylint: disable=protected-access
             enrollment.save()
             enrollments_created += 1
+
+            # Link existing audits from the "allowed to enroll" entry to the new enrollment.
+            entry.audit.update(enrollment=enrollment)
+
         except IntegrityError:  # pragma: no cover
             logger.info(
-                "[LearningPaths] Enrollment already exists for user %s in learning path %s",
+                "[LearningPaths] Enrollment already exists for user %s in the learning path %s",
                 instance,
                 entry.learning_path.key,
             )

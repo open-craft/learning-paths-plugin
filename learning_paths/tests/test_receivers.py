@@ -40,9 +40,15 @@ def test_process_pending_enrollments_with_pending_enrollments(user_email, learni
     WHEN the process_pending_enrollments signal handler is triggered
     THEN actual enrollment objects are created for the user
     AND audit records are created for the new enrollments
+    AND audit data is preserved from the last "allowed to enroll" audit
+    AND existing audits are linked to the new enrollment
     """
-    pending_entry_1 = LearningPathEnrollmentAllowedFactory(email=user_email, learning_path=learning_paths[0])
+    initial_audit_payload = {"role": "TestRole"}
+    pending_entry_1 = LearningPathEnrollmentAllowedFactory(
+        email=user_email, learning_path=learning_paths[0], _audit=initial_audit_payload
+    )
     pending_entry_2 = LearningPathEnrollmentAllowedFactory(email=user_email, learning_path=learning_paths[1])
+    pending_entry_2.audit.all().delete()  # Test that the enrollment can be created without an allowed audit.
 
     user = UserFactory(email=user_email)
     process_pending_enrollments(sender=User, instance=user, created=True)
@@ -58,14 +64,20 @@ def test_process_pending_enrollments_with_pending_enrollments(user_email, learni
     assert enrollments[0].learning_path == pending_entry_1.learning_path
     assert enrollments[1].learning_path == pending_entry_2.learning_path
 
-    assert LearningPathEnrollmentAudit.objects.count() == 2
+    assert LearningPathEnrollmentAudit.objects.count() == 3
     for enrollment in enrollments:
-        audit = enrollment.audit.get()
+        audit = enrollment.audit.last()
         assert audit.state_transition == LearningPathEnrollmentAudit.ALLOWEDTOENROLL_TO_ENROLLED
         assert audit.enrolled_by == user
         assert audit.reason == ""
         assert audit.org == ""
-        assert audit.role == ""
+
+    assert enrollments[0].audit.count() == 2
+    assert enrollments[0].audit.first().enrollment_allowed == pending_entry_1
+    assert enrollments[0].audit.last().role == initial_audit_payload["role"]
+
+    assert enrollments[1].audit.count() == 1
+    assert enrollments[1].audit.get().role == ""
 
 
 @pytest.mark.django_db
