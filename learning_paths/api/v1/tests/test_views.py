@@ -1,6 +1,6 @@
 # pylint: disable=missing-module-docstring,missing-class-docstring,redefined-outer-name,unused-argument
 from datetime import datetime, timezone
-from unittest.mock import PropertyMock, patch
+from unittest.mock import patch
 
 import pytest
 from django.test import override_settings
@@ -20,7 +20,6 @@ from learning_paths.models import (
     LearningPathEnrollment,
     LearningPathEnrollmentAllowed,
     LearningPathEnrollmentAudit,
-    LearningPathStep,
 )
 from learning_paths.tests.factories import (
     AcquiredSkillFactory,
@@ -202,9 +201,11 @@ class TestLearningPathUserGrade:
 class TestLearningPathViewSet:
 
     @pytest.fixture(autouse=True)
-    def setup_mock_due_date(self):
-        due_date = datetime(2025, 1, 1, tzinfo=timezone.utc)
-        with patch("learning_paths.models.get_course_due_date", return_value=due_date):
+    def setup_mock_course_dates(self):
+        """Mock course dates that are retrieved from edx-platform."""
+        start_date = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        end_date = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        with patch("learning_paths.models.get_course_dates", return_value=(start_date, end_date)):
             yield
 
     def test_learning_path_list(self, authenticated_client, learning_paths_with_steps):
@@ -224,24 +225,21 @@ class TestLearningPathViewSet:
         """Test that the retrieve endpoint returns the details of a learning path."""
         lp = learning_paths_with_steps[0]
         url = reverse("learning-path-detail", args=[lp.key])
-        fake_due_date = datetime(2025, 1, 1, tzinfo=timezone.utc)
 
-        with patch.object(LearningPathStep, "due_date", new_callable=PropertyMock) as mock_due_date:
-            mock_due_date.return_value = fake_due_date
-            response = authenticated_client.get(url)
-            assert response.status_code == status.HTTP_200_OK
-            assert "steps" in response.data
-            assert "required_skills" in response.data
-            assert "acquired_skills" in response.data
-            assert "is_enrolled" in response.data
-            assert response.data["is_enrolled"] is False
+        response = authenticated_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert "steps" in response.data
+        assert "required_skills" in response.data
+        assert "acquired_skills" in response.data
+        assert "is_enrolled" in response.data
+        assert response.data["is_enrolled"] is False
 
-            if response.data["steps"]:
-                first_step = response.data["steps"][0]
-                assert "order" in first_step
-                assert "course_key" in first_step
-                assert "due_date" in first_step
-                assert "weight" in first_step
+        if response.data["steps"]:
+            first_step = response.data["steps"][0]
+            assert "order" in first_step
+            assert "course_key" in first_step
+            assert "course_dates" in first_step
+            assert "weight" in first_step
 
     def test_invalid_learning_path_key_returns_404(self, authenticated_client):
         """Test that an invalid learning path key format returns a 404 response."""
