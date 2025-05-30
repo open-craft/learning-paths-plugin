@@ -372,6 +372,9 @@ class LearningPathEnrollmentAllowed(TimeStampedModel):
     email = models.EmailField(db_index=True)
     learning_path = models.ForeignKey(LearningPath, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    is_active = models.BooleanField(
+        default=True, db_index=True, help_text=_("Indicates if the enrollment allowance is active")
+    )
 
     def __str__(self):
         """User-friendly string representation of this model."""

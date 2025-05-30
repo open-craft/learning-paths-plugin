@@ -13,7 +13,11 @@ from django.db import IntegrityError
 from slugify import slugify
 
 from learning_paths.keys import LearningPathKey
-from learning_paths.models import LearningPath, LearningPathEnrollmentAudit
+from learning_paths.models import (
+    LearningPath,
+    LearningPathEnrollmentAllowed,
+    LearningPathEnrollmentAudit,
+)
 
 from .factories import (
     LearningPathEnrollmentAllowedFactory,
@@ -152,6 +156,11 @@ class TestLearningPathEnrollmentAllowed:
         allowed = LearningPathEnrollmentAllowedFactory(email=user.email, learning_path=learning_path, **user_kwarg)
         expected_str = f"LearningPathEnrollmentAllowed for {user.email} in {learning_path.key}"
         assert str(allowed) == expected_str
+
+    def test_is_active_defaults_to_true(self, learning_path):
+        """Test that is_active field defaults to True."""
+        allowed = LearningPathEnrollmentAllowed(email="test@example.com", learning_path=learning_path)
+        assert allowed.is_active is True
 
 
 @pytest.mark.django_db

@@ -39,7 +39,7 @@ def process_pending_enrollments(sender, instance, created, **kwargs):
         return
 
     logger.info("[LearningPaths] Processing pending enrollments for user %s", instance)
-    pending_enrollments = LearningPathEnrollmentAllowed.objects.filter(email=instance.email)
+    pending_enrollments = LearningPathEnrollmentAllowed.objects.filter(email=instance.email, is_active=True)
     enrollments_created = 0
 
     for entry in pending_enrollments:
@@ -67,6 +67,7 @@ def process_pending_enrollments(sender, instance, created, **kwargs):
                 entry.learning_path.key,
             )
         finally:
+            entry.is_active = False
             entry.user = instance
             entry.save()
 
@@ -128,6 +129,8 @@ def create_enrollment_allowed_audit(sender, instance, created, **kwargs):
     #    the enrollment record, so we do not need to create it here.
     if not (audit_data := getattr(instance, "_audit", {})):
         return
+
+    audit_data.setdefault("state_transition", LearningPathEnrollmentAudit.UNENROLLED_TO_ALLOWEDTOENROLL)
 
     audit_data["state_transition"] = audit_data.get(
         "state_transition", LearningPathEnrollmentAudit.UNENROLLED_TO_ALLOWEDTOENROLL

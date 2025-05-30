@@ -130,6 +130,7 @@ class LearningPathEnrollmentAllowedFactory(AuditAttributeMixin, factory.django.D
     email = factory.Faker("email")
     learning_path = factory.SubFactory(LearningPathFactory)
     user = None
+    is_active = True
 
     class Meta:
         model = LearningPathEnrollmentAllowed

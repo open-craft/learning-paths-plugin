@@ -23,6 +23,7 @@ from learning_paths.models import (
 )
 from learning_paths.tests.factories import (
     AcquiredSkillFactory,
+    LearningPathEnrollmentAllowedFactory,
     LearningPathEnrollmentFactory,
     LearningPathFactory,
     LearningPathStepFactory,
@@ -740,7 +741,7 @@ class TestBulkEnrollAPI:
     # Bulk unenrollment tests
 
     def test_unenroll_success(self, staff_client, staff_user, bulk_enroll_url):
-        """Test bulk unenrollment deactivates enrollments and creates audit records."""
+        """Test bulk unenrollment deactivates enrollments and enrollment allowed records and creates audit records."""
         user1 = UserFactory()
         user2 = UserFactory()
         user3 = UserFactory()  # Not enrolled, should not be affected.
@@ -754,9 +755,14 @@ class TestBulkEnrollAPI:
             LearningPathEnrollmentFactory(user=user2, learning_path=lp2, is_active=False),
         ]
 
+        allowed_records = [
+            LearningPathEnrollmentAllowedFactory(email="new_user@example.com", learning_path=lp1, is_active=True),
+            LearningPathEnrollmentAllowedFactory(email="inactive@example.com", learning_path=lp2, is_active=False),
+        ]
+
         payload = {
             "learning_paths": f"{lp1.key},{lp2.key}",
-            "emails": f"{user1.email},{user2.email},{user3.email}",
+            "emails": f"{user1.email},{user2.email},{user3.email},new_user@example.com,inactive@example.com,invalid",
             "reason": "TestReason",
             "org": "TestOrg",
             "role": "TestRole",
@@ -765,8 +771,10 @@ class TestBulkEnrollAPI:
         response = staff_client.delete(bulk_enroll_url, payload)
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data["enrollments_unenrolled"] == 3
+        assert response.data["enrollment_allowed_deactivated"] == 1
 
-        assert LearningPathEnrollmentAudit.objects.count() == 8  # 4 enrollments + 3 unenrollments + 1 inactive update
+        # 4 enrollments + 3 unenrollments + 1 inactive update + 2 allowed records
+        assert LearningPathEnrollmentAudit.objects.count() == 10
 
         for i, enrollment in enumerate(enrollments):
             enrollment.refresh_from_db()
@@ -782,6 +790,21 @@ class TestBulkEnrollAPI:
             assert audit.org == payload["org"]
             assert audit.role == payload["role"]
 
+        for i, allowed_record in enumerate(allowed_records):
+            allowed_record.refresh_from_db()
+            assert not allowed_record.is_active
+            assert allowed_record.audit.count() == 1
+
+            audit = allowed_record.audit.last()
+            if i == 0:
+                assert audit.state_transition == LearningPathEnrollmentAudit.ALLOWEDTOENROLL_TO_UNENROLLED
+            else:
+                assert audit.state_transition == LearningPathEnrollmentAudit.UNENROLLED_TO_UNENROLLED
+            assert audit.enrolled_by == staff_user
+            assert audit.reason == payload["reason"]
+            assert audit.org == payload["org"]
+            assert audit.role == payload["role"]
+
     def test_unenroll_with_invalid_learning_path(self, staff_client, bulk_enroll_url):
         """Test bulk unenrollment with invalid learning path creates no changes."""
         payload = {"learning_paths": "invalid-path-key", "emails": "user1@example.com"}
@@ -789,17 +812,6 @@ class TestBulkEnrollAPI:
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert response.data["enrollments_unenrolled"] == 0
-
-    def test_unenroll_does_not_affect_enrollment_allowed(self, staff_client, bulk_enroll_url, learning_path):
-        """Test bulk unenrollment does not affect LearningPathEnrollmentAllowed records."""
-        allowed_email = "new_user@example.com"
-        payload = {"learning_paths": learning_path.key, "emails": allowed_email}
-        staff_client.post(bulk_enroll_url, payload)
-        response = staff_client.delete(bulk_enroll_url, payload)
-
-        assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert response.data["enrollments_unenrolled"] == 0
-        assert LearningPathEnrollmentAllowed.objects.filter(email=allowed_email).exists()
 
     def test_unenroll_empty_parameters(self, staff_client, bulk_enroll_url):
         """Test bulk unenrollment with empty or missing parameters doesn't affect existing enrollments."""

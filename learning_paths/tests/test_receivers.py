@@ -42,6 +42,7 @@ def test_process_pending_enrollments_with_pending_enrollments(user_email, learni
     AND audit records are created for the new enrollments
     AND audit data is preserved from the last "allowed to enroll" audit
     AND existing audits are linked to the new enrollment
+    AND enrollment allowed records are deactivated and linked to the user
     """
     initial_audit_payload = {"role": "TestRole"}
     pending_entry_1 = LearningPathEnrollmentAllowedFactory(
@@ -57,6 +58,8 @@ def test_process_pending_enrollments_with_pending_enrollments(user_email, learni
     pending_entry_2.refresh_from_db()
     assert pending_entry_1.user == user
     assert pending_entry_2.user == user
+    assert pending_entry_1.is_active is False
+    assert pending_entry_2.is_active is False
 
     enrollments = LearningPathEnrollment.objects.all()
     assert len(enrollments) == 2
@@ -78,6 +81,36 @@ def test_process_pending_enrollments_with_pending_enrollments(user_email, learni
 
     assert enrollments[1].audit.count() == 1
     assert enrollments[1].audit.get().role == ""
+
+
+@pytest.mark.django_db
+def test_process_pending_enrollments_only_processes_active_records(user_email, learning_paths):
+    """
+    GIVEN that there are both active and inactive LearningPathEnrollmentAllowed objects for an email
+    WHEN the process_pending_enrollments signal handler is triggered
+    THEN only active enrollment allowed records are processed
+    """
+    active_entry = LearningPathEnrollmentAllowedFactory(
+        email=user_email, learning_path=learning_paths[0], is_active=True
+    )
+    inactive_entry = LearningPathEnrollmentAllowedFactory(
+        email=user_email, learning_path=learning_paths[1], is_active=False
+    )
+
+    user = UserFactory(email=user_email)
+    process_pending_enrollments(sender=User, instance=user, created=True)
+
+    enrollments = LearningPathEnrollment.objects.all()
+    assert len(enrollments) == 1
+    assert enrollments[0].learning_path == active_entry.learning_path
+
+    active_entry.refresh_from_db()
+    assert active_entry.is_active is False
+    assert active_entry.user == user
+
+    inactive_entry.refresh_from_db()
+    assert inactive_entry.is_active is False
+    assert inactive_entry.user is None
 
 
 @pytest.mark.django_db

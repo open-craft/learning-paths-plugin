@@ -452,12 +452,13 @@ class BulkEnrollView(APIView):
         `role` (str, optional): User role, used for audit.
 
         * For existing users, it deactivates their LearningPathEnrollment records.
-        * Does not affect LearningPathEnrollmentAllowed records (allowed to enroll records).
+        * For emails with active LearningPathEnrollmentAllowed records, it deactivates those records.
 
         """
-        learning_paths, existing_users, _ = self._setup_bulk_operation(request)
+        learning_paths, existing_users, emails = self._setup_bulk_operation(request)
 
         enrollments_unenrolled = []
+        enrollment_allowed_deactivated = []
 
         for learning_path in learning_paths:
             for user in existing_users:
@@ -474,9 +475,33 @@ class BulkEnrollView(APIView):
                     enrollment._audit = audit_data  # pylint: disable=protected-access
                     enrollment.save()
 
+            for email in emails:
+                try:
+                    validate_email(email)
+                except ValidationError:
+                    logger.warning("BulkEnrollView: Invalid email: %s", email)
+                    continue
+
+                enrollment_allowed = LearningPathEnrollmentAllowed.objects.filter(
+                    email=email,
+                    learning_path=learning_path,
+                ).first()
+
+                if enrollment_allowed:
+                    if enrollment_allowed.is_active:
+                        state_transition = LearningPathEnrollmentAudit.ALLOWEDTOENROLL_TO_UNENROLLED
+                        enrollment_allowed.is_active = False
+                        enrollment_allowed_deactivated.append(enrollment_allowed)
+                    else:
+                        state_transition = LearningPathEnrollmentAudit.UNENROLLED_TO_UNENROLLED
+                    audit_data = self._create_audit_data(request, state_transition)
+                    enrollment_allowed._audit = audit_data  # pylint: disable=protected-access
+                    enrollment_allowed.save()
+
         return Response(
             {
                 "enrollments_unenrolled": len(enrollments_unenrolled),
+                "enrollment_allowed_deactivated": len(enrollment_allowed_deactivated),
             },
             status=status.HTTP_204_NO_CONTENT,
         )
