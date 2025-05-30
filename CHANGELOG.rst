@@ -16,6 +16,20 @@ Unreleased
 
 *
 
+0.3.4 - 2025-05-23
+******************
+
+Added
+=====
+
+* Bulk unenrollment API.
+* Enrollment audit model that tracks the enrollment state transitions.
+
+Changed
+=======
+
+* The Learning Paths API includes start and end dates for its steps.
+
 0.3.3 - 2025-05-23
 ******************
 

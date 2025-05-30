@@ -9,9 +9,4 @@
 # linking to it here is good.
 
 # Common constraints for edx repos
--c common_constraints.txt
-
-# django-simple-history has been pinned on the edx-platform to version 3.4.0
-# since the platform was updated to Django 4.2
-# Ref: https://github.com/openedx/edx-platform/commit/e40a01c7ccfcc853e5be8cc25bdaa0d14248a270#diff-86d5fe588ff2fc7dccb1f4cdd8019d4473146536e88d7a9ede946ea962a91acb
-django-simple-history==3.4.0
+-c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
