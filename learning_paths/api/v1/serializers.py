@@ -105,7 +105,7 @@ class LearningPathListSerializer(serializers.ModelSerializer):
 
     steps = LearningPathStepSerializer(many=True, read_only=True)
     required_completion = serializers.FloatField(source="grading_criteria.required_completion", read_only=True)
-    is_enrolled = serializers.SerializerMethodField()
+    enrollment_date = serializers.SerializerMethodField()
     invite_only = serializers.BooleanField()
     image = serializers.ImageField(read_only=True)
 
@@ -118,17 +118,17 @@ class LearningPathListSerializer(serializers.ModelSerializer):
             "sequential",
             "steps",
             "required_completion",
-            "is_enrolled",
+            "enrollment_date",
             "invite_only",
         ]
 
-    def get_is_enrolled(self, obj):
+    def get_enrollment_date(self, obj):
         """
         Check if the current user is enrolled in this learning path.
         """
-        if hasattr(obj, "is_enrolled"):
-            return obj.is_enrolled
-        return False
+        if hasattr(obj, "enrollment_date"):
+            return obj.enrollment_date
+        return None
 
 
 class SkillSerializer(serializers.ModelSerializer):

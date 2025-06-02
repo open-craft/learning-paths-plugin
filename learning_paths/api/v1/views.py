@@ -519,7 +519,7 @@ class LearningPathCourseEnrollmentView(APIView):
         :raises: Http404 if the learning path is not found or the user does not have access.
         """
         return get_object_or_404(
-            LearningPath.objects.get_paths_visible_to_user(self.request.user).filter(is_enrolled=True),
+            LearningPath.objects.get_paths_visible_to_user(self.request.user).filter(enrollment_date__isnull=False),
             key=learning_path_key_str,
         )
 
