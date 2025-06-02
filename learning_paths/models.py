@@ -12,7 +12,7 @@ from django.contrib import auth
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import OuterRef, Q
 from django.utils.translation import gettext_lazy as _
 from model_utils import FieldTracker
 from model_utils.models import TimeStampedModel
@@ -38,27 +38,29 @@ class LearningPathManager(models.Manager):
 
     def get_paths_visible_to_user(self, user: User) -> models.QuerySet:
         """
-        Return only learning paths that should be visible to the given user with enrollment status.
+        Return only learning paths that should be visible to the given user with an enrollment date.
 
         For staff users: all learning paths.
         For non-staff: non-invite-only paths or invite-only paths they're enrolled in.
 
-        Each learning path in the queryset is annotated with `is_enrolled` indicating
-        whether the user has an active enrollment in that learning path.
+        Each learning path in the queryset is annotated with `enrollment_date` indicating
+        the date when the user enrolled in that learning path (None if not enrolled).
+        Results are ordered by enrollment date (the most recent first), with non-enrolled paths at the end.
         """
         queryset = self.get_queryset()
 
-        # Annotate each path with whether the user is enrolled.
-        enrollment_exists = LearningPathEnrollment.objects.filter(
+        # Annotate each path with the enrollment date.
+        enrollment_subquery = LearningPathEnrollment.objects.filter(
             learning_path=OuterRef("pk"), user=user, is_active=True
-        )
-        queryset = queryset.annotate(is_enrolled=Exists(enrollment_exists))
+        ).values("created")[:1]
+        queryset = queryset.annotate(enrollment_date=models.Subquery(enrollment_subquery))
 
         # Apply visibility filtering based on the user role.
         if not user.is_staff:
-            queryset = queryset.filter(Q(invite_only=False) | Q(is_enrolled=True))
+            queryset = queryset.filter(Q(invite_only=False) | Q(enrollment_date__isnull=False))
 
-        return queryset
+        # Order by enrollment date (the most recent first), with null values at the end.
+        return queryset.order_by(models.F("enrollment_date").desc(nulls_last=True))
 
 
 class LearningPath(TimeStampedModel):

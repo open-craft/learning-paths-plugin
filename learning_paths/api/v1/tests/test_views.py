@@ -219,8 +219,8 @@ class TestLearningPathViewSet:
         assert "key" in first_item
         assert "display_name" in first_item
         assert "steps" in first_item
-        assert "is_enrolled" in first_item
-        assert first_item["is_enrolled"] is False
+        assert "enrollment_date" in first_item
+        assert first_item["enrollment_date"] is None
 
     def test_learning_path_retrieve(self, authenticated_client, learning_paths_with_steps):
         """Test that the retrieve endpoint returns the details of a learning path."""
@@ -232,8 +232,8 @@ class TestLearningPathViewSet:
         assert "steps" in response.data
         assert "required_skills" in response.data
         assert "acquired_skills" in response.data
-        assert "is_enrolled" in response.data
-        assert response.data["is_enrolled"] is False
+        assert "enrollment_date" in response.data
+        assert response.data["enrollment_date"] is None
 
         if response.data["steps"]:
             first_step = response.data["steps"][0]
@@ -264,8 +264,8 @@ class TestLearningPathViewSet:
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 1
         first_item = response.data[0]
-        assert "is_enrolled" in first_item
-        assert first_item["is_enrolled"] is True
+        assert "enrollment_date" in first_item
+        assert first_item["enrollment_date"] is not None
 
     def test_learning_path_retrieve_with_enrollment(self, authenticated_client, active_enrollment, learning_path, user):
         """Test that the retrieve endpoint returns the details of a learning path with enrollment status."""
@@ -273,8 +273,8 @@ class TestLearningPathViewSet:
         response = authenticated_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
-        assert "is_enrolled" in response.data
-        assert response.data["is_enrolled"] is True
+        assert "enrollment_date" in response.data
+        assert response.data["enrollment_date"] is not None
 
     def test_learning_path_retrieve_with_inactive_enrollment(
         self, authenticated_client, inactive_enrollment, learning_path, user
@@ -284,8 +284,8 @@ class TestLearningPathViewSet:
         response = authenticated_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
-        assert "is_enrolled" in response.data
-        assert response.data["is_enrolled"] is False
+        assert "enrollment_date" in response.data
+        assert response.data["enrollment_date"] is None
 
     def test_invite_only_learning_paths_hidden_from_non_enrolled_users(
         self, authenticated_client, learning_path_with_invite_only, learning_path
