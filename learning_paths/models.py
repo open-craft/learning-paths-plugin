@@ -291,12 +291,6 @@ class LearningPathEnrollment(TimeStampedModel):
         default=True,
         help_text=_("Indicates if the learner is enrolled or not in the Learning Path"),
     )
-    enrolled_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text=_(
-            "Timestamp of enrollment or un-enrollment. To be explicitly set when performing a learner enrollment."
-        ),
-    )
     tracker = FieldTracker(fields=["is_active"])
 
     def __str__(self):

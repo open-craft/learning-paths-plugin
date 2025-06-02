@@ -249,8 +249,8 @@ class EnrolledUsersAdmin(admin.ModelAdmin):
         "id",
         "user",
         "learning_path",
-        "enrolled_at",
         "is_active",
+        "created",
     ]
 
     list_filter = [

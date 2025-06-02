@@ -242,7 +242,6 @@ class LearningPathEnrollmentView(APIView):
             return Response({"detail": "Enrollment exists."}, status=status.HTTP_409_CONFLICT)
 
         enrollment.is_active = True
-        enrollment.enrolled_at = datetime.now(timezone.utc)
         enrollment.save()
         return Response(LearningPathEnrollmentSerializer(enrollment).data)
 
@@ -389,7 +388,6 @@ class BulkEnrollView(APIView):
                 if enrollment:
                     if not enrollment.is_active:
                         enrollment.is_active = True
-                        enrollment.enrolled_at = datetime.now(timezone.utc)
                         enrolled_now = True
                     else:
                         audit_data["state_transition"] = LearningPathEnrollmentAudit.ENROLLED_TO_ENROLLED

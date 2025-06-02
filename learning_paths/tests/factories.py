@@ -116,7 +116,6 @@ class LearningPathEnrollmentFactory(AuditAttributeMixin, factory.django.DjangoMo
     user = factory.SubFactory(UserFactory)
     learning_path = factory.SubFactory(LearningPathFactory)
     is_active = True
-    enrolled_at = factory.LazyFunction(lambda: datetime.now(timezone.utc))
 
     class Meta:
         model = LearningPathEnrollment

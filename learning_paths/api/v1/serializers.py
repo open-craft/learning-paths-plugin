@@ -183,4 +183,4 @@ class LearningPathDetailSerializer(LearningPathListSerializer):
 class LearningPathEnrollmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = LearningPathEnrollment
-        fields = ("user", "learning_path", "is_active", "enrolled_at")
+        fields = ("user", "learning_path", "is_active", "created")
