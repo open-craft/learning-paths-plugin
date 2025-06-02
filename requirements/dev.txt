@@ -45,7 +45,7 @@ cachetools==6.0.0
     # via
     #   -r requirements/ci.txt
     #   tox
-celery==5.5.2
+celery==5.5.3
     # via
     #   -r requirements/quality.txt
     #   edx-celeryutils
@@ -116,7 +116,7 @@ cryptography==45.0.3
     #   -r requirements/quality.txt
     #   django-fernet-fields-v2
     #   pyjwt
-diff-cover==9.3.1
+diff-cover==9.3.2
     # via -r requirements/dev.in
 dill==0.4.0
     # via
@@ -307,7 +307,7 @@ jsonfield==3.1.0
     #   -r requirements/quality.txt
     #   edx-celeryutils
     #   edx-event-routing-backends
-kombu==5.5.3
+kombu==5.5.4
     # via
     #   -r requirements/quality.txt
     #   celery
@@ -351,6 +351,7 @@ packaging==25.0
     #   -r requirements/pip-tools.txt
     #   -r requirements/quality.txt
     #   build
+    #   kombu
     #   pyproject-api
     #   pytest
     #   tox
@@ -451,7 +452,7 @@ pytest-cov==6.1.1
     # via -r requirements/quality.txt
 pytest-django==4.11.1
     # via -r requirements/quality.txt
-pytest-xdist==3.6.1
+pytest-xdist==3.7.0
     # via -r requirements/quality.txt
 python-dateutil==2.9.0.post0
     # via
@@ -477,7 +478,7 @@ pyyaml==6.0.2
     #   code-annotations
     #   edx-i18n-tools
     #   xblock
-redis==6.1.0
+redis==6.2.0
     # via
     #   -r requirements/quality.txt
     #   django-redis

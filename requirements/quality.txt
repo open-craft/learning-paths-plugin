@@ -36,7 +36,7 @@ billiard==4.2.1
     # via
     #   -r requirements/test.txt
     #   celery
-celery==5.5.2
+celery==5.5.3
     # via
     #   -r requirements/test.txt
     #   edx-celeryutils
@@ -268,7 +268,7 @@ jsonfield==3.1.0
     #   -r requirements/test.txt
     #   edx-celeryutils
     #   edx-event-routing-backends
-kombu==5.5.3
+kombu==5.5.4
     # via
     #   -r requirements/test.txt
     #   celery
@@ -303,6 +303,7 @@ openedx-filters==2.1.0
 packaging==25.0
     # via
     #   -r requirements/test.txt
+    #   kombu
     #   pytest
 pbr==6.1.1
     # via
@@ -370,7 +371,7 @@ pytest-cov==6.1.1
     # via -r requirements/test.txt
 pytest-django==4.11.1
     # via -r requirements/test.txt
-pytest-xdist==3.6.1
+pytest-xdist==3.7.0
     # via -r requirements/test.txt
 python-dateutil==2.9.0.post0
     # via
@@ -395,7 +396,7 @@ pyyaml==6.0.2
     #   -r requirements/test.txt
     #   code-annotations
     #   xblock
-redis==6.1.0
+redis==6.2.0
     # via
     #   -r requirements/test.txt
     #   django-redis
