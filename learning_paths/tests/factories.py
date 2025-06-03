@@ -1,6 +1,4 @@
 # pylint: disable=missing-module-docstring,missing-class-docstring
-from datetime import datetime, timezone
-
 import factory
 from django.contrib import auth
 from factory.fuzzy import FuzzyText

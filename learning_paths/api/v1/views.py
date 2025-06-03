@@ -3,7 +3,6 @@ Views for LearningPath.
 """
 
 import logging
-from datetime import datetime, timezone
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
