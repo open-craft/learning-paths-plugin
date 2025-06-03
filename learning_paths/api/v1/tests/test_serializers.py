@@ -12,7 +12,6 @@ from learning_paths.api.v1.serializers import (
 from learning_paths.tests.factories import (
     LearningPathEnrollmentFactory,
     LearningPathFactory,
-    UserFactory,
 )
 
 

@@ -12,7 +12,7 @@ from django.contrib import auth
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import OuterRef, Q
 from django.utils.translation import gettext_lazy as _
 from model_utils import FieldTracker
 from model_utils.models import TimeStampedModel
@@ -60,7 +60,7 @@ class LearningPathManager(models.Manager):
             queryset = queryset.filter(Q(invite_only=False) | Q(enrollment_date__isnull=False))
 
         # Order by enrollment date (the most recent first), with null values at the end.
-        return queryset.order_by(models.F('enrollment_date').desc(nulls_last=True))
+        return queryset.order_by(models.F("enrollment_date").desc(nulls_last=True))
 
 
 class LearningPath(TimeStampedModel):
