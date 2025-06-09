@@ -32,7 +32,7 @@ billiard==4.2.1
     # via
     #   -r requirements/base.txt
     #   celery
-celery==5.5.2
+celery==5.5.3
     # via
     #   -r requirements/base.txt
     #   edx-celeryutils
@@ -243,7 +243,7 @@ jsonfield==3.1.0
     #   -r requirements/base.txt
     #   edx-celeryutils
     #   edx-event-routing-backends
-kombu==5.5.3
+kombu==5.5.4
     # via
     #   -r requirements/base.txt
     #   celery
@@ -274,7 +274,10 @@ openedx-filters==2.1.0
     #   -r requirements/base.txt
     #   edx-event-routing-backends
 packaging==25.0
-    # via pytest
+    # via
+    #   -r requirements/base.txt
+    #   kombu
+    #   pytest
 pbr==6.1.1
     # via
     #   -r requirements/base.txt
@@ -295,6 +298,8 @@ pycparser==2.22
     # via
     #   -r requirements/base.txt
     #   cffi
+pygments==2.19.1
+    # via pytest
 pyjwt[crypto]==2.10.1
     # via
     #   -r requirements/base.txt
@@ -309,7 +314,7 @@ pynacl==1.5.0
     # via
     #   -r requirements/base.txt
     #   edx-django-utils
-pytest==8.3.5
+pytest==8.4.0
     # via
     #   pytest-cov
     #   pytest-django
@@ -318,7 +323,7 @@ pytest-cov==6.1.1
     # via -r requirements/test.in
 pytest-django==4.11.1
     # via -r requirements/test.in
-pytest-xdist==3.6.1
+pytest-xdist==3.7.0
     # via -r requirements/test.in
 python-dateutil==2.9.0.post0
     # via
@@ -343,7 +348,7 @@ pyyaml==6.0.2
     #   -r requirements/base.txt
     #   code-annotations
     #   xblock
-redis==6.1.0
+redis==6.2.0
     # via
     #   -r requirements/base.txt
     #   django-redis
@@ -387,7 +392,7 @@ tincan==1.0.0
     # via
     #   -r requirements/base.txt
     #   edx-event-routing-backends
-typing-extensions==4.13.2
+typing-extensions==4.14.0
     # via
     #   -r requirements/base.txt
     #   edx-opaque-keys
