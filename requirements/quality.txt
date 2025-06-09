@@ -36,7 +36,7 @@ billiard==4.2.1
     # via
     #   -r requirements/test.txt
     #   celery
-celery==5.5.2
+celery==5.5.3
     # via
     #   -r requirements/test.txt
     #   edx-celeryutils
@@ -96,7 +96,7 @@ cryptography==45.0.3
     #   pyjwt
 dill==0.4.0
     # via pylint
-django==4.2.21
+django==4.2.22
     # via
     #   -c requirements/common_constraints.txt
     #   -r requirements/test.txt
@@ -268,7 +268,7 @@ jsonfield==3.1.0
     #   -r requirements/test.txt
     #   edx-celeryutils
     #   edx-event-routing-backends
-kombu==5.5.3
+kombu==5.5.4
     # via
     #   -r requirements/test.txt
     #   celery
@@ -303,6 +303,7 @@ openedx-filters==2.1.0
 packaging==25.0
     # via
     #   -r requirements/test.txt
+    #   kombu
     #   pytest
 pbr==6.1.1
     # via
@@ -332,6 +333,10 @@ pycparser==2.22
     #   cffi
 pydocstyle==6.3.0
     # via -r requirements/quality.in
+pygments==2.19.1
+    # via
+    #   -r requirements/test.txt
+    #   pytest
 pyjwt[crypto]==2.10.1
     # via
     #   -r requirements/test.txt
@@ -360,7 +365,7 @@ pynacl==1.5.0
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
-pytest==8.3.5
+pytest==8.4.0
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -370,7 +375,7 @@ pytest-cov==6.1.1
     # via -r requirements/test.txt
 pytest-django==4.11.1
     # via -r requirements/test.txt
-pytest-xdist==3.6.1
+pytest-xdist==3.7.0
     # via -r requirements/test.txt
 python-dateutil==2.9.0.post0
     # via
@@ -395,7 +400,7 @@ pyyaml==6.0.2
     #   -r requirements/test.txt
     #   code-annotations
     #   xblock
-redis==6.1.0
+redis==6.2.0
     # via
     #   -r requirements/test.txt
     #   django-redis
@@ -442,9 +447,9 @@ tincan==1.0.0
     # via
     #   -r requirements/test.txt
     #   edx-event-routing-backends
-tomlkit==0.13.2
+tomlkit==0.13.3
     # via pylint
-typing-extensions==4.13.2
+typing-extensions==4.14.0
     # via
     #   -r requirements/test.txt
     #   edx-opaque-keys
