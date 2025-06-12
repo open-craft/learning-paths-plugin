@@ -155,4 +155,15 @@ class Migration(migrations.Migration):
                 "abstract": False,
             },
         ),
+        migrations.AddField(
+            model_name="learningpathenrollmentallowed",
+            name="is_active",
+            field=models.BooleanField(
+                db_index=True, default=True, help_text="Indicates if the enrollment allowance is active"
+            ),
+        ),
+        migrations.RemoveField(
+            model_name="learningpathenrollment",
+            name="enrolled_at",
+        ),
     ]
