@@ -12,15 +12,14 @@ from django.contrib import auth
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Exists, OuterRef, Q
+from django.db.models import OuterRef, Q
 from django.utils.translation import gettext_lazy as _
 from model_utils import FieldTracker
 from model_utils.models import TimeStampedModel
 from opaque_keys.edx.django.models import CourseKeyField
-from simple_history.models import HistoricalRecords
 from slugify import slugify
 
-from .compat import get_course_due_date, get_user_course_grade
+from .compat import get_course_dates, get_user_course_grade
 from .keys import LearningPathKeyField
 
 log = logging.getLogger(__name__)
@@ -39,27 +38,33 @@ class LearningPathManager(models.Manager):
 
     def get_paths_visible_to_user(self, user: User) -> models.QuerySet:
         """
-        Return only learning paths that should be visible to the given user with enrollment status.
+        Return only learning paths that should be visible to the given user with an enrollment date.
 
         For staff users: all learning paths.
         For non-staff: non-invite-only paths or invite-only paths they're enrolled in.
 
-        Each learning path in the queryset is annotated with `is_enrolled` indicating
-        whether the user has an active enrollment in that learning path.
+        Each learning path in the queryset is annotated with `enrollment_date` indicating
+        the date when the user enrolled in that learning path (None if not enrolled).
+        Results are ordered by enrollment date (the most recent first), with non-enrolled paths at the end.
         """
         queryset = self.get_queryset()
 
-        # Annotate each path with whether the user is enrolled.
-        enrollment_exists = LearningPathEnrollment.objects.filter(
+        # Annotate each path with the enrollment date.
+        enrollment_subquery = LearningPathEnrollment.objects.filter(
             learning_path=OuterRef("pk"), user=user, is_active=True
+        ).values("created")[:1]
+        queryset = queryset.annotate(
+            enrollment_date=models.Subquery(enrollment_subquery)
         )
-        queryset = queryset.annotate(is_enrolled=Exists(enrollment_exists))
 
         # Apply visibility filtering based on the user role.
         if not user.is_staff:
-            queryset = queryset.filter(Q(invite_only=False) | Q(is_enrolled=True))
+            queryset = queryset.filter(
+                Q(invite_only=False) | Q(enrollment_date__isnull=False)
+            )
 
-        return queryset
+        # Order by enrollment date (the most recent first), with null values at the end.
+        return queryset.order_by(models.F("enrollment_date").desc(nulls_last=True))
 
 
 class LearningPath(TimeStampedModel):
@@ -114,12 +119,16 @@ class LearningPath(TimeStampedModel):
         blank=True,
         null=True,
         verbose_name=_("Duration (days)"),
-        help_text=_("Approximate time (in days) it should take to complete this Learning Path."),
+        help_text=_(
+            "Approximate time (in days) it should take to complete this Learning Path."
+        ),
     )
     sequential = models.BooleanField(
         default=False,
         verbose_name=_("Is sequential"),
-        help_text=_("Whether the courses in this Learning Path are meant to be taken sequentially."),
+        help_text=_(
+            "Whether the courses in this Learning Path are meant to be taken sequentially."
+        ),
     )
     # Note: the enrolled learners will be able to self-enroll in all courses
     # (steps) of the learning path. To avoid mistakes of making the courses
@@ -128,7 +137,9 @@ class LearningPath(TimeStampedModel):
     invite_only = models.BooleanField(
         default=True,
         verbose_name=_("Invite only"),
-        help_text=_("If enabled, only staff can enroll users and only enrolled users can see the learning path."),
+        help_text=_(
+            "If enabled, only staff can enroll users and only enrolled users can see the learning path."
+        ),
     )
     enrolled_users = models.ManyToManyField(User, through="LearningPathEnrollment")
     tracker = FieldTracker(fields=["image"])
@@ -187,12 +198,16 @@ class LearningPathStep(TimeStampedModel):
         unique_together = ("learning_path", "course_key")
 
     course_key = CourseKeyField(max_length=255)
-    learning_path = models.ForeignKey(LearningPath, related_name="steps", on_delete=models.CASCADE)
+    learning_path = models.ForeignKey(
+        LearningPath, related_name="steps", on_delete=models.CASCADE
+    )
     order = models.PositiveIntegerField(
         blank=True,
         null=True,
         verbose_name=_("Sequential order"),
-        help_text=_("Ordinal position of this step in the sequence of the Learning Path, if applicable."),
+        help_text=_(
+            "Ordinal position of this step in the sequence of the Learning Path, if applicable."
+        ),
     )
     weight = models.FloatField(
         default=1.0,
@@ -204,9 +219,9 @@ class LearningPathStep(TimeStampedModel):
     )
 
     @property
-    def due_date(self) -> datetime | None:
+    def course_dates(self) -> tuple[datetime | None, datetime | None]:
         """Retrieve the due date for this course."""
-        return get_course_due_date(self.course_key)
+        return get_course_dates(self.course_key)
 
     def __str__(self):
         """User-friendly string representation of this model."""
@@ -249,7 +264,9 @@ class LearningPathSkill(TimeStampedModel):
 
     learning_path = models.ForeignKey(LearningPath, on_delete=models.CASCADE)
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
-    level = models.PositiveIntegerField(help_text=_("The skill level associated with this course."))
+    level = models.PositiveIntegerField(
+        help_text=_("The skill level associated with this course.")
+    )
 
     def __str__(self):
         """User-friendly string representation of this model."""
@@ -290,14 +307,7 @@ class LearningPathEnrollment(TimeStampedModel):
         default=True,
         help_text=_("Indicates if the learner is enrolled or not in the Learning Path"),
     )
-    enrolled_at = models.DateTimeField(
-        auto_now_add=True,
-        help_text=_(
-            "Timestamp of enrollment or un-enrollment. To be explicitly set when performing a learner enrollment."
-        ),
-    )
-
-    history = HistoricalRecords()
+    tracker = FieldTracker(fields=["is_active"])
 
     def __str__(self):
         """User-friendly string representation of this model."""
@@ -318,7 +328,9 @@ class LearningPathGradingCriteria(models.Model):
     .. no_pii:
     """
 
-    learning_path = models.OneToOneField(LearningPath, related_name="grading_criteria", on_delete=models.CASCADE)
+    learning_path = models.OneToOneField(
+        LearningPath, related_name="grading_criteria", on_delete=models.CASCADE
+    )
     required_completion = models.FloatField(
         default=0.80,
         help_text=(
@@ -354,7 +366,7 @@ class LearningPathGradingCriteria(models.Model):
         return weighted_sum / total_weight if total_weight > 0 else 0.0
 
 
-class LearningPathEnrollmentAllowed(models.Model):
+class LearningPathEnrollmentAllowed(TimeStampedModel):
     """
     Represents an allowed enrollment in a learning path for a user email.
 
@@ -371,10 +383,80 @@ class LearningPathEnrollmentAllowed(models.Model):
 
         unique_together = ("email", "learning_path")
 
-    email = models.EmailField()
+    email = models.EmailField(db_index=True)
     learning_path = models.ForeignKey(LearningPath, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    is_active = models.BooleanField(
+        default=True,
+        db_index=True,
+        help_text=_("Indicates if the enrollment allowance is active"),
+    )
 
     def __str__(self):
         """User-friendly string representation of this model."""
-        return f"LearningPathEnrollmentAllowed for {self.user.username} in {self.learning_path.display_name}"
+        return f"LearningPathEnrollmentAllowed for {self.email} in {self.learning_path.key}"
+
+
+class LearningPathEnrollmentAudit(TimeStampedModel):
+    """
+    Audit model for tracking changes to learning path enrollments.
+
+    .. no_pii:
+    """
+
+    # State transition constants (copied from edx-platform to maintain consistency)
+    UNENROLLED_TO_ALLOWEDTOENROLL = "from unenrolled to allowed to enroll"
+    ALLOWEDTOENROLL_TO_ENROLLED = "from allowed to enroll to enrolled"
+    ENROLLED_TO_ENROLLED = "from enrolled to enrolled"
+    ENROLLED_TO_UNENROLLED = "from enrolled to unenrolled"
+    UNENROLLED_TO_ENROLLED = "from unenrolled to enrolled"
+    ALLOWEDTOENROLL_TO_UNENROLLED = "from allowed to enroll to unenrolled"
+    UNENROLLED_TO_UNENROLLED = "from unenrolled to unenrolled"
+    DEFAULT_TRANSITION_STATE = "N/A"
+
+    TRANSITION_STATES = (
+        (UNENROLLED_TO_ALLOWEDTOENROLL, UNENROLLED_TO_ALLOWEDTOENROLL),
+        (ALLOWEDTOENROLL_TO_ENROLLED, ALLOWEDTOENROLL_TO_ENROLLED),
+        (ENROLLED_TO_ENROLLED, ENROLLED_TO_ENROLLED),
+        (ENROLLED_TO_UNENROLLED, ENROLLED_TO_UNENROLLED),
+        (UNENROLLED_TO_ENROLLED, UNENROLLED_TO_ENROLLED),
+        (ALLOWEDTOENROLL_TO_UNENROLLED, ALLOWEDTOENROLL_TO_UNENROLLED),
+        (UNENROLLED_TO_UNENROLLED, UNENROLLED_TO_UNENROLLED),
+        (DEFAULT_TRANSITION_STATE, DEFAULT_TRANSITION_STATE),
+    )
+
+    enrolled_by = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True, related_name="learning_path_audit"
+    )
+    enrollment = models.ForeignKey(
+        LearningPathEnrollment,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="audit",
+    )
+    enrollment_allowed = models.ForeignKey(
+        LearningPathEnrollmentAllowed,
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="audit",
+    )
+    state_transition = models.CharField(
+        max_length=255, choices=TRANSITION_STATES, default=DEFAULT_TRANSITION_STATE
+    )
+    reason = models.TextField(blank=True)
+    org = models.CharField(max_length=255, blank=True, db_index=True)
+    role = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        """User-friendly string representation of this model."""
+        enrollee = "unknown"
+        learning_path = "unknown"
+
+        if self.enrollment:
+            enrollee = self.enrollment.user
+            learning_path = self.enrollment.learning_path.key
+        elif self.enrollment_allowed:
+            enrollee = self.enrollment_allowed.user or self.enrollment_allowed.email
+            learning_path = self.enrollment_allowed.learning_path.key
+
+        return f"{self.state_transition} for {enrollee} in {learning_path}"
