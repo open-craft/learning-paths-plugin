@@ -32,13 +32,13 @@ billiard==4.2.1
     # via
     #   -r requirements/base.txt
     #   celery
-celery==5.5.2
+celery==5.5.3
     # via
     #   -r requirements/base.txt
     #   edx-celeryutils
     #   event-tracking
     #   openedx-completion-aggregator
-certifi==2025.4.26
+certifi==2025.6.15
     # via
     #   -r requirements/base.txt
     #   requests
@@ -77,9 +77,9 @@ code-annotations==2.3.0
     #   -r requirements/base.txt
     #   -r requirements/test.in
     #   edx-toggles
-coverage[toml]==7.8.2
+coverage[toml]==7.9.1
     # via pytest-cov
-cryptography==45.0.3
+cryptography==45.0.4
     # via
     #   -r requirements/base.txt
     #   django-fernet-fields-v2
@@ -125,7 +125,7 @@ django-model-utils==5.0.0
     #   edx-celeryutils
     #   edx-completion
     #   openedx-completion-aggregator
-django-redis==5.4.0
+django-redis==6.0.0
     # via
     #   -r requirements/base.txt
     #   edx-event-routing-backends
@@ -133,7 +133,7 @@ django-simple-history==3.4.0
     # via
     #   -c requirements/constraints.txt
     #   -r requirements/base.txt
-django-waffle==4.2.0
+django-waffle==5.0.0
     # via
     #   -r requirements/base.txt
     #   edx-django-utils
@@ -210,7 +210,7 @@ execnet==2.1.1
     # via pytest-xdist
 factory-boy==3.3.3
     # via -r requirements/test.in
-faker==37.3.0
+faker==37.4.0
     # via factory-boy
 fastavro==1.11.1
     # via
@@ -243,7 +243,7 @@ jsonfield==3.1.0
     #   -r requirements/base.txt
     #   edx-celeryutils
     #   edx-event-routing-backends
-kombu==5.5.3
+kombu==5.5.4
     # via
     #   -r requirements/base.txt
     #   celery
@@ -274,7 +274,10 @@ openedx-filters==2.1.0
     #   -r requirements/base.txt
     #   edx-event-routing-backends
 packaging==25.0
-    # via pytest
+    # via
+    #   -r requirements/base.txt
+    #   kombu
+    #   pytest
 pbr==6.1.1
     # via
     #   -r requirements/base.txt
@@ -282,7 +285,9 @@ pbr==6.1.1
 pillow==11.2.1
     # via -r requirements/base.txt
 pluggy==1.6.0
-    # via pytest
+    # via
+    #   pytest
+    #   pytest-cov
 prompt-toolkit==3.0.51
     # via
     #   -r requirements/base.txt
@@ -295,12 +300,14 @@ pycparser==2.22
     # via
     #   -r requirements/base.txt
     #   cffi
+pygments==2.19.2
+    # via pytest
 pyjwt[crypto]==2.10.1
     # via
     #   -r requirements/base.txt
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==4.13.0
+pymongo==4.13.2
     # via
     #   -r requirements/base.txt
     #   edx-opaque-keys
@@ -309,16 +316,16 @@ pynacl==1.5.0
     # via
     #   -r requirements/base.txt
     #   edx-django-utils
-pytest==8.3.5
+pytest==8.4.1
     # via
     #   pytest-cov
     #   pytest-django
     #   pytest-xdist
-pytest-cov==6.1.1
+pytest-cov==6.2.1
     # via -r requirements/test.in
 pytest-django==4.11.1
     # via -r requirements/test.in
-pytest-xdist==3.6.1
+pytest-xdist==3.7.0
     # via -r requirements/test.in
 python-dateutil==2.9.0.post0
     # via
@@ -343,11 +350,11 @@ pyyaml==6.0.2
     #   -r requirements/base.txt
     #   code-annotations
     #   xblock
-redis==6.1.0
+redis==6.2.0
     # via
     #   -r requirements/base.txt
     #   django-redis
-requests==2.32.3
+requests==2.32.4
     # via
     #   -r requirements/base.txt
     #   apache-libcloud
@@ -387,7 +394,7 @@ tincan==1.0.0
     # via
     #   -r requirements/base.txt
     #   edx-event-routing-backends
-typing-extensions==4.13.2
+typing-extensions==4.14.0
     # via
     #   -r requirements/base.txt
     #   edx-opaque-keys
