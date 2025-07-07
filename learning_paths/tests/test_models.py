@@ -13,7 +13,16 @@ from django.db import IntegrityError
 from slugify import slugify
 
 from learning_paths.keys import LearningPathKey
-from learning_paths.models import LearningPath
+from learning_paths.models import (
+    LearningPath,
+    LearningPathEnrollmentAllowed,
+    LearningPathEnrollmentAudit,
+)
+
+from .factories import (
+    LearningPathEnrollmentAllowedFactory,
+    LearningPathEnrollmentAuditFactory,
+)
 
 
 @pytest.fixture
@@ -134,3 +143,63 @@ class TestLearningPath:
         assert criteria is not None
         assert criteria.required_completion == 0.80
         assert criteria.required_grade == 0.75
+
+
+@pytest.mark.django_db
+class TestLearningPathEnrollmentAllowed:
+    """Tests for the LearningPathEnrollmentAllowed model."""
+
+    @pytest.mark.parametrize("user_provided", [True, False])
+    def test_string_representation(self, user, learning_path, user_provided):
+        """Test the string representation."""
+        user_kwarg = {"user": user} if user_provided else {}
+        allowed = LearningPathEnrollmentAllowedFactory(email=user.email, learning_path=learning_path, **user_kwarg)
+        expected_str = f"LearningPathEnrollmentAllowed for {user.email} in {learning_path.key}"
+        assert str(allowed) == expected_str
+
+    def test_is_active_defaults_to_true(self, learning_path):
+        """Test that is_active field defaults to True."""
+        allowed = LearningPathEnrollmentAllowed(email="test@example.com", learning_path=learning_path)
+        assert allowed.is_active is True
+
+
+@pytest.mark.django_db
+class TestLearningPathEnrollmentAudit:
+    """Tests for the LearningPathEnrollmentAudit model."""
+
+    def test_string_representation_with_enrollment(self, user, learning_path, active_enrollment):
+        """Test the string representation when linked to a LearningPathEnrollment."""
+        audit = active_enrollment.audit.get()
+        expected_str = (
+            f"{LearningPathEnrollmentAudit.UNENROLLED_TO_ENROLLED} for {user.username} in {learning_path.key}"
+        )
+        assert str(audit) == expected_str
+
+    def test_string_representation_with_enrollment_allowed_and_user(self, user, learning_path):
+        """Test the string representation when linked to LearningPathEnrollmentAllowed with a user."""
+        enrollment_allowed = LearningPathEnrollmentAllowedFactory(
+            user=user, email=user.email, learning_path=learning_path
+        )
+        enrollment_allowed._audit = {"reason": "TestReason"}
+        enrollment_allowed.save()
+        audit = enrollment_allowed.audit.get()
+        expected_str = (
+            f"{LearningPathEnrollmentAudit.UNENROLLED_TO_ALLOWEDTOENROLL} for {user.username} in {learning_path.key}"
+        )
+        assert str(audit) == expected_str
+
+    def test_string_representation_with_enrollment_allowed_no_user(self, learning_path):
+        """Test the string representation when linked to LearningPathEnrollmentAllowed without a user (email only)."""
+        email = "new_user@example.com"
+        enrollment_allowed = LearningPathEnrollmentAllowedFactory(email=email, learning_path=learning_path)
+        enrollment_allowed._audit = {"reason": "TestReason"}
+        enrollment_allowed.save()
+        audit = enrollment_allowed.audit.get()
+        expected_str = f"{LearningPathEnrollmentAudit.UNENROLLED_TO_ALLOWEDTOENROLL} for {email} in {learning_path.key}"
+        assert str(audit) == expected_str
+
+    def test_string_representation_no_enrollment_or_allowed(self):
+        """Test the string representation when no enrollment or enrollment_allowed is linked."""
+        audit = LearningPathEnrollmentAuditFactory()
+        expected_str = f"{LearningPathEnrollmentAudit.DEFAULT_TRANSITION_STATE} for unknown in unknown"
+        assert str(audit) == expected_str
