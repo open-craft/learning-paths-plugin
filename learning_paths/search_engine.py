@@ -11,9 +11,10 @@ Usage:
 import logging
 from copy import deepcopy
 
+from crum import get_current_request
+
 from search.search_engine_base import SearchEngine
 from search.meilisearch import MeilisearchEngine
-
 
 logger = logging.getLogger(__name__)
 
@@ -120,32 +121,23 @@ class LearningPathsCompatibleSearchEngine(SearchEngine):
         return enhanced_sources
 
     def _enhance_results(self, results, query_string):
-        """Add learning paths specific data to search results."""
+        """Add learning paths as search results to maintain UI compatibility."""
         enhanced_results = deepcopy(results)
 
-        # Add learning paths metadata to results
-        enhanced_results['learning_paths_metadata'] = {
-            'processed_by': 'LearningPathsCompatibleSearchEngine',
-            'query': query_string,
-            'enhancement_timestamp': self._get_current_timestamp()
-        }
+        # Get matching learning paths and convert them to search result format
+        learning_path_results = self._get_learning_paths_as_search_results(query_string)
 
-        # Enhance individual results
-        for result in enhanced_results.get('results', []):
-            data = result.get('data', {})
+        if learning_path_results:
+            # Add learning paths to existing results
+            enhanced_results['results'].extend(learning_path_results)
+            enhanced_results['total'] += len(learning_path_results)
 
-            # Add learning path context if this is path content
-            if data.get('content_type') == 'learning_path':
-                result['learning_path_context'] = {
-                    'is_enhanced': True,
-                    'content_type': 'learning_path'
-                }
+            # Update max_score if learning paths have higher scores
+            for lp_result in learning_path_results:
+                if lp_result.get('score', 0) > enhanced_results.get('max_score', 0):
+                    enhanced_results['max_score'] = lp_result['score']
 
-                # Boost score for learning path content
-                if 'score' in result:
-                    result['learning_path_boosted_score'] = result['score'] * 1.2
-
-        logger.info("Enhanced %d search results with learning paths data", len(enhanced_results.get('results', [])))
+        logger.info("Enhanced search results with %d learning paths", len(learning_path_results))
         return enhanced_results
 
     def _is_learning_path_content(self, doc):
@@ -170,12 +162,100 @@ class LearningPathsCompatibleSearchEngine(SearchEngine):
         else:
             return 'advanced'
 
-    def _get_current_timestamp(self):
-        """Get current timestamp as ISO string."""
-        from datetime import datetime
-        return datetime.now().isoformat()
+    def _get_learning_paths_as_search_results(self, query_string):
+        """Convert learning paths to search result format for UI compatibility."""
+
+        try:
+            from learning_paths.models import LearningPath
+
+            # Get learning paths visible to user and filter by query
+            current_request = get_current_request()
+            learning_paths = LearningPath.objects.get_paths_visible_to_user(current_request.user)
+
+            # Apply text search filter if query exists
+            if query_string:
+                learning_paths = learning_paths.filter(
+                    display_name__icontains=query_string
+                ) | learning_paths.filter(
+                    description__icontains=query_string
+                ) | learning_paths.filter(
+                    subtitle__icontains=query_string
+                )
+                logger.info("Found %d learning paths matching query '%s'", learning_paths.count(), query_string)
+            else:
+                logger.info("Found %d learning paths visible to user (no query filter)", learning_paths.count())
+
+            search_results = []
+            for lp in learning_paths:
+                # Convert learning path to search result format
+                search_result = {
+                    '_id': f'learning_path:{lp.key}',
+                    '_index': self.index_name,
+                    '_type': 'learning_path',
+                    'score': self._calculate_learning_path_score(lp, query_string),
+                    'data': {
+                        'id': f'learning_path:{lp.key}',
+                        'course': f'learning_path:{lp.key}',  # Add course field like other results
+                        'content': {
+                            'display_name': lp.display_name,
+                            'overview': lp.description or '',
+                            'subtitle': lp.subtitle or '',
+                            'language': 'en',  # Default language
+                            'start_date': lp.created.isoformat() if lp.created else None,
+                            'number': lp.key.run,
+                            'short_description': lp.subtitle or lp.description or '',  # Add short description
+                        },
+                        'org': lp.key.org,
+                        'content_type': 'learning_path',
+                        'learning_path_key': str(lp.key),
+                        'learning_path_steps_count': lp.steps.count() if hasattr(lp, 'steps') else 0,
+                        'image_url': self._get_learning_path_image_url(lp),
+                        'start': lp.created.isoformat() if lp.created else None,  # Add start field like courses
+                        'number': lp.key.run,
+                        'modes': ['learning_path'],  # Add modes field
+                        'language': 'en',  # Add language field at top level
+                        'catalog_visibility': 'both',  # Add catalog visibility
+                        'level': lp.level if hasattr(lp, 'level') and lp.level else 'beginner',
+                        'duration_in_days': lp.duration_in_days if hasattr(lp, 'duration_in_days') and lp.duration_in_days else None,
+                        'sequential': lp.sequential if hasattr(lp, 'sequential') else False,
+                    }
+                }
+                search_results.append(search_result)
+
+            return search_results
+
+        except ImportError:
+            logger.warning("LearningPath model not available")
+            return []
+        except Exception as e:
+            logger.error("Error fetching learning paths: %s", e, exc_info=True)
+            return []
+
+    def _calculate_learning_path_score(self, learning_path, query_lower):
+        """Calculate relevance score for learning path based on query match."""
+        # Nothing at the moment
+        return 1.0
+
+    def _get_learning_path_image_url(self, learning_path):
+        """Get the proper image URL for a learning path."""
+        try:
+            if hasattr(learning_path, 'image') and learning_path.image:
+                # If it's a Django FileField/ImageField, get the URL
+                if hasattr(learning_path.image, 'url'):
+                    return learning_path.image.url
+                # If it's just a string path, return as-is
+                return str(learning_path.image)
+            return None
+        except Exception as e:
+            logger.warning("Error getting image URL for learning path %s: %s", learning_path.key, e)
+            return None
 
     @property
     def underlying_engine(self):
         """Access to the underlying MeiliSearch engine."""
         return self._meilisearch_engine
+
+    def _get_current_timestamp(self):
+        """Get current timestamp as ISO string."""
+        from datetime import datetime
+        return datetime.now().isoformat()
