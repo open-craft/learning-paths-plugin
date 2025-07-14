@@ -40,7 +40,8 @@ def learning_path(learning_path_key):
         subtitle="Test Subtitle",
         description="Test description",
         level="intermediate",
-        duration_in_days=30,
+        duration="30 days",
+        time_commitment="4-6 hours/week",
         sequential=True,
     )
 

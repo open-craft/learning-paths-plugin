@@ -5,7 +5,7 @@ Database models for learning_paths.
 import logging
 import os
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 from uuid import uuid4
 
 from django.contrib import auth
@@ -111,11 +111,15 @@ class LearningPath(TimeStampedModel):
         help_text=_("Image representing this Learning Path."),
     )
     level = models.CharField(max_length=255, blank=True, choices=LEVEL_CHOICES)
-    duration_in_days = models.PositiveIntegerField(
+    duration = models.CharField(
+        max_length=255,
         blank=True,
-        null=True,
-        verbose_name=_("Duration (days)"),
-        help_text=_("Approximate time (in days) it should take to complete this Learning Path."),
+        help_text=_("Approximate time it should take to complete this Learning Path. Example: '10 Weeks'."),
+    )
+    time_commitment = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text=_("Approximate time commitment. Example: '4-6 hours/week'."),
     )
     sequential = models.BooleanField(
         default=False,
@@ -296,13 +300,6 @@ class LearningPathEnrollment(TimeStampedModel):
     def __str__(self):
         """User-friendly string representation of this model."""
         return "{}: {}".format(self.user, self.learning_path)
-
-    @property
-    def estimated_end_date(self):
-        """Estimated end date of the learning path."""
-        if self.learning_path.duration_in_days is None:
-            return None
-        return self.created + timedelta(days=self.learning_path.duration_in_days)
 
 
 class LearningPathGradingCriteria(models.Model):

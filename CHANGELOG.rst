@@ -24,12 +24,14 @@ Added
 
 * Bulk unenrollment API.
 * Enrollment audit model that tracks the enrollment state transitions.
+* Allow specifying time commitment.
 
 Changed
 =======
 
 * The Learning Paths API includes start and end dates for its steps.
 * Return enrollment date in the API instead of a boolean.
+* Allow specifying any text for the duration.
 
 0.3.3 - 2025-05-23
 ******************

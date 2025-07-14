@@ -152,7 +152,7 @@ class LearningPathAdmin(admin.ModelAdmin):
         "key",
         "display_name",
         "level",
-        "duration_in_days",
+        "duration",
         "invite_only",
     )
     list_filter = ("invite_only",)
