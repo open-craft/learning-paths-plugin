@@ -174,7 +174,8 @@ class LearningPathDetailSerializer(LearningPathListSerializer):
             "subtitle",
             "description",
             "level",
-            "duration_in_days",
+            "duration",
+            "time_commitment",
             "required_skills",
             "acquired_skills",
         ]
