@@ -111,6 +111,7 @@ class LearningPathGradingCriteriaInline(admin.TabularInline):
     """Inline Admin for Learning path grading criteria."""
 
     model = LearningPathGradingCriteria
+    verbose_name = "Certificate Criteria"
 
 
 class BulkEnrollUsersForm(forms.ModelForm):
