@@ -259,7 +259,11 @@ class LearningPathSkill(TimeStampedModel):
 
     learning_path = models.ForeignKey(LearningPath, on_delete=models.CASCADE)
     skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
-    level = models.PositiveIntegerField(help_text=_("The skill level associated with this course."))
+    level = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        help_text=_("The skill level associated with this course."),
+    )
 
     def __str__(self):
         """User-friendly string representation of this model."""
