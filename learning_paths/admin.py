@@ -2,11 +2,17 @@
 Django Admin for learning_paths.
 """
 
+import os
+
 from django import forms
-from django.contrib import admin, auth
+from django.contrib import admin, auth, messages
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.db import transaction
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django_object_actions import DjangoObjectActions, action
 
 from .compat import get_course_keys_with_outlines
 from .models import (
@@ -138,7 +144,7 @@ class BulkEnrollUsersForm(forms.ModelForm):
 
 
 @admin.register(LearningPath)
-class LearningPathAdmin(admin.ModelAdmin):
+class LearningPathAdmin(DjangoObjectActions, admin.ModelAdmin):
     """Admin for Learning Path."""
 
     model = LearningPath
@@ -165,6 +171,8 @@ class LearningPathAdmin(admin.ModelAdmin):
         LearningPathGradingCriteriaInline,
     ]
 
+    change_actions = ("duplicate_learning_path",)
+
     def get_readonly_fields(self, request, obj=None):
         """Make key read-only only for existing objects."""
         if obj:  # Editing an existing object.
@@ -177,6 +185,72 @@ class LearningPathAdmin(admin.ModelAdmin):
         with transaction.atomic():
             for user in form.cleaned_data["usernames"]:
                 LearningPathEnrollment.objects.get_or_create(user=user, learning_path=form.instance)
+
+    @action(label="Duplicate Learning Path", description="Create a copy of this Learning Path")
+    def duplicate_learning_path(self, request, obj: LearningPath) -> HttpResponseRedirect:
+        """Duplicate the learning path with a new unique key."""
+        base_new_key = f"{str(obj.key)}_copy"
+        new_key = base_new_key
+        counter = 1
+
+        while LearningPath.objects.filter(key=new_key).exists():
+            new_key = f"{base_new_key}_{counter}"
+            counter += 1
+
+        with transaction.atomic():
+            new_learning_path = LearningPath(
+                key=new_key,
+                display_name=f"{obj.display_name} (Copy)",
+                subtitle=obj.subtitle,
+                description=obj.description,
+                level=obj.level,
+                duration=obj.duration,
+                time_commitment=obj.time_commitment,
+                sequential=obj.sequential,
+                invite_only=obj.invite_only,
+            )
+
+            if obj.image:
+                with obj.image.open('rb') as original_file:
+                    image_content = original_file.read()
+
+                original_filename = os.path.basename(obj.image.name)
+                new_learning_path.image.save(
+                    original_filename,
+                    ContentFile(image_content),
+                    save=False
+                )
+
+            new_learning_path.save()
+
+            new_learning_path.refresh_from_db()
+            new_learning_path.grading_criteria.required_completion = obj.grading_criteria.required_completion
+            new_learning_path.grading_criteria.required_grade = obj.grading_criteria.required_grade
+            new_learning_path.grading_criteria.save()
+
+            for step in obj.steps.all():
+                step.pk = None
+                step.learning_path = new_learning_path
+                step.save()
+
+            for skill in obj.requiredskill_set.all():
+                skill.pk = None
+                skill.learning_path = new_learning_path
+                skill.save()
+
+            for skill in obj.acquiredskill_set.all():
+                skill.pk = None
+                skill.learning_path = new_learning_path
+                skill.save()
+
+        messages.success(
+            request,
+            f'Learning path duplicated successfully. New key: {new_key}'
+        )
+
+        return HttpResponseRedirect(
+            reverse('admin:learning_paths_learningpath_change', args=[new_learning_path.pk])
+        )
 
 
 @admin.register(Skill)

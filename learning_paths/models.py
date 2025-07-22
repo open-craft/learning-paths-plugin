@@ -104,7 +104,7 @@ class LearningPath(TimeStampedModel):
     subtitle = models.TextField(blank=True)
     description = models.TextField(blank=True)
     image = models.ImageField(
-        upload_to=_learning_path_image_upload_path,
+        upload_to=_learning_path_image_upload_path,  # type: ignore
         blank=True,
         null=True,
         verbose_name=_("Image"),
@@ -139,6 +139,11 @@ class LearningPath(TimeStampedModel):
     tracker = FieldTracker(fields=["image"])
 
     objects = LearningPathManager()
+
+    steps: "models.Manager[LearningPathStep]"
+    requiredskill_set: "models.Manager[RequiredSkill]"
+    acquiredskill_set: "models.Manager[AcquiredSkill]"
+    grading_criteria: "LearningPathGradingCriteria"
 
     def __str__(self):
         """User-friendly string representation of this model."""

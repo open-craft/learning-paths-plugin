@@ -25,6 +25,7 @@ Added
 * Bulk unenrollment API.
 * Enrollment audit model that tracks the enrollment state transitions.
 * Allow specifying time commitment.
+* Allow duplicating Learning Paths in the Django admin interface.
 
 Changed
 =======

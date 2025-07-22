@@ -88,6 +88,8 @@ django-model-utils==5.0.0
     #   edx-celeryutils
     #   edx-completion
     #   openedx-completion-aggregator
+django-object-actions==5.0.0
+    # via -r requirements/base.in
 django-redis==6.0.0
     # via edx-event-routing-backends
 django-waffle==5.0.0
