@@ -4,6 +4,7 @@
 Django             # Web application framework
 
 django-model-utils
+django-object-actions          # Add action buttons to Django admin
 djangorestframework
 edx-django-utils
 edx-opaque-keys

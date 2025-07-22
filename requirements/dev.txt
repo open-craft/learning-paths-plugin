@@ -169,6 +169,8 @@ django-model-utils==5.0.0
     #   edx-celeryutils
     #   edx-completion
     #   openedx-completion-aggregator
+django-object-actions==5.0.0
+    # via -r requirements/quality.txt
 django-redis==6.0.0
     # via
     #   -r requirements/quality.txt
