@@ -33,6 +33,7 @@ Changed
 * The Learning Paths API includes start and end dates for its steps.
 * Return enrollment date in the API instead of a boolean.
 * Allow specifying any text for the duration.
+* Make the skill level optional.
 
 0.3.3 - 2025-05-23
 ******************
