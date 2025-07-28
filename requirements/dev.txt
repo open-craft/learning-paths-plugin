@@ -51,7 +51,7 @@ celery==5.5.3
     #   edx-celeryutils
     #   event-tracking
     #   openedx-completion-aggregator
-certifi==2025.7.9
+certifi==2025.7.14
     # via
     #   -r requirements/quality.txt
     #   requests
@@ -107,7 +107,7 @@ colorama==0.4.6
     # via
     #   -r requirements/ci.txt
     #   tox
-coverage[toml]==7.9.2
+coverage[toml]==7.10.1
     # via
     #   -r requirements/quality.txt
     #   pytest-cov
@@ -116,13 +116,13 @@ cryptography==45.0.5
     #   -r requirements/quality.txt
     #   django-fernet-fields-v2
     #   pyjwt
-diff-cover==9.5.0
+diff-cover==9.6.0
     # via -r requirements/dev.in
 dill==0.4.0
     # via
     #   -r requirements/quality.txt
     #   pylint
-distlib==0.3.9
+distlib==0.4.0
     # via
     #   -r requirements/ci.txt
     #   virtualenv
@@ -260,7 +260,7 @@ execnet==2.1.1
     #   pytest-xdist
 factory-boy==3.3.3
     # via -r requirements/quality.txt
-faker==37.4.0
+faker==37.4.2
     # via
     #   -r requirements/quality.txt
     #   factory-boy
@@ -337,7 +337,7 @@ openedx-atlas==0.7.0
     # via -r requirements/quality.txt
 openedx-completion-aggregator==4.2.0
     # via -r requirements/quality.txt
-openedx-events==10.3.0
+openedx-events==10.4.0
     # via
     #   -r requirements/quality.txt
     #   event-tracking
@@ -535,7 +535,7 @@ tomlkit==0.13.3
     # via
     #   -r requirements/quality.txt
     #   pylint
-tox==4.27.0
+tox==4.28.3
     # via -r requirements/ci.txt
 typing-extensions==4.14.1
     # via
@@ -557,7 +557,7 @@ vine==5.1.0
     #   amqp
     #   celery
     #   kombu
-virtualenv==20.31.2
+virtualenv==20.32.0
     # via
     #   -r requirements/ci.txt
     #   tox

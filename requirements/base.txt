@@ -23,7 +23,7 @@ celery==5.5.3
     #   edx-celeryutils
     #   event-tracking
     #   openedx-completion-aggregator
-certifi==2025.7.9
+certifi==2025.7.14
     # via requests
 cffi==1.17.1
     # via
@@ -182,7 +182,7 @@ openedx-atlas==0.7.0
     # via -r requirements/base.in
 openedx-completion-aggregator==4.2.0
     # via -r requirements/base.in
-openedx-events==10.3.0
+openedx-events==10.4.0
     # via event-tracking
 openedx-filters==2.1.0
     # via edx-event-routing-backends
