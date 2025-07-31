@@ -738,6 +738,20 @@ class TestBulkEnrollAPI:
         assert latest_audit.enrolled_by == staff_user
         assert latest_audit.reason == payload["reason"]
 
+    def test_bulk_enrollment_allowed_re_enrollment(self, staff_client, bulk_enroll_url, learning_path):
+        """Test that bulk enrollment re-activates an inactive LearningPathEnrollmentAllowed."""
+        email = "new_user@example.com"
+        allowed = LearningPathEnrollmentAllowedFactory(email=email, learning_path=learning_path, is_active=False)
+        payload = {"learning_paths": learning_path.key, "emails": email}
+
+        response = staff_client.post(bulk_enroll_url, payload)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["enrollment_allowed_created"] == 1
+        assert LearningPathEnrollmentAllowed.objects.count() == 1
+
+        allowed.refresh_from_db()
+        assert allowed.is_active
+
     # Bulk unenrollment tests
 
     def test_unenroll_success(self, staff_client, staff_user, bulk_enroll_url):

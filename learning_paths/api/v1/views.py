@@ -410,7 +410,8 @@ class BulkEnrollView(APIView):
                 allowed, created = LearningPathEnrollmentAllowed.objects.get_or_create(
                     email=email, learning_path=learning_path
                 )
-                if created:
+                if created or (not allowed.user and not allowed.is_active):
+                    allowed.is_active = True
                     enrollment_allowed_created.append(allowed)
 
                 audit_data = self._create_audit_data(request, LearningPathEnrollmentAudit.UNENROLLED_TO_ALLOWEDTOENROLL)
