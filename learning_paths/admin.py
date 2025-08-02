@@ -2,17 +2,25 @@
 Django Admin for learning_paths.
 """
 
+import os
+
 from django import forms
-from django.contrib import admin, auth
+from django.contrib import admin, auth, messages
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.db import transaction
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django_object_actions import DjangoObjectActions, action
 
 from .compat import get_course_keys_with_outlines
 from .models import (
     AcquiredSkill,
     LearningPath,
     LearningPathEnrollment,
+    LearningPathEnrollmentAllowed,
+    LearningPathEnrollmentAudit,
     LearningPathGradingCriteria,
     LearningPathStep,
     RequiredSkill,
@@ -103,6 +111,7 @@ class LearningPathGradingCriteriaInline(admin.TabularInline):
     """Inline Admin for Learning path grading criteria."""
 
     model = LearningPathGradingCriteria
+    verbose_name = "Certificate Criteria"
 
 
 class BulkEnrollUsersForm(forms.ModelForm):
@@ -135,7 +144,8 @@ class BulkEnrollUsersForm(forms.ModelForm):
         return users
 
 
-class LearningPathAdmin(admin.ModelAdmin):
+@admin.register(LearningPath)
+class LearningPathAdmin(DjangoObjectActions, admin.ModelAdmin):
     """Admin for Learning Path."""
 
     model = LearningPath
@@ -149,7 +159,7 @@ class LearningPathAdmin(admin.ModelAdmin):
         "key",
         "display_name",
         "level",
-        "duration_in_days",
+        "duration",
         "invite_only",
     )
     list_filter = ("invite_only",)
@@ -161,6 +171,8 @@ class LearningPathAdmin(admin.ModelAdmin):
         AcquiredSkillInline,
         LearningPathGradingCriteriaInline,
     ]
+
+    change_actions = ("duplicate_learning_path",)
 
     def get_readonly_fields(self, request, obj=None):
         """Make key read-only only for existing objects."""
@@ -175,19 +187,142 @@ class LearningPathAdmin(admin.ModelAdmin):
             for user in form.cleaned_data["usernames"]:
                 LearningPathEnrollment.objects.get_or_create(user=user, learning_path=form.instance)
 
+    @action(label="Duplicate Learning Path", description="Create a copy of this Learning Path")
+    def duplicate_learning_path(self, request, obj: LearningPath) -> HttpResponseRedirect:
+        """Duplicate the learning path with a new unique key."""
+        base_new_key = f"{str(obj.key)}_copy"
+        new_key = base_new_key
+        counter = 1
 
+        while LearningPath.objects.filter(key=new_key).exists():
+            new_key = f"{base_new_key}_{counter}"
+            counter += 1
+
+        with transaction.atomic():
+            new_learning_path = LearningPath(
+                key=new_key,
+                display_name=f"{obj.display_name} (Copy)",
+                subtitle=obj.subtitle,
+                description=obj.description,
+                level=obj.level,
+                duration=obj.duration,
+                time_commitment=obj.time_commitment,
+                sequential=obj.sequential,
+                invite_only=obj.invite_only,
+            )
+
+            if obj.image:
+                with obj.image.open("rb") as original_file:
+                    image_content = original_file.read()
+
+                original_filename = os.path.basename(obj.image.name)
+                new_learning_path.image.save(original_filename, ContentFile(image_content), save=False)
+
+            new_learning_path.save()
+
+            new_learning_path.refresh_from_db()
+            new_learning_path.grading_criteria.required_completion = obj.grading_criteria.required_completion
+            new_learning_path.grading_criteria.required_grade = obj.grading_criteria.required_grade
+            new_learning_path.grading_criteria.save()
+
+            for step in obj.steps.all():
+                step.pk = None
+                step.learning_path = new_learning_path
+                step.save()
+
+            for skill in obj.requiredskill_set.all():
+                skill.pk = None
+                skill.learning_path = new_learning_path
+                skill.save()
+
+            for skill in obj.acquiredskill_set.all():
+                skill.pk = None
+                skill.learning_path = new_learning_path
+                skill.save()
+
+        messages.success(request, f"Learning path duplicated successfully. New key: {new_key}")
+        return HttpResponseRedirect(reverse("admin:learning_paths_learningpath_change", args=[new_learning_path.pk]))
+
+
+@admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):
     """Admin for Learning Path generic skill."""
 
     model = Skill
 
 
+class EnrollmentAuditInline(admin.TabularInline):
+    """Inline admin for LearningPathEnrollmentAudit records."""
+
+    model = LearningPathEnrollmentAudit
+    fk_name = "enrollment"
+    extra = 0
+    exclude = ["enrollment_allowed"]
+    readonly_fields = [
+        "state_transition",
+        "enrolled_by",
+        "reason",
+        "org",
+        "role",
+        "created",
+    ]
+
+    def has_add_permission(self, request, obj=None):
+        """Disable manual creation of audit records."""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Disable deletion of audit records."""
+        return False
+
+
+class EnrollmentAllowedAuditInline(admin.TabularInline):
+    """Inline admin for LearningPathEnrollmentAudit records related to enrollment allowed."""
+
+    model = LearningPathEnrollmentAudit
+    fk_name = "enrollment_allowed"
+    extra = 0
+    exclude = ["enrollment"]
+    readonly_fields = [
+        "state_transition",
+        "enrolled_by",
+        "reason",
+        "org",
+        "role",
+        "created",
+    ]
+
+    def has_add_permission(self, request, obj=None):
+        """Disable manual creation of audit records."""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Disable deletion of audit records."""
+        return False
+
+
+@admin.register(LearningPathEnrollment)
 class EnrolledUsersAdmin(admin.ModelAdmin):
     """Admin for Learning Path enrollment."""
 
     model = LearningPathEnrollment
     raw_id_fields = ("user",)
     autocomplete_fields = ["learning_path"]
+    inlines = [EnrollmentAuditInline]
+
+    list_display = [
+        "id",
+        "user",
+        "learning_path",
+        "is_active",
+        "created",
+    ]
+
+    list_filter = [
+        "learning_path__key",
+        "created",
+        "is_active",
+    ]
 
     search_fields = [
         "id",
@@ -197,6 +332,103 @@ class EnrolledUsersAdmin(admin.ModelAdmin):
     ]
 
 
-admin.site.register(LearningPath, LearningPathAdmin)
-admin.site.register(Skill, SkillAdmin)
-admin.site.register(LearningPathEnrollment, EnrolledUsersAdmin)
+@admin.register(LearningPathEnrollmentAllowed)
+class EnrollmentAllowedAdmin(admin.ModelAdmin):
+    """Admin configuration for LearningPathEnrollmentAllowed model."""
+
+    list_display = [
+        "id",
+        "email",
+        "get_user",
+        "learning_path",
+        "created",
+    ]
+
+    list_filter = [
+        "learning_path",
+        "created",
+    ]
+
+    search_fields = [
+        "email",
+        "user__username",
+        "user__email",
+        "learning_path__key",
+    ]
+
+    readonly_fields = [
+        "user",
+        "created",
+        "modified",
+    ]
+
+    inlines = [EnrollmentAllowedAuditInline]
+
+    def get_user(self, obj):
+        """Get the associated user, if any."""
+        return obj.user.username if obj.user else "-"
+
+    get_user.short_description = "User"
+
+
+@admin.register(LearningPathEnrollmentAudit)
+class EnrollmentAuditAdmin(admin.ModelAdmin):
+    """Admin configuration for LearningPathEnrollmentAudit model."""
+
+    list_display = [
+        "id",
+        "state_transition",
+        "enrolled_by",
+        "get_enrollee",
+        "get_learning_path",
+        "created",
+        "org",
+        "role",
+    ]
+
+    list_filter = [
+        "state_transition",
+        "created",
+        "org",
+        "role",
+    ]
+
+    search_fields = [
+        "enrolled_by__username",
+        "enrolled_by__email",
+        "enrollment__user__username",
+        "enrollment__user__email",
+        "enrollment_allowed__email",
+        "enrollment__learning_path__key",
+        "enrollment_allowed__learning_path__key",
+        "reason",
+    ]
+
+    readonly_fields = [
+        "enrollment",
+        "enrollment_allowed",
+        "enrolled_by",
+        "state_transition",
+        "created",
+        "modified",
+    ]
+
+    def get_enrollee(self, obj):
+        """Get the enrollee (user or email)."""
+        if obj.enrollment:
+            return obj.enrollment.user.username
+        elif obj.enrollment_allowed:
+            return obj.enrollment_allowed.user.username if obj.enrollment_allowed.user else obj.enrollment_allowed.email
+        return "-"
+
+    get_enrollee.short_description = "Enrollee"
+
+    def get_learning_path(self, obj):
+        """Get the learning path title."""
+        if obj.enrollment:
+            return obj.enrollment.learning_path.key
+        elif obj.enrollment_allowed:
+            return obj.enrollment_allowed.learning_path.key
+        return "-"
+
+    get_learning_path.short_description = "Learning Path"

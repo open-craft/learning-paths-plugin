@@ -97,7 +97,7 @@ class LearningPathGradeSerializer(serializers.Serializer):
 class LearningPathStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = LearningPathStep
-        fields = ["order", "course_key", "due_date", "weight"]
+        fields = ["order", "course_key", "course_dates", "weight"]
 
 
 class LearningPathListSerializer(serializers.ModelSerializer):
@@ -105,7 +105,7 @@ class LearningPathListSerializer(serializers.ModelSerializer):
 
     steps = LearningPathStepSerializer(many=True, read_only=True)
     required_completion = serializers.FloatField(source="grading_criteria.required_completion", read_only=True)
-    is_enrolled = serializers.SerializerMethodField()
+    enrollment_date = serializers.SerializerMethodField()
     invite_only = serializers.BooleanField()
     image = serializers.ImageField(read_only=True)
 
@@ -118,17 +118,17 @@ class LearningPathListSerializer(serializers.ModelSerializer):
             "sequential",
             "steps",
             "required_completion",
-            "is_enrolled",
+            "enrollment_date",
             "invite_only",
         ]
 
-    def get_is_enrolled(self, obj):
+    def get_enrollment_date(self, obj):
         """
         Check if the current user is enrolled in this learning path.
         """
-        if hasattr(obj, "is_enrolled"):
-            return obj.is_enrolled
-        return False
+        if hasattr(obj, "enrollment_date"):
+            return obj.enrollment_date
+        return None
 
 
 class SkillSerializer(serializers.ModelSerializer):
@@ -174,7 +174,8 @@ class LearningPathDetailSerializer(LearningPathListSerializer):
             "subtitle",
             "description",
             "level",
-            "duration_in_days",
+            "duration",
+            "time_commitment",
             "required_skills",
             "acquired_skills",
         ]
@@ -183,4 +184,4 @@ class LearningPathDetailSerializer(LearningPathListSerializer):
 class LearningPathEnrollmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = LearningPathEnrollment
-        fields = ("user", "learning_path", "is_active", "enrolled_at")
+        fields = ("user", "learning_path", "is_active", "created")

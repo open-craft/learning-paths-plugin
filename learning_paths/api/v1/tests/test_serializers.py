@@ -12,7 +12,6 @@ from learning_paths.api.v1.serializers import (
 from learning_paths.tests.factories import (
     LearningPathEnrollmentFactory,
     LearningPathFactory,
-    UserFactory,
 )
 
 
@@ -105,26 +104,24 @@ def test_list_serializer():
         "sequential": False,
         "steps": [],
         "required_completion": 0.8,
-        "is_enrolled": False,
+        "enrollment_date": None,
     }
     assert dict(serializer.data) == expected
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("is_enrolled", [True, False], ids=["enrolled", "not_enrolled"])
-def test_list_serializer_enrollment(is_enrolled):
+def test_list_serializer_enrollment(user, learning_path, is_enrolled):
     """
-    Tests LearningPathListSerializer shows is_enrolled as True when a user is enrolled.
+    Tests LearningPathListSerializer shows enrollment_date when a user is enrolled.
     """
-    user = UserFactory()
-    learning_path = LearningPathFactory(invite_only=False)
-    LearningPathEnrollmentFactory(user=user, learning_path=learning_path, is_active=is_enrolled)
+    enrollment = LearningPathEnrollmentFactory(user=user, learning_path=learning_path, is_active=is_enrolled)
 
     # Get the annotated learning path with the enrollment status.
     learning_path = learning_path.__class__.objects.get_paths_visible_to_user(user).get(key=learning_path.key)
 
     serializer = LearningPathListSerializer(learning_path)
-    assert serializer.data["is_enrolled"] is is_enrolled
+    assert serializer.data["enrollment_date"] == (enrollment.created if is_enrolled else None)
 
 
 @pytest.mark.django_db
@@ -142,11 +139,12 @@ def test_detail_serializer():
         "invite_only": True,
         "level": "",
         "sequential": False,
-        "duration_in_days": None,
+        "duration": "",
+        "time_commitment": "",
         "required_skills": [],
         "acquired_skills": [],
         "steps": [],
-        "is_enrolled": False,
+        "enrollment_date": None,
         "required_completion": 0.8,
     }
     serializer = LearningPathDetailSerializer(learning_path)

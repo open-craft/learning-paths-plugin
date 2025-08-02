@@ -1,6 +1,6 @@
 # pylint: disable=missing-module-docstring,missing-class-docstring,redefined-outer-name,unused-argument
 from datetime import datetime, timezone
-from unittest.mock import PropertyMock, patch
+from unittest.mock import patch
 
 import pytest
 from django.test import override_settings
@@ -19,10 +19,11 @@ from learning_paths.api.v1.views import (
 from learning_paths.models import (
     LearningPathEnrollment,
     LearningPathEnrollmentAllowed,
-    LearningPathStep,
+    LearningPathEnrollmentAudit,
 )
 from learning_paths.tests.factories import (
     AcquiredSkillFactory,
+    LearningPathEnrollmentAllowedFactory,
     LearningPathEnrollmentFactory,
     LearningPathFactory,
     LearningPathStepFactory,
@@ -34,11 +35,6 @@ from learning_paths.tests.factories import (
 @pytest.fixture
 def api_client():
     return APIClient()
-
-
-@pytest.fixture
-def user():
-    return UserFactory()
 
 
 @pytest.fixture
@@ -67,16 +63,6 @@ def staff_client(api_client, staff_user):
 def superuser_client(api_client, superuser):
     api_client.force_authenticate(user=superuser)
     return api_client
-
-
-@pytest.fixture
-def learning_path():
-    return LearningPathFactory.create(invite_only=False)
-
-
-@pytest.fixture
-def learning_path_with_invite_only():
-    return LearningPathFactory.create()
 
 
 @pytest.fixture
@@ -112,16 +98,6 @@ def learning_paths_with_steps():  # pylint: disable=missing-function-docstring
         RequiredSkillFactory.create(learning_path=lp)
         AcquiredSkillFactory.create(learning_path=lp)
     return learning_paths
-
-
-@pytest.fixture
-def active_enrollment(user, learning_path):
-    return LearningPathEnrollmentFactory(user=user, learning_path=learning_path, is_active=True)
-
-
-@pytest.fixture
-def inactive_enrollment(user, learning_path):
-    return LearningPathEnrollmentFactory(user=user, learning_path=learning_path, is_active=False)
 
 
 @pytest.mark.django_db
@@ -226,9 +202,11 @@ class TestLearningPathUserGrade:
 class TestLearningPathViewSet:
 
     @pytest.fixture(autouse=True)
-    def setup_mock_due_date(self):
-        due_date = datetime(2025, 1, 1, tzinfo=timezone.utc)
-        with patch("learning_paths.models.get_course_due_date", return_value=due_date):
+    def setup_mock_course_dates(self):
+        """Mock course dates that are retrieved from edx-platform."""
+        start_date = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        end_date = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        with patch("learning_paths.models.get_course_dates", return_value=(start_date, end_date)):
             yield
 
     def test_learning_path_list(self, authenticated_client, learning_paths_with_steps):
@@ -241,31 +219,28 @@ class TestLearningPathViewSet:
         assert "key" in first_item
         assert "display_name" in first_item
         assert "steps" in first_item
-        assert "is_enrolled" in first_item
-        assert first_item["is_enrolled"] is False
+        assert "enrollment_date" in first_item
+        assert first_item["enrollment_date"] is None
 
     def test_learning_path_retrieve(self, authenticated_client, learning_paths_with_steps):
         """Test that the retrieve endpoint returns the details of a learning path."""
         lp = learning_paths_with_steps[0]
         url = reverse("learning-path-detail", args=[lp.key])
-        fake_due_date = datetime(2025, 1, 1, tzinfo=timezone.utc)
 
-        with patch.object(LearningPathStep, "due_date", new_callable=PropertyMock) as mock_due_date:
-            mock_due_date.return_value = fake_due_date
-            response = authenticated_client.get(url)
-            assert response.status_code == status.HTTP_200_OK
-            assert "steps" in response.data
-            assert "required_skills" in response.data
-            assert "acquired_skills" in response.data
-            assert "is_enrolled" in response.data
-            assert response.data["is_enrolled"] is False
+        response = authenticated_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert "steps" in response.data
+        assert "required_skills" in response.data
+        assert "acquired_skills" in response.data
+        assert "enrollment_date" in response.data
+        assert response.data["enrollment_date"] is None
 
-            if response.data["steps"]:
-                first_step = response.data["steps"][0]
-                assert "order" in first_step
-                assert "course_key" in first_step
-                assert "due_date" in first_step
-                assert "weight" in first_step
+        if response.data["steps"]:
+            first_step = response.data["steps"][0]
+            assert "order" in first_step
+            assert "course_key" in first_step
+            assert "course_dates" in first_step
+            assert "weight" in first_step
 
     def test_invalid_learning_path_key_returns_404(self, authenticated_client):
         """Test that an invalid learning path key format returns a 404 response."""
@@ -289,8 +264,8 @@ class TestLearningPathViewSet:
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 1
         first_item = response.data[0]
-        assert "is_enrolled" in first_item
-        assert first_item["is_enrolled"] is True
+        assert "enrollment_date" in first_item
+        assert first_item["enrollment_date"] is not None
 
     def test_learning_path_retrieve_with_enrollment(self, authenticated_client, active_enrollment, learning_path, user):
         """Test that the retrieve endpoint returns the details of a learning path with enrollment status."""
@@ -298,8 +273,8 @@ class TestLearningPathViewSet:
         response = authenticated_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
-        assert "is_enrolled" in response.data
-        assert response.data["is_enrolled"] is True
+        assert "enrollment_date" in response.data
+        assert response.data["enrollment_date"] is not None
 
     def test_learning_path_retrieve_with_inactive_enrollment(
         self, authenticated_client, inactive_enrollment, learning_path, user
@@ -309,8 +284,8 @@ class TestLearningPathViewSet:
         response = authenticated_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
-        assert "is_enrolled" in response.data
-        assert response.data["is_enrolled"] is False
+        assert "enrollment_date" in response.data
+        assert response.data["enrollment_date"] is None
 
     def test_invite_only_learning_paths_hidden_from_non_enrolled_users(
         self, authenticated_client, learning_path_with_invite_only, learning_path
@@ -614,25 +589,14 @@ class TestBulkEnrollAPI:
     def bulk_enroll_url(self):
         return "/api/learning_paths/v1/enrollments/bulk-enroll/"
 
-    @pytest.fixture
-    def setup_users_and_paths(self):  # pylint: disable=missing-function-docstring
-        learning_path1 = LearningPathFactory()
-        learning_path2 = LearningPathFactory()
-        user1 = UserFactory(email="user1@example.com")
-        user2 = UserFactory(email="user2@example.com")
-        return {
-            "learning_path1": learning_path1,
-            "learning_path2": learning_path2,
-            "user1": user1,
-            "user2": user2,
-        }
-
-    def test_bulk_enrollment_success(self, staff_client, bulk_enroll_url, setup_users_and_paths):
-        """Test bulk enrollment creates enrollments and enrollment allowed objects."""
-        data = setup_users_and_paths
+    def test_bulk_enrollment_success(self, staff_client, staff_user, bulk_enroll_url):
+        """Test bulk enrollment creates enrollments and enrollment allowed objects and their audits."""
         payload = {
-            "learning_paths": f"{data['learning_path1'].key},{data['learning_path2'].key}",
-            "emails": "user1@example.com,user2@example.com,new_user@example.com",
+            "learning_paths": f"{LearningPathFactory().key},{LearningPathFactory().key}",
+            "emails": f"{UserFactory().email},{UserFactory().email},new_user@example.com",
+            "reason": "TestReason",
+            "org": "TestOrg",
+            "role": "TestRole",
         }
         response = staff_client.post(bulk_enroll_url, payload)
 
@@ -642,22 +606,38 @@ class TestBulkEnrollAPI:
         # (1 non-existing user x 2 learning paths)
         assert response.data["enrollment_allowed_created"] == 2
 
-        # Check learning path enrollments
-        assert LearningPathEnrollment.objects.filter(user=data["user1"]).count() == 2
-        assert LearningPathEnrollment.objects.filter(user=data["user2"]).count() == 2
+        all_audits = list(LearningPathEnrollmentAudit.objects.all())
+        assert len(all_audits) == 6
 
-        # Check learning path enrollment allowed
-        assert set(
-            LearningPathEnrollmentAllowed.objects.filter(learning_path=data["learning_path1"]).values_list(
-                "email", flat=True
-            )
-        ) == {"new_user@example.com"}
+        for audit in all_audits:
+            if audit.enrollment:
+                assert audit.state_transition == LearningPathEnrollmentAudit.UNENROLLED_TO_ENROLLED
+            else:
+                assert audit.state_transition == LearningPathEnrollmentAudit.UNENROLLED_TO_ALLOWEDTOENROLL
 
-        assert set(
-            LearningPathEnrollmentAllowed.objects.filter(learning_path=data["learning_path2"]).values_list(
-                "email", flat=True
-            )
-        ) == {"new_user@example.com"}
+            assert audit.enrolled_by == staff_user
+            assert audit.reason == payload["reason"]
+            assert audit.org == payload["org"]
+            assert audit.role == payload["role"]
+
+    def test_bulk_enrollment_updates_existing_enrollment_allowed(self, staff_client, bulk_enroll_url, learning_path):
+        """Test bulk enrollment updates existing enrollment allowed records."""
+        email = "new_user@example.com"
+        existing_allowed = LearningPathEnrollmentAllowed.objects.create(email=email, learning_path=learning_path)
+
+        payload = {
+            "learning_paths": learning_path.key,
+            "emails": email,
+            "reason": "TestReason",
+        }
+        response = staff_client.post(bulk_enroll_url, payload)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["enrollment_allowed_created"] == 0
+
+        audit = existing_allowed.audit.get()
+        assert audit.state_transition == LearningPathEnrollmentAudit.UNENROLLED_TO_ALLOWEDTOENROLL
+        assert audit.reason == payload["reason"]
 
     def test_bulk_enrollment_with_invalid_learning_path(self, staff_client, bulk_enroll_url):
         """Test bulk enrollment with invalid learning path creates no enrollments."""
@@ -671,12 +651,11 @@ class TestBulkEnrollAPI:
         assert response.data["enrollments_created"] == 0
         assert response.data["enrollment_allowed_created"] == 0
 
-    def test_bulk_enrollment_with_invalid_and_valid_emails(self, staff_client, bulk_enroll_url, setup_users_and_paths):
+    def test_bulk_enrollment_with_invalid_and_valid_emails(self, staff_client, bulk_enroll_url, user, learning_path):
         """Test bulk enrollment with invalid email only creates enrollments for valid emails."""
-        data = setup_users_and_paths
         payload = {
-            "learning_paths": f"{data['learning_path1'].key}",
-            "emails": "user1@example.com,invalid_email",
+            "learning_paths": learning_path.key,
+            "emails": f"{user.email},invalid_email",
         }
         response = staff_client.post(bulk_enroll_url, payload)
 
@@ -685,40 +664,42 @@ class TestBulkEnrollAPI:
         assert response.data["enrollment_allowed_created"] == 0
 
         # Check learning path enrollment for valid user
-        assert LearningPathEnrollment.objects.filter(user=data["user1"], learning_path=data["learning_path1"]).exists()
+        assert LearningPathEnrollment.objects.filter(user=user, learning_path=learning_path).exists()
 
         # Check enrollment allowed for invalid email doesn't exist
         assert not LearningPathEnrollmentAllowed.objects.filter(
-            email="invalid_email", learning_path=data["learning_path1"]
+            email="invalid_email", learning_path=learning_path
         ).exists()
 
-    def test_bulk_enrollment_unauthenticated(self, api_client, bulk_enroll_url, user, setup_users_and_paths):
-        """Test unauthenticated and non-staff users receive 403 for bulk enrollment."""
-        data = setup_users_and_paths
+    @pytest.mark.parametrize("http_method", ["post", "delete"])
+    def test_bulk_operation_unauthenticated_and_non_staff(  # pylint: disable=too-many-positional-arguments
+        self, api_client, bulk_enroll_url, user, learning_path, http_method
+    ):
+        """Test unauthenticated and non-staff users receive 403 for bulk operations (enroll/unenroll)."""
         payload = {
-            "learning_paths": f"{data['learning_path1'].key}",
-            "emails": "user1@example.com",
+            "learning_paths": learning_path.key,
+            "emails": user.email,
         }
 
         # Unauthenticated
-        response = api_client.post(bulk_enroll_url, payload)
+        request_method_func = getattr(api_client, http_method)
+        response = request_method_func(bulk_enroll_url, payload)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
         # Non-staff user
         api_client.force_authenticate(user=user)
-        response = api_client.post(bulk_enroll_url, payload)
+        request_method_func = getattr(api_client, http_method)
+        response = request_method_func(bulk_enroll_url, payload)
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_bulk_enrollment_returned_counts_reflect_only_new_ones(
-        self, staff_client, bulk_enroll_url, setup_users_and_paths
+    def test_bulk_enrollment_returned_counts_reflect_only_new_ones(  # pylint: disable=too-many-positional-arguments
+        self, staff_client, staff_user, bulk_enroll_url, user, learning_path, active_enrollment
     ):
-        """Test bulk enrollment counts only reflect new enrollments."""
-        data = setup_users_and_paths
-        LearningPathEnrollmentFactory(learning_path=data["learning_path1"], user=data["user1"], is_active=True)
-
+        """Test bulk enrollment counts only reflect new enrollments and creates ENROLLED_TO_ENROLLED audit."""
         payload = {
-            "learning_paths": f"{data['learning_path1'].key}",
-            "emails": data["user1"].email,
+            "learning_paths": learning_path.key,
+            "emails": user.email,
+            "reason": "TestReason",
         }
 
         response = staff_client.post(bulk_enroll_url, payload)
@@ -727,20 +708,133 @@ class TestBulkEnrollAPI:
         assert response.data["enrollments_created"] == 0
         assert response.data["enrollment_allowed_created"] == 0
 
-    def test_re_enrollment(self, staff_client, bulk_enroll_url, setup_users_and_paths):
-        """Test bulk enrollment reactivates inactive enrollments."""
-        data = setup_users_and_paths
-        LearningPathEnrollmentFactory(learning_path=data["learning_path1"], user=data["user1"], is_active=False)
+        active_enrollment.refresh_from_db()
+        assert active_enrollment.is_active is True
 
+        latest_audit = active_enrollment.audit.last()
+        assert latest_audit.state_transition == LearningPathEnrollmentAudit.ENROLLED_TO_ENROLLED
+        assert latest_audit.enrolled_by == staff_user
+        assert latest_audit.reason == payload["reason"]
+
+    # pylint: disable=too-many-positional-arguments
+    def test_re_enrollment(self, staff_client, staff_user, bulk_enroll_url, user, learning_path, inactive_enrollment):
+        """Test bulk enrollment reactivates inactive enrollments and creates a correct audit."""
         payload = {
-            "learning_paths": f"{data['learning_path1'].key}",
-            "emails": data["user1"].email,
+            "learning_paths": learning_path.key,
+            "emails": user.email,
+            "reason": "TestReason",
         }
 
         response = staff_client.post(bulk_enroll_url, payload)
 
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["enrollments_created"] == 1
+
+        inactive_enrollment.refresh_from_db()
+        assert inactive_enrollment.is_active is True
+
+        latest_audit = inactive_enrollment.audit.last()
+        assert latest_audit.state_transition == LearningPathEnrollmentAudit.UNENROLLED_TO_ENROLLED
+        assert latest_audit.enrolled_by == staff_user
+        assert latest_audit.reason == payload["reason"]
+
+    def test_bulk_enrollment_allowed_re_enrollment(self, staff_client, bulk_enroll_url, learning_path):
+        """Test that bulk enrollment re-activates an inactive LearningPathEnrollmentAllowed."""
+        email = "new_user@example.com"
+        allowed = LearningPathEnrollmentAllowedFactory(email=email, learning_path=learning_path, is_active=False)
+        payload = {"learning_paths": learning_path.key, "emails": email}
+
+        response = staff_client.post(bulk_enroll_url, payload)
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["enrollment_allowed_created"] == 1
+        assert LearningPathEnrollmentAllowed.objects.count() == 1
+
+        allowed.refresh_from_db()
+        assert allowed.is_active
+
+    # Bulk unenrollment tests
+
+    def test_unenroll_success(self, staff_client, staff_user, bulk_enroll_url):
+        """Test bulk unenrollment deactivates enrollments and enrollment allowed records and creates audit records."""
+        user1 = UserFactory()
+        user2 = UserFactory()
+        user3 = UserFactory()  # Not enrolled, should not be affected.
+        lp1 = LearningPathFactory()
+        lp2 = LearningPathFactory()
+
+        enrollments = [
+            LearningPathEnrollmentFactory(user=user1, learning_path=lp1),
+            LearningPathEnrollmentFactory(user=user1, learning_path=lp2),
+            LearningPathEnrollmentFactory(user=user2, learning_path=lp1),
+            LearningPathEnrollmentFactory(user=user2, learning_path=lp2, is_active=False),
+        ]
+
+        allowed_records = [
+            LearningPathEnrollmentAllowedFactory(email="new_user@example.com", learning_path=lp1, is_active=True),
+            LearningPathEnrollmentAllowedFactory(email="inactive@example.com", learning_path=lp2, is_active=False),
+        ]
+
+        payload = {
+            "learning_paths": f"{lp1.key},{lp2.key}",
+            "emails": f"{user1.email},{user2.email},{user3.email},new_user@example.com,inactive@example.com,invalid",
+            "reason": "TestReason",
+            "org": "TestOrg",
+            "role": "TestRole",
+        }
+
+        response = staff_client.delete(bulk_enroll_url, payload)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert response.data["enrollments_unenrolled"] == 3
+        assert response.data["enrollment_allowed_deactivated"] == 1
+
+        # 4 enrollments + 3 unenrollments + 1 inactive update + 2 allowed records
+        assert LearningPathEnrollmentAudit.objects.count() == 10
+
+        for i, enrollment in enumerate(enrollments):
+            enrollment.refresh_from_db()
+            assert not enrollment.is_active
+
+            audit = enrollment.audit.last()
+            if i < 3:
+                assert audit.state_transition == LearningPathEnrollmentAudit.ENROLLED_TO_UNENROLLED
+            else:
+                assert audit.state_transition == LearningPathEnrollmentAudit.UNENROLLED_TO_UNENROLLED
+            assert audit.enrolled_by == staff_user
+            assert audit.reason == payload["reason"]
+            assert audit.org == payload["org"]
+            assert audit.role == payload["role"]
+
+        for i, allowed_record in enumerate(allowed_records):
+            allowed_record.refresh_from_db()
+            assert not allowed_record.is_active
+            assert allowed_record.audit.count() == 1
+
+            audit = allowed_record.audit.last()
+            if i == 0:
+                assert audit.state_transition == LearningPathEnrollmentAudit.ALLOWEDTOENROLL_TO_UNENROLLED
+            else:
+                assert audit.state_transition == LearningPathEnrollmentAudit.UNENROLLED_TO_UNENROLLED
+            assert audit.enrolled_by == staff_user
+            assert audit.reason == payload["reason"]
+            assert audit.org == payload["org"]
+            assert audit.role == payload["role"]
+
+    def test_unenroll_with_invalid_learning_path(self, staff_client, bulk_enroll_url):
+        """Test bulk unenrollment with invalid learning path creates no changes."""
+        payload = {"learning_paths": "invalid-path-key", "emails": "user1@example.com"}
+        response = staff_client.delete(bulk_enroll_url, payload)
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert response.data["enrollments_unenrolled"] == 0
+
+    def test_unenroll_empty_parameters(self, staff_client, bulk_enroll_url):
+        """Test bulk unenrollment with empty or missing parameters doesn't affect existing enrollments."""
+        response1 = staff_client.delete(bulk_enroll_url, {"learning_paths": "", "emails": ""})
+        response2 = staff_client.delete(bulk_enroll_url, {})
+
+        for response in [response1, response2]:
+            assert response.status_code == status.HTTP_204_NO_CONTENT
+            assert response.data["enrollments_unenrolled"] == 0
 
 
 @pytest.mark.django_db
