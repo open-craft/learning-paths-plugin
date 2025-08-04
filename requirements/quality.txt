@@ -42,7 +42,7 @@ celery==5.5.3
     #   edx-celeryutils
     #   event-tracking
     #   openedx-completion-aggregator
-certifi==2025.7.9
+certifi==2025.8.3
     # via
     #   -r requirements/test.txt
     #   requests
@@ -85,7 +85,7 @@ code-annotations==2.3.0
     #   -r requirements/test.txt
     #   edx-lint
     #   edx-toggles
-coverage[toml]==7.9.2
+coverage[toml]==7.10.2
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -98,7 +98,7 @@ dill==0.4.0
     # via pylint
 django==4.2.23
     # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
+    #   -c https:/raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
     #   django-config-models
     #   django-crum
@@ -206,7 +206,7 @@ edx-opaque-keys[django]==3.0.0
     #   openedx-completion-aggregator
     #   openedx-events
     #   openedx-filters
-edx-toggles==5.3.0
+edx-toggles==5.4.1
     # via
     #   -r requirements/test.txt
     #   edx-completion
@@ -225,11 +225,11 @@ execnet==2.1.1
     #   pytest-xdist
 factory-boy==3.3.3
     # via -r requirements/test.txt
-faker==37.4.0
+faker==37.5.3
     # via
     #   -r requirements/test.txt
     #   factory-boy
-fastavro==1.11.1
+fastavro==1.12.0
     # via
     #   -r requirements/test.txt
     #   openedx-events
@@ -290,7 +290,7 @@ openedx-atlas==0.7.0
     # via -r requirements/test.txt
 openedx-completion-aggregator==4.2.0
     # via -r requirements/test.txt
-openedx-events==10.3.0
+openedx-events==10.4.0
     # via
     #   -r requirements/test.txt
     #   event-tracking
@@ -457,9 +457,8 @@ tzdata==2025.2
     #   -r requirements/test.txt
     #   faker
     #   kombu
-urllib3==2.2.3
+urllib3==2.5.0
     # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
     #   requests
 vine==5.1.0
