@@ -23,13 +23,13 @@ celery==5.5.3
     #   edx-celeryutils
     #   event-tracking
     #   openedx-completion-aggregator
-certifi==2025.7.9
+certifi==2025.8.3
     # via requests
 cffi==1.17.1
     # via
     #   cryptography
     #   pynacl
-charset-normalizer==3.4.2
+charset-normalizer==3.4.3
     # via requests
 click==8.2.1
     # via
@@ -47,13 +47,13 @@ click-repl==0.3.0
     # via celery
 code-annotations==2.3.0
     # via edx-toggles
-cryptography==45.0.5
+cryptography==45.0.6
     # via
     #   django-fernet-fields-v2
     #   pyjwt
 django==4.2.23
     # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
+    #   -c https:/raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.in
     #   django-config-models
     #   django-crum
@@ -97,7 +97,7 @@ django-waffle==5.0.0
     #   edx-django-utils
     #   edx-drf-extensions
     #   edx-toggles
-djangorestframework==3.16.0
+djangorestframework==3.16.1
     # via
     #   -r requirements/base.in
     #   django-config-models
@@ -138,7 +138,7 @@ edx-opaque-keys[django]==3.0.0
     #   openedx-completion-aggregator
     #   openedx-events
     #   openedx-filters
-edx-toggles==5.3.0
+edx-toggles==5.4.1
     # via
     #   edx-completion
     #   edx-event-routing-backends
@@ -149,7 +149,7 @@ event-tracking==3.3.0
     #   edx-completion
     #   edx-event-routing-backends
     #   openedx-completion-aggregator
-fastavro==1.11.1
+fastavro==1.12.0
     # via openedx-events
 fasteners==0.19
     # via edx-event-routing-backends
@@ -180,7 +180,7 @@ openedx-atlas==0.7.0
     # via -r requirements/base.in
 openedx-completion-aggregator==4.2.0
     # via -r requirements/base.in
-openedx-events==10.3.0
+openedx-events==10.4.0
     # via event-tracking
 openedx-filters==2.1.0
     # via edx-event-routing-backends
@@ -200,7 +200,7 @@ pyjwt[crypto]==2.10.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==4.13.2
+pymongo==4.14.0
     # via
     #   edx-opaque-keys
     #   event-tracking
@@ -224,7 +224,7 @@ pyyaml==6.0.2
     # via
     #   code-annotations
     #   xblock
-redis==6.2.0
+redis==6.4.0
     # via django-redis
 requests==2.32.4
     # via
@@ -257,10 +257,8 @@ typing-extensions==4.14.1
     # via edx-opaque-keys
 tzdata==2025.2
     # via kombu
-urllib3==2.2.3
-    # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
-    #   requests
+urllib3==2.5.0
+    # via requests
 vine==5.1.0
     # via
     #   amqp
