@@ -85,7 +85,7 @@ code-annotations==2.3.0
     #   -r requirements/test.txt
     #   edx-lint
     #   edx-toggles
-coverage[toml]==7.10.3
+coverage[toml]==7.10.4
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -191,7 +191,7 @@ edx-drf-extensions==10.6.0
     # via
     #   -r requirements/test.txt
     #   edx-completion
-edx-event-routing-backends==9.3.5
+edx-event-routing-backends==9.3.6
     # via
     #   -r requirements/test.txt
     #   openedx-completion-aggregator
@@ -233,7 +233,7 @@ fastavro==1.12.0
     # via
     #   -r requirements/test.txt
     #   openedx-events
-fasteners==0.19
+fasteners==0.20
     # via
     #   -r requirements/test.txt
     #   edx-event-routing-backends
@@ -303,7 +303,7 @@ packaging==25.0
     #   -r requirements/test.txt
     #   kombu
     #   pytest
-pbr==6.1.1
+pbr==7.0.0
     # via
     #   -r requirements/test.txt
     #   stevedore

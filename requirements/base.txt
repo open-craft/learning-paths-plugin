@@ -127,7 +127,7 @@ edx-django-utils==8.0.0
     #   openedx-events
 edx-drf-extensions==10.6.0
     # via edx-completion
-edx-event-routing-backends==9.3.5
+edx-event-routing-backends==9.3.6
     # via openedx-completion-aggregator
 edx-opaque-keys[django]==3.0.0
     # via
@@ -151,7 +151,7 @@ event-tracking==3.3.0
     #   openedx-completion-aggregator
 fastavro==1.12.0
     # via openedx-events
-fasteners==0.19
+fasteners==0.20
     # via edx-event-routing-backends
 fs==2.4.16
     # via xblock
@@ -186,7 +186,7 @@ openedx-filters==2.1.0
     # via edx-event-routing-backends
 packaging==25.0
     # via kombu
-pbr==6.1.1
+pbr==7.0.0
     # via stevedore
 pillow==11.3.0
     # via -r requirements/base.in
