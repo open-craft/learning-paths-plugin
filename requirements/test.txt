@@ -77,7 +77,7 @@ code-annotations==2.3.0
     #   -r requirements/base.txt
     #   -r requirements/test.in
     #   edx-toggles
-coverage[toml]==7.10.3
+coverage[toml]==7.10.5
     # via pytest-cov
 cryptography==45.0.6
     # via
@@ -178,7 +178,7 @@ edx-drf-extensions==10.6.0
     # via
     #   -r requirements/base.txt
     #   edx-completion
-edx-event-routing-backends==9.3.5
+edx-event-routing-backends==9.3.6
     # via
     #   -r requirements/base.txt
     #   openedx-completion-aggregator
@@ -214,7 +214,7 @@ fastavro==1.12.0
     # via
     #   -r requirements/base.txt
     #   openedx-events
-fasteners==0.19
+fasteners==0.20
     # via
     #   -r requirements/base.txt
     #   edx-event-routing-backends
@@ -245,7 +245,7 @@ kombu==5.5.4
     # via
     #   -r requirements/base.txt
     #   celery
-lxml==6.0.0
+lxml==6.0.1
     # via
     #   -r requirements/base.txt
     #   xblock
@@ -263,7 +263,7 @@ openedx-atlas==0.7.0
     # via -r requirements/base.txt
 openedx-completion-aggregator==4.2.0
     # via -r requirements/base.txt
-openedx-events==10.4.0
+openedx-events==10.5.0
     # via
     #   -r requirements/base.txt
     #   event-tracking
@@ -276,7 +276,7 @@ packaging==25.0
     #   -r requirements/base.txt
     #   kombu
     #   pytest
-pbr==6.1.1
+pbr==7.0.1
     # via
     #   -r requirements/base.txt
     #   stevedore
@@ -305,7 +305,7 @@ pyjwt[crypto]==2.10.1
     #   -r requirements/base.txt
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==4.14.0
+pymongo==4.14.1
     # via
     #   -r requirements/base.txt
     #   edx-opaque-keys
@@ -352,7 +352,7 @@ redis==6.4.0
     # via
     #   -r requirements/base.txt
     #   django-redis
-requests==2.32.4
+requests==2.32.5
     # via
     #   -r requirements/base.txt
     #   apache-libcloud
