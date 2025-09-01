@@ -92,6 +92,7 @@ class LearningPathStepInline(admin.TabularInline):
 
     model = LearningPathStep
     form = LearningPathStepForm
+    fields = ("course_key",)
 
 
 class AcquiredSkillInline(admin.TabularInline):
