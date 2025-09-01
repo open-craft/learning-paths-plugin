@@ -21,7 +21,6 @@ from .models import (
     LearningPathEnrollment,
     LearningPathEnrollmentAllowed,
     LearningPathEnrollmentAudit,
-    LearningPathGradingCriteria,
     LearningPathStep,
     RequiredSkill,
     Skill,
@@ -107,13 +106,6 @@ class RequiredSkillInline(admin.TabularInline):
     model = RequiredSkill
 
 
-class LearningPathGradingCriteriaInline(admin.TabularInline):
-    """Inline Admin for Learning path grading criteria."""
-
-    model = LearningPathGradingCriteria
-    verbose_name = "Certificate Criteria"
-
-
 class BulkEnrollUsersForm(forms.ModelForm):
     """Form to bulk enroll users in a learning path."""
 
@@ -168,7 +160,6 @@ class LearningPathAdmin(DjangoObjectActions, admin.ModelAdmin):
         LearningPathStepInline,
         RequiredSkillInline,
         AcquiredSkillInline,
-        LearningPathGradingCriteriaInline,
     ]
 
     change_actions = ("duplicate_learning_path",)
