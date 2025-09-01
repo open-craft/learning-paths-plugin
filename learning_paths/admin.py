@@ -163,7 +163,6 @@ class LearningPathAdmin(DjangoObjectActions, admin.ModelAdmin):
         "invite_only",
     )
     list_filter = ("invite_only",)
-    readonly_fields = ("key",)
 
     inlines = [
         LearningPathStepInline,
@@ -173,12 +172,6 @@ class LearningPathAdmin(DjangoObjectActions, admin.ModelAdmin):
     ]
 
     change_actions = ("duplicate_learning_path",)
-
-    def get_readonly_fields(self, request, obj=None):
-        """Make key read-only only for existing objects."""
-        if obj:  # Editing an existing object.
-            return self.readonly_fields
-        return ()  # Allow all fields during creation.
 
     def save_related(self, request, form, formsets, change):
         """Save related objects and enroll users in the learning path."""
