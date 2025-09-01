@@ -85,7 +85,7 @@ code-annotations==2.3.0
     #   -r requirements/test.txt
     #   edx-lint
     #   edx-toggles
-coverage[toml]==7.10.3
+coverage[toml]==7.10.6
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -191,7 +191,7 @@ edx-drf-extensions==10.6.0
     # via
     #   -r requirements/test.txt
     #   edx-completion
-edx-event-routing-backends==9.3.5
+edx-event-routing-backends==9.3.6
     # via
     #   -r requirements/test.txt
     #   openedx-completion-aggregator
@@ -225,7 +225,7 @@ execnet==2.1.1
     #   pytest-xdist
 factory-boy==3.3.3
     # via -r requirements/test.txt
-faker==37.5.3
+faker==37.6.0
     # via
     #   -r requirements/test.txt
     #   factory-boy
@@ -233,7 +233,7 @@ fastavro==1.12.0
     # via
     #   -r requirements/test.txt
     #   openedx-events
-fasteners==0.19
+fasteners==0.20
     # via
     #   -r requirements/test.txt
     #   edx-event-routing-backends
@@ -270,7 +270,7 @@ kombu==5.5.4
     # via
     #   -r requirements/test.txt
     #   celery
-lxml==6.0.0
+lxml==6.0.1
     # via
     #   -r requirements/test.txt
     #   xblock
@@ -290,7 +290,7 @@ openedx-atlas==0.7.0
     # via -r requirements/test.txt
 openedx-completion-aggregator==4.2.0
     # via -r requirements/test.txt
-openedx-events==10.4.0
+openedx-events==10.5.0
     # via
     #   -r requirements/test.txt
     #   event-tracking
@@ -303,20 +303,16 @@ packaging==25.0
     #   -r requirements/test.txt
     #   kombu
     #   pytest
-pbr==6.1.1
-    # via
-    #   -r requirements/test.txt
-    #   stevedore
 pillow==11.3.0
     # via -r requirements/test.txt
-platformdirs==4.3.8
+platformdirs==4.4.0
     # via pylint
 pluggy==1.6.0
     # via
     #   -r requirements/test.txt
     #   pytest
     #   pytest-cov
-prompt-toolkit==3.0.51
+prompt-toolkit==3.0.52
     # via
     #   -r requirements/test.txt
     #   click-repl
@@ -355,7 +351,7 @@ pylint-plugin-utils==0.9.0
     # via
     #   pylint-celery
     #   pylint-django
-pymongo==4.14.0
+pymongo==4.14.1
     # via
     #   -r requirements/test.txt
     #   edx-opaque-keys
@@ -403,7 +399,7 @@ redis==6.4.0
     # via
     #   -r requirements/test.txt
     #   django-redis
-requests==2.32.4
+requests==2.32.5
     # via
     #   -r requirements/test.txt
     #   apache-libcloud
@@ -432,7 +428,7 @@ sqlparse==0.5.3
     # via
     #   -r requirements/test.txt
     #   django
-stevedore==5.4.1
+stevedore==5.5.0
     # via
     #   -r requirements/test.txt
     #   code-annotations
@@ -448,7 +444,7 @@ tincan==1.0.0
     #   edx-event-routing-backends
 tomlkit==0.13.3
     # via pylint
-typing-extensions==4.14.1
+typing-extensions==4.15.0
     # via
     #   -r requirements/test.txt
     #   edx-opaque-keys
