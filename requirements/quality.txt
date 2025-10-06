@@ -20,7 +20,7 @@ appdirs==1.4.4
     # via
     #   -r requirements/test.txt
     #   fs
-asgiref==3.9.1
+asgiref==3.10.0
     # via
     #   -r requirements/test.txt
     #   django
@@ -42,7 +42,7 @@ celery==5.5.3
     #   edx-celeryutils
     #   event-tracking
     #   openedx-completion-aggregator
-certifi==2025.8.3
+certifi==2025.10.5
     # via
     #   -r requirements/test.txt
     #   requests
@@ -89,16 +89,16 @@ coverage[toml]==7.10.7
     # via
     #   -r requirements/test.txt
     #   pytest-cov
-cryptography==46.0.1
+cryptography==46.0.2
     # via
     #   -r requirements/test.txt
     #   django-fernet-fields-v2
     #   pyjwt
 dill==0.4.0
     # via pylint
-django==4.2.24
+django==4.2.25
     # via
-    #   -c https:/raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
+    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
     #   django-config-models
     #   django-crum
@@ -179,7 +179,7 @@ edx-completion==4.9
     # via
     #   -r requirements/test.txt
     #   openedx-completion-aggregator
-edx-django-utils==8.0.0
+edx-django-utils==8.0.1
     # via
     #   -r requirements/test.txt
     #   django-config-models
@@ -253,7 +253,7 @@ isodate==0.7.2
     # via
     #   -r requirements/test.txt
     #   edx-event-routing-backends
-isort==6.0.1
+isort==6.1.0
     # via
     #   -r requirements/quality.in
     #   pylint
@@ -270,7 +270,7 @@ kombu==5.5.4
     # via
     #   -r requirements/test.txt
     #   celery
-lxml==6.0.1
+lxml==6.0.2
     # via
     #   -r requirements/test.txt
     #   xblock
@@ -278,7 +278,7 @@ mako==1.3.10
     # via
     #   -r requirements/test.txt
     #   xblock
-markupsafe==3.0.2
+markupsafe==3.0.3
     # via
     #   -r requirements/test.txt
     #   jinja2
@@ -337,7 +337,7 @@ pyjwt[crypto]==2.10.1
     #   -r requirements/test.txt
     #   drf-jwt
     #   edx-drf-extensions
-pylint==3.3.8
+pylint==3.3.9
     # via
     #   edx-lint
     #   pylint-celery
@@ -351,7 +351,7 @@ pylint-plugin-utils==0.9.0
     # via
     #   pylint-celery
     #   pylint-django
-pymongo==4.15.1
+pymongo==4.15.2
     # via
     #   -r requirements/test.txt
     #   edx-opaque-keys
@@ -390,7 +390,7 @@ pytz==2025.2
     #   event-tracking
     #   tincan
     #   xblock
-pyyaml==6.0.2
+pyyaml==6.0.3
     # via
     #   -r requirements/test.txt
     #   code-annotations
@@ -409,7 +409,7 @@ semantic-version==2.10.0
     # via
     #   -r requirements/test.txt
     #   edx-drf-extensions
-simplejson==3.20.1
+simplejson==3.20.2
     # via
     #   -r requirements/test.txt
     #   xblock
@@ -463,7 +463,7 @@ vine==5.1.0
     #   amqp
     #   celery
     #   kombu
-wcwidth==0.2.13
+wcwidth==0.2.14
     # via
     #   -r requirements/test.txt
     #   prompt-toolkit
