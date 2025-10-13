@@ -16,6 +16,20 @@ Unreleased
 
 *
 
+0.3.5 - 2025-09-01
+******************
+
+Changed
+=======
+
+* Allow changing the Learning Path key in the Django admin interface.
+
+Removed
+=======
+
+* Grading criteria from the Django admin interface.
+* Step weight and order from the Django admin interface.
+
 0.3.4 - 2025-08-02
 ******************
 
