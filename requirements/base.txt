@@ -14,7 +14,7 @@ appdirs==1.4.4
     # via fs
 asgiref==3.10.0
     # via django
-attrs==25.3.0
+attrs==25.4.0
     # via openedx-events
 billiard==4.2.2
     # via celery
@@ -149,13 +149,13 @@ event-tracking==3.3.0
     #   edx-completion
     #   edx-event-routing-backends
     #   openedx-completion-aggregator
-fastavro==1.12.0
+fastavro==1.12.1
     # via openedx-events
 fasteners==0.20
     # via edx-event-routing-backends
 fs==2.4.16
     # via xblock
-idna==3.10
+idna==3.11
     # via requests
 isodate==0.7.2
     # via edx-event-routing-backends
@@ -198,7 +198,7 @@ pyjwt[crypto]==2.10.1
     # via
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==4.15.2
+pymongo==4.15.3
     # via
     #   edx-opaque-keys
     #   event-tracking
