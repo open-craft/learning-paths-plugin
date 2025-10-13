@@ -28,7 +28,7 @@ asgiref==3.10.0
     # via
     #   -r requirements/test.txt
     #   django
-attrs==25.3.0
+attrs==25.4.0
     # via
     #   -r requirements/test.txt
     #   openedx-events
@@ -236,11 +236,11 @@ execnet==2.1.1
     #   pytest-xdist
 factory-boy==3.3.3
     # via -r requirements/test.txt
-faker==37.8.0
+faker==37.11.0
     # via
     #   -r requirements/test.txt
     #   factory-boy
-fastavro==1.12.0
+fastavro==1.12.1
     # via
     #   -r requirements/test.txt
     #   openedx-events
@@ -254,7 +254,7 @@ fs==2.4.16
     #   xblock
 id==1.5.0
     # via twine
-idna==3.10
+idna==3.11
     # via
     #   -r requirements/test.txt
     #   requests
@@ -318,7 +318,7 @@ more-itertools==10.8.0
     # via
     #   jaraco-classes
     #   jaraco-functools
-nh3==0.3.0
+nh3==0.3.1
     # via readme-renderer
 openedx-atlas==0.7.0
     # via -r requirements/test.txt
@@ -377,7 +377,7 @@ pyjwt[crypto]==2.10.1
     #   -r requirements/test.txt
     #   drf-jwt
     #   edx-drf-extensions
-pymongo==4.15.2
+pymongo==4.15.3
     # via
     #   -r requirements/test.txt
     #   edx-opaque-keys
@@ -445,7 +445,7 @@ restructuredtext-lint==1.4.0
     # via doc8
 rfc3986==2.0.0
     # via twine
-rich==14.1.0
+rich==14.2.0
     # via twine
 roman-numerals-py==3.1.0
     # via sphinx
