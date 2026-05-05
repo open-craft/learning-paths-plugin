@@ -11,10 +11,8 @@ management of Learning Paths.
 License
 *******
 
-The code in this repository is licensed under the Not open source unless
-otherwise noted.
-
-Please see `LICENSE.txt <LICENSE.txt>`_ for details.
+The code in this repository is licensed under the GNU AGPLv3 unless otherwise
+noted. Please see `LICENSE.txt <LICENSE.txt>`_ for details.
 
 Installation and Configuration
 ******************************

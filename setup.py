@@ -158,7 +158,7 @@ setup(
         "Framework :: Django",
         "Framework :: Django :: 4.2",
         "Intended Audience :: Developers",
-        "License :: Other/Proprietary License",
+        "License :: OSI Approved :: GNU Affero General Public License v3",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.11",
