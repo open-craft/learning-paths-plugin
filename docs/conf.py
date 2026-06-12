@@ -550,7 +550,23 @@ def on_init(app):  # pylint: disable=unused-argument
     )
 
 
+def skip_lazy_db_attributes(app, what, name, obj, skip, options):  # pylint: disable=unused-argument
+    """
+    Skip documenting attributes backed by a lazy database query.
+
+    Sphinx autodoc calls ``repr()`` on every documented attribute. For class attributes, such as a DRF
+    view's ``queryset = Model.objects.all()``, this forces the lazy QuerySet to hit the database, which fails
+    during the docs build because no tables exist. Their runtime value is not useful documentation anyway.
+    """
+    from django.db.models import Manager, QuerySet  # pylint: disable=import-outside-toplevel
+
+    if isinstance(obj, (QuerySet, Manager)):
+        return True
+    return skip
+
+
 def setup(app):
     """Sphinx extension: run sphinx-apidoc."""
     event = "builder-inited"
     app.connect(event, on_init)
+    app.connect("autodoc-skip-member", skip_lazy_db_attributes)
