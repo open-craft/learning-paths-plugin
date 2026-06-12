@@ -518,8 +518,8 @@ epub_exclude_files = ["search.html"]
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3.11", None),
     "django": (
-        "https://docs.djangoproject.com/en/4.2/",
-        "https://docs.djangoproject.com/en/4.2/_objects/",
+        "https://docs.djangoproject.com/en/5.2/",
+        "https://docs.djangoproject.com/en/5.2/_objects/",
     ),
     "model_utils": ("https://django-model-utils.readthedocs.io/en/latest/", None),
 }
