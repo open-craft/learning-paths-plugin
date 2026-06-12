@@ -102,7 +102,6 @@ def learning_paths_with_steps():  # pylint: disable=missing-function-docstring
 
 @pytest.mark.django_db
 class TestLearningPathAsProgram:
-
     def test_list_learning_paths_as_programs(self, user, learning_paths):
         """Test listing LearningPaths as Programs."""
         url = reverse("learning-path-as-program-list")
@@ -119,7 +118,6 @@ class TestLearningPathAsProgram:
 
 @pytest.mark.django_db
 class TestLearningPathUserProgress:
-
     @patch("learning_paths.api.v1.views.get_aggregate_progress", return_value=0.75)
     def test_learning_path_progress_success(self, _mock_get_aggregate_progress, user, learning_path):
         """Test retrieving progress for a learning path."""
@@ -155,7 +153,6 @@ class TestLearningPathUserProgress:
 
 @pytest.mark.django_db
 class TestLearningPathUserGrade:
-
     def test_learning_path_grade_grading_criteria_not_found(self, authenticated_client, learning_path):
         """Test that the grade view returns 404 if grading criteria are not found."""
         learning_path.grading_criteria.delete()
@@ -200,7 +197,6 @@ class TestLearningPathUserGrade:
 
 @pytest.mark.django_db
 class TestLearningPathViewSet:
-
     @pytest.fixture(autouse=True)
     def setup_mock_course_dates(self):
         """Mock course dates that are retrieved from edx-platform."""
@@ -332,7 +328,6 @@ class TestLearningPathViewSet:
 
 @pytest.mark.django_db
 class TestLearningPathEnrollment:
-
     @pytest.fixture
     def enrollment_url(self, learning_path):
         return f"/api/learning_paths/v1/{learning_path.key}/enrollments/"
@@ -540,7 +535,6 @@ class TestLearningPathEnrollment:
 
 @pytest.mark.django_db
 class TestListEnrollmentsView:
-
     @pytest.fixture
     def enrollments_url(self):
         return "/api/learning_paths/v1/enrollments/"
@@ -584,7 +578,6 @@ class TestListEnrollmentsView:
 
 @pytest.mark.django_db
 class TestBulkEnrollAPI:
-
     @pytest.fixture
     def bulk_enroll_url(self):
         return "/api/learning_paths/v1/enrollments/bulk-enroll/"
@@ -839,7 +832,6 @@ class TestBulkEnrollAPI:
 
 @pytest.mark.django_db
 class TestLearningPathCourseEnrollment:
-
     @pytest.fixture
     def course_enrollment_url(self, learning_path_with_steps):
         return reverse(

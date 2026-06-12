@@ -8,3 +8,5 @@ edx-lint                  # edX pylint rules and plugins
 isort                     # to standardize order of imports
 pycodestyle               # PEP 8 compliance validation
 pydocstyle                # PEP 257 compliance validation
+ruff                      # Check the code for style and quality issues.
+yamllint                  # Check YAML files for syntax and style issues.
