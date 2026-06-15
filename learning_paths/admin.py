@@ -11,6 +11,7 @@ from django.core.files.base import ContentFile
 from django.db import transaction
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django_object_actions import DjangoObjectActions, action
 
@@ -62,7 +63,7 @@ class CourseKeyDatalistWidget(forms.TextInput):
         data_list_id = f"datalist_{name}"
         options = "\n".join(f'<option value="{choice}" />' for choice in self.choices)
         datalist_html = f'<datalist id="{data_list_id}">\n{options}\n</datalist>'
-        return f"{text_input_html}\n{datalist_html}"
+        return mark_safe(f"{text_input_html}\n{datalist_html}")
 
 
 class LearningPathStepForm(forms.ModelForm):

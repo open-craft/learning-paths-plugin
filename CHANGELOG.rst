@@ -16,6 +16,20 @@ Unreleased
 
 *
 
+0.4.0 - 2026-06-12
+******************
+
+Fixed
+=====
+
+* Mark course key admin widget as safe (Django 5.2 automatically escapes this code).
+* Do not evaluate DB queries when building the docs.
+
+Removed
+=======
+
+* Django 4.2 support.
+
 0.3.5 - 2025-09-01
 ******************
 

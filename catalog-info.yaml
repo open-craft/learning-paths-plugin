@@ -4,10 +4,14 @@
 apiVersion: backstage.io/v1alpha1
 kind: ""
 metadata:
-  name: 'learning-paths-plugin'
-  description: "Learning Paths plugin"
+  name: learning-paths-plugin
+  description: Learning Paths plugin
   annotations:
     # (Optional) Annotation keys and values can be whatever you want.
+    # We use it in Open edX repos to have a comma-separated list of GitHub user
+    # names that might be interested in changes to the architecture of this
+    # component.
+    openedx.org/arch-interest-groups: ""
 spec:
 
   # (Required) This can be a group(`group:<group_name>` or a user(`user:<github_username>`)
@@ -17,12 +21,12 @@ spec:
   type: ''
 
   # (Required) Acceptable Lifecycle Values: experimental, production, deprecated
-  lifecycle: 'experimental'
+  lifecycle: experimental
 
   # (Optional) The value can be the name of any known component.
-  subcomponentOf: '<name_of_a_component>'
+  subcomponentOf: <name_of_a_component>
 
   # (Optional) An array of different components or resources.
   dependsOn:
-  - '<component_or_resource>'
-  - '<another_component_or_resource>'
+    - <component_or_resource>
+    - <another_component_or_resource>
