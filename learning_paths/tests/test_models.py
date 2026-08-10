@@ -22,6 +22,7 @@ from learning_paths.models import (
 from .factories import (
     LearningPathEnrollmentAllowedFactory,
     LearningPathEnrollmentAuditFactory,
+    LearningPathStepFactory,
 )
 
 
@@ -144,6 +145,40 @@ class TestLearningPath:
         assert criteria is not None
         assert criteria.required_completion == 0.80
         assert criteria.required_grade == 0.75
+
+
+@pytest.mark.django_db
+class TestLearningPathStep:
+    """Tests for the LearningPathStep model."""
+
+    def test_string_representation(self, learning_path):
+        """Test the string representation."""
+        step = LearningPathStepFactory(learning_path=learning_path, order=2)
+        assert str(step) == f"2: {step.course_key}"
+
+    def test_steps_are_ordered_by_the_order_field(self, learning_path):
+        """Test that the steps are returned in their sequential order, regardless of their creation order."""
+        third = LearningPathStepFactory(learning_path=learning_path, order=3, course_key="course-v1:edX+DemoX+Third")
+        first = LearningPathStepFactory(learning_path=learning_path, order=1, course_key="course-v1:edX+DemoX+First")
+        second = LearningPathStepFactory(learning_path=learning_path, order=2, course_key="course-v1:edX+DemoX+Second")
+
+        assert list(learning_path.steps.all()) == [first, second, third]
+
+    def test_steps_without_order_are_listed_last(self, learning_path):
+        """Test that the steps with no explicit order are listed last, in the order of their creation."""
+        first_unordered = LearningPathStepFactory(
+            learning_path=learning_path,
+            order=None,
+            course_key="course-v1:edX+DemoX+FirstUnordered",
+        )
+        second_unordered = LearningPathStepFactory(
+            learning_path=learning_path,
+            order=None,
+            course_key="course-v1:edX+DemoX+SecondUnordered",
+        )
+        ordered = LearningPathStepFactory(learning_path=learning_path, order=1, course_key="course-v1:edX+DemoX+First")
+
+        assert list(learning_path.steps.all()) == [ordered, first_unordered, second_unordered]
 
 
 @pytest.mark.django_db

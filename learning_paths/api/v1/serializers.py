@@ -95,6 +95,13 @@ class LearningPathGradeSerializer(serializers.Serializer):
 
 
 class LearningPathStepSerializer(serializers.ModelSerializer):
+    """
+    Serializer for a Learning Path step.
+
+    The steps are serialized in the order defined by the ``order`` field, with
+    the steps that have no explicit order at the end.
+    """
+
     class Meta:
         model = LearningPathStep
         fields = ["order", "course_key", "course_dates", "weight"]

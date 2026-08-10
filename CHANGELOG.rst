@@ -16,6 +16,20 @@ Unreleased
 
 *
 
+0.5.0 - 2026-08-11
+******************
+
+Added
+=====
+
+* Step order in the Django admin interface.
+
+Changed
+=======
+
+* Order the Learning Path steps by their sequential order in the API, with the
+  steps that have no explicit order at the end.
+
 0.4.0 - 2026-06-12
 ******************
 
