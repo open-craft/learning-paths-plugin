@@ -152,6 +152,8 @@ class LearningPathViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         """
         Get all learning paths and prefetch the related data.
+
+        The steps are prefetched in their sequential order, with the steps that have no explicit order at the end.
         """
         user = self.request.user
         queryset = LearningPath.objects.get_paths_visible_to_user(user).prefetch_related(
