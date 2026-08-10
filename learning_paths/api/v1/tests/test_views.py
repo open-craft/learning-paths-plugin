@@ -238,6 +238,37 @@ class TestLearningPathViewSet:
             assert "course_dates" in first_step
             assert "weight" in first_step
 
+    @pytest.mark.parametrize("endpoint", ["learning-path-list", "learning-path-detail"], ids=["list", "detail"])
+    def test_learning_path_steps_are_ordered(self, authenticated_client, learning_path, endpoint):
+        """Test that the steps are returned in their sequential order, with the unordered ones at the end."""
+        LearningPathStepFactory.create(
+            learning_path=learning_path,
+            order=None,
+            course_key="course-v1:edX+DemoX+Unordered",
+        )
+        LearningPathStepFactory.create(
+            learning_path=learning_path,
+            order=2,
+            course_key="course-v1:edX+DemoX+Second",
+        )
+        LearningPathStepFactory.create(
+            learning_path=learning_path,
+            order=1,
+            course_key="course-v1:edX+DemoX+First",
+        )
+
+        args = [] if endpoint == "learning-path-list" else [learning_path.key]
+        response = authenticated_client.get(reverse(endpoint, args=args))
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.data[0] if endpoint == "learning-path-list" else response.data
+        assert [step["order"] for step in data["steps"]] == [1, 2, None]
+        assert [step["course_key"] for step in data["steps"]] == [
+            "course-v1:edX+DemoX+First",
+            "course-v1:edX+DemoX+Second",
+            "course-v1:edX+DemoX+Unordered",
+        ]
+
     def test_invalid_learning_path_key_returns_404(self, authenticated_client):
         """Test that an invalid learning path key format returns a 404 response."""
         url = reverse("learning-path-detail", args=["invalid-key-format"])

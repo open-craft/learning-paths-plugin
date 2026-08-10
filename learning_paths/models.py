@@ -195,6 +195,8 @@ class LearningPathStep(TimeStampedModel):
         """Model options."""
 
         unique_together = ("learning_path", "course_key")
+        # Steps without an explicit order are listed last, in the order of their creation.
+        ordering = (models.F("order").asc(nulls_last=True), "id")
 
     course_key = CourseKeyField(max_length=255)
     learning_path = models.ForeignKey(LearningPath, related_name="steps", on_delete=models.CASCADE)

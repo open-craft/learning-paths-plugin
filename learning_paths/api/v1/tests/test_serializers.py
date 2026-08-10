@@ -1,4 +1,7 @@
-# pylint: disable=missing-module-docstring
+# pylint: disable=missing-module-docstring,redefined-outer-name,unused-argument
+from datetime import datetime, timezone
+from unittest.mock import patch
+
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -12,7 +15,17 @@ from learning_paths.api.v1.serializers import (
 from learning_paths.tests.factories import (
     LearningPathEnrollmentFactory,
     LearningPathFactory,
+    LearningPathStepFactory,
 )
+
+
+@pytest.fixture
+def mock_course_dates():
+    """Mock course dates that are retrieved from edx-platform."""
+    start_date = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    end_date = datetime(2025, 1, 1, tzinfo=timezone.utc)
+    with patch("learning_paths.models.get_course_dates", return_value=(start_date, end_date)) as mock:
+        yield mock
 
 
 @pytest.mark.django_db
@@ -45,6 +58,24 @@ def test_learning_path_as_program_serializer(
         "course_codes": [],
     }
     assert dict(serializer.data) == expected
+
+
+@pytest.mark.django_db
+def test_learning_path_as_program_serializer_course_codes_order():
+    """
+    Tests that LearningPathAsProgram serializes the course codes in the sequential order of the steps.
+    """
+    learning_path = LearningPathFactory()
+    LearningPathStepFactory(learning_path=learning_path, order=None, course_key="course-v1:edX+UnorderedX+Run")
+    LearningPathStepFactory(learning_path=learning_path, order=2, course_key="course-v1:edX+SecondX+Run")
+    LearningPathStepFactory(learning_path=learning_path, order=1, course_key="course-v1:edX+FirstX+Run")
+
+    serializer = LearningPathAsProgramSerializer(learning_path)
+    assert [course_code["key"] for course_code in serializer.data["course_codes"]] == [
+        "FirstX",
+        "SecondX",
+        "UnorderedX",
+    ]
 
 
 @pytest.mark.django_db
@@ -107,6 +138,32 @@ def test_list_serializer():
         "enrollment_date": None,
     }
     assert dict(serializer.data) == expected
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "serializer_class",
+    [LearningPathListSerializer, LearningPathDetailSerializer],
+    ids=["list", "detail"],
+)
+def test_serializer_steps_order(mock_course_dates, serializer_class):
+    """
+    Tests that the steps are serialized in their sequential order, with the unordered ones at the end.
+    """
+    learning_path = LearningPathFactory()
+    LearningPathStepFactory(learning_path=learning_path, order=None, course_key="course-v1:edX+DemoX+Unordered")
+    LearningPathStepFactory(learning_path=learning_path, order=2, course_key="course-v1:edX+DemoX+Second")
+    LearningPathStepFactory(learning_path=learning_path, order=1, course_key="course-v1:edX+DemoX+First")
+
+    serializer = serializer_class(learning_path)
+    steps = serializer.data["steps"]
+
+    assert [step["order"] for step in steps] == [1, 2, None]
+    assert [step["course_key"] for step in steps] == [
+        "course-v1:edX+DemoX+First",
+        "course-v1:edX+DemoX+Second",
+        "course-v1:edX+DemoX+Unordered",
+    ]
 
 
 @pytest.mark.django_db
