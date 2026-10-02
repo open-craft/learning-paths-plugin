@@ -4,17 +4,20 @@ Tests for the learning_paths models.
 """
 
 import re
+from datetime import datetime, timezone
 
 import pytest
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.paginator import Paginator
 from django.db import IntegrityError
 from slugify import slugify
 
 from learning_paths.keys import LearningPathKey
 from learning_paths.models import (
     LearningPath,
+    LearningPathEnrollment,
     LearningPathEnrollmentAllowed,
     LearningPathEnrollmentAudit,
 )
@@ -22,6 +25,7 @@ from learning_paths.models import (
 from .factories import (
     LearningPathEnrollmentAllowedFactory,
     LearningPathEnrollmentAuditFactory,
+    LearningPathFactory,
 )
 
 
@@ -204,3 +208,31 @@ class TestLearningPathEnrollmentAudit:
         audit = LearningPathEnrollmentAuditFactory()
         expected_str = f"{LearningPathEnrollmentAudit.DEFAULT_TRANSITION_STATE} for unknown in unknown"
         assert str(audit) == expected_str
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("staff", [True, False])
+def test_visible_paths_use_unique_id_to_break_equal_enrollment_dates(user, staff):
+    """NULL and equal dates need a total ordering across successive pages."""
+    user.is_staff = staff
+    user.save()
+    # Deliberately opposite lexical names: the tie-breaker is immutable ID,
+    # rather than editable display text or key spelling.
+    paths = [LearningPathFactory(invite_only=False, display_name=name)
+             for name in ("Zulu", "Alpha", "Yankee", "Beta")]
+    same_date = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    for path in paths[:2]:
+        enrollment = LearningPathEnrollment.objects.create(learning_path=path, user=user, is_active=True)
+        LearningPathEnrollment.objects.filter(pk=enrollment.pk).update(created=same_date)
+    hidden = LearningPathFactory(invite_only=True)
+    visible = LearningPath.objects.get_paths_visible_to_user(user)
+    # SQLite may coincidentally return ID order without the tie-breaker. Require
+    # the unique term in the actual ORM ordering so that control cannot pass
+    # just because this small fixture happened to use one database plan.
+    assert visible.query.order_by[-1] == "id"
+    expected = [path.id for path in paths] + ([hidden.id] if staff else [])
+    assert list(visible.values_list("id", flat=True)) == expected
+    pages = Paginator(visible, 2)
+    observed = [path.id for number in pages.page_range for path in pages.page(number)]
+    assert observed == expected
+    assert len(observed) == len(set(observed))

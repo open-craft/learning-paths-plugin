@@ -60,7 +60,7 @@ class LearningPathManager(models.Manager):
             queryset = queryset.filter(Q(invite_only=False) | Q(enrollment_date__isnull=False))
 
         # Order by enrollment date (the most recent first), with null values at the end.
-        return queryset.order_by(models.F("enrollment_date").desc(nulls_last=True))
+        return queryset.order_by(models.F("enrollment_date").desc(nulls_last=True), "id")
 
 
 class LearningPath(TimeStampedModel):
