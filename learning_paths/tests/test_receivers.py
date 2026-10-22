@@ -9,7 +9,10 @@ from learning_paths.models import (
     LearningPathEnrollmentAllowed,
     LearningPathEnrollmentAudit,
 )
-from learning_paths.receivers import process_pending_enrollments
+from learning_paths.receivers import (
+    process_pending_enrollments,
+    process_pending_enrollments_for_user,
+)
 
 from .factories import (
     LearningPathEnrollmentAllowedFactory,
@@ -88,7 +91,8 @@ def test_process_pending_enrollments_only_processes_active_records(user_email, l
     """
     GIVEN that there are both active and inactive LearningPathEnrollmentAllowed objects for an email
     WHEN the process_pending_enrollments signal handler is triggered
-    THEN only active enrollment allowed records are processed
+    THEN only active enrollment allowed records are converted into enrollments
+    AND all enrollment allowed records are linked to the user
     """
     active_entry = LearningPathEnrollmentAllowedFactory(
         email=user_email, learning_path=learning_paths[0], is_active=True
@@ -110,7 +114,7 @@ def test_process_pending_enrollments_only_processes_active_records(user_email, l
 
     inactive_entry.refresh_from_db()
     assert inactive_entry.is_active is False
-    assert inactive_entry.user is None
+    assert inactive_entry.user == user
 
 
 @pytest.mark.django_db
@@ -144,6 +148,109 @@ def test_process_pending_enrollments_when_not_created(user_email):
 
     enrollments = LearningPathEnrollment.objects.all()
     assert len(enrollments) == 0
+
+
+# pylint: disable=protected-access
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "created,is_active,changed_fields,should_process",
+    [
+        (True, True, {}, True),
+        (True, False, {}, False),
+        (False, True, {"email": "old@example.com"}, True),
+        (False, True, {"is_active": False}, True),
+        (False, False, {"email": "old@example.com"}, False),
+        (False, True, {"last_login": None}, False),
+        (False, True, {}, False),
+    ],
+    ids=[
+        "created_active",
+        "created_inactive",
+        "email_changed",
+        "account_activated",
+        "email_changed_inactive",
+        "unrelated_change",
+        "no_changes",
+    ],
+)
+def test_process_pending_enrollments_triggers(  # pylint: disable=too-many-positional-arguments
+    user_email, learning_paths, created, is_active, changed_fields, should_process
+):
+    """
+    GIVEN that there is an active LearningPathEnrollmentAllowed object for an email
+    WHEN the process_pending_enrollments signal handler is triggered for a user with this email
+    THEN the entry is processed only for active users that were created, activated, or changed their email
+    """
+    entry = LearningPathEnrollmentAllowedFactory(email=user_email, learning_path=learning_paths[0])
+    user = UserFactory(email=user_email, is_active=is_active)
+    user._changed_fields = changed_fields
+
+    process_pending_enrollments(sender=User, instance=user, created=created)
+
+    entry.refresh_from_db()
+    assert LearningPathEnrollment.objects.filter(user=user).exists() is should_process
+    assert entry.is_active is not should_process
+    assert entry.user == (user if should_process else None)
+
+
+@pytest.mark.django_db
+def test_process_pending_enrollments_does_not_reactivate_existing_enrollment(user_email, learning_paths):
+    """
+    GIVEN that there is an active LearningPathEnrollmentAllowed object for an email
+    AND the user with this email has an inactive enrollment in the same learning path
+    WHEN the process_pending_enrollments signal handler is triggered
+    THEN the existing enrollment is not reactivated
+    AND the enrollment allowed record is deactivated and linked to the user
+    """
+    user = UserFactory(email=user_email)
+    enrollment = LearningPathEnrollmentFactory(user=user, learning_path=learning_paths[0], is_active=False)
+    entry = LearningPathEnrollmentAllowedFactory(email=user_email, learning_path=learning_paths[0])
+
+    process_pending_enrollments(sender=User, instance=user, created=True)
+
+    enrollment.refresh_from_db()
+    assert enrollment.is_active is False
+    assert LearningPathEnrollment.objects.count() == 1
+
+    entry.refresh_from_db()
+    assert entry.is_active is False
+    assert entry.user == user
+
+
+@pytest.mark.django_db
+def test_process_pending_enrollments_skips_entries_claimed_by_another_user(user_email, learning_paths):
+    """
+    GIVEN that there is a LearningPathEnrollmentAllowed object linked to another user
+    WHEN a user changes the email to the one from this object
+    THEN the entry is not processed for this user
+    """
+    other_user = UserFactory()
+    entry = LearningPathEnrollmentAllowedFactory(
+        email=user_email, learning_path=learning_paths[0], user=other_user, is_active=False
+    )
+    user = UserFactory(email=user_email)
+    user._changed_fields = {"email": "old@example.com"}
+
+    process_pending_enrollments(sender=User, instance=user, created=False)
+
+    entry.refresh_from_db()
+    assert entry.user == other_user
+    assert not LearningPathEnrollment.objects.filter(user=user).exists()
+
+
+@pytest.mark.django_db
+def test_process_pending_enrollments_for_user_returns_created_count(user_email, learning_paths):
+    """
+    GIVEN that there are active and inactive LearningPathEnrollmentAllowed objects for an email
+    WHEN process_pending_enrollments_for_user is called
+    THEN it returns the number of created enrollments
+    """
+    LearningPathEnrollmentAllowedFactory(email=user_email, learning_path=learning_paths[0])
+    LearningPathEnrollmentAllowedFactory(email=user_email, learning_path=learning_paths[1], is_active=False)
+    user = UserFactory(email=user_email)
+
+    assert process_pending_enrollments_for_user(user) == 1
+    assert process_pending_enrollments_for_user(user) == 0
 
 
 # pylint: disable=protected-access

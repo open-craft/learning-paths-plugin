@@ -16,6 +16,16 @@ Unreleased
 
 *
 
+0.6.0 - 2026-10-22
+******************
+
+Fixed
+=====
+
+* Process pending Learning Path enrollments when a user activates the account or changes the email address, instead
+  of only when the account is created. Enrollments are no longer created for accounts that have not been activated.
+* Link all unclaimed enrollment allowed records to the user, including the inactive ones.
+
 0.5.0 - 2026-08-11
 ******************
 

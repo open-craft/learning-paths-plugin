@@ -4,7 +4,6 @@
 
 import logging
 
-from django.db import IntegrityError
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -19,63 +18,82 @@ logger = logging.getLogger(__name__)
 
 def process_pending_enrollments(sender, instance, created, **kwargs):
     """
-    Process pending enrollments after a user instance has been created.
+    Process pending enrollments when a user becomes able to claim them.
 
     Bulk enrollment API allows enrolling users with just the email. So learners who
     do not have an account yet would also be enrolled. This information is stored
     in the LearningPathEnrollmentAllowed model. This signal handler processes such
-    instances and created the corresponding LearningPathEnrollment objects.
+    instances and creates the corresponding LearningPathEnrollment objects.
+
+    The entries are processed only for active users (i.e., users who confirmed their email address) when:
+    1. The user is created (e.g., when the account is created already activated).
+    2. The user activates the account.
+    3. The user changes the email address (the change is applied after confirming the new email address).
 
     Args:
         sender: User model class.
         instance: The actual instance being saved.
         created: A boolean indicating whether this is a creation and not an update.
     """
-    if not created:
-        logger.debug(
-            "[LearningPaths] Skipping processing of pending enrollments for user %s.",
-            instance,
-        )
+    # `_changed_fields` is set by the `pre_save` receiver of the User model in edx-platform.
+    changed_fields = getattr(instance, "_changed_fields", {})
+    if not instance.is_active or not (created or {"email", "is_active"} & changed_fields.keys()):
         return
 
-    logger.info("[LearningPaths] Processing pending enrollments for user %s", instance)
-    pending_enrollments = LearningPathEnrollmentAllowed.objects.filter(email=instance.email, is_active=True)
+    process_pending_enrollments_for_user(instance)
+
+
+def process_pending_enrollments_for_user(user) -> int:
+    """
+    Process the LearningPathEnrollmentAllowed entries matching the user's email.
+
+    Active entries are converted into enrollments, unless the user already has an enrollment (active or not) in the
+    learning path. All entries that are not linked to any user yet are deactivated and linked to the user, so they
+    cannot be claimed by another account that changes its email to the same address.
+
+    Returns:
+        The number of created enrollments.
+    """
+    logger.info("[LearningPaths] Processing pending enrollments for user %s", user)
+    pending_enrollments = LearningPathEnrollmentAllowed.objects.filter(email=user.email, user__isnull=True)
     enrollments_created = 0
 
     for entry in pending_enrollments:
-        try:
+        enrollment_exists = LearningPathEnrollment.objects.filter(learning_path=entry.learning_path, user=user).exists()
+
+        if entry.is_active and not enrollment_exists:
             audit_data = {
-                "enrolled_by": instance,
+                "enrolled_by": user,
                 "state_transition": LearningPathEnrollmentAudit.ALLOWEDTOENROLL_TO_ENROLLED,
             }
             if last_allowed_audit := entry.audit.order_by("-created").first():
                 for field in ["reason", "org", "role"]:
                     audit_data[field] = getattr(last_allowed_audit, field, "")
 
-            enrollment = LearningPathEnrollment(learning_path=entry.learning_path, user=instance)
+            enrollment = LearningPathEnrollment(learning_path=entry.learning_path, user=user)
             enrollment._audit = audit_data  # pylint: disable=protected-access
             enrollment.save()
             enrollments_created += 1
 
             # Link existing audits from the "allowed to enroll" entry to the new enrollment.
             entry.audit.update(enrollment=enrollment)
-
-        except IntegrityError:  # pragma: no cover
+        elif entry.is_active:
             logger.info(
                 "[LearningPaths] Enrollment already exists for user %s in the learning path %s",
-                instance,
+                user,
                 entry.learning_path.key,
             )
-        finally:
-            entry.is_active = False
-            entry.user = instance
-            entry.save()
+
+        entry.is_active = False
+        entry.user = user
+        entry.save()
 
     logger.info(
         "[LearningPaths] Processed %d pending Learning Path enrollments for user %s.",
         enrollments_created,
-        instance,
+        user,
     )
+    return enrollments_created
 
 
 def _create_enrollment_audit(instance: LearningPathEnrollment | LearningPathEnrollmentAllowed, audit_data: dict):
